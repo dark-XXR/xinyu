@@ -1,0 +1,12 @@
+{
+  "name": "love-reply-assistant",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "contract:lint": "redocly lint contracts/openapi/openapi.yaml",
+    "contract:bundle": "redocly bundle contracts/openapi/openapi.yaml -o contracts/openapi/dist/openapi.yaml"
+  },
+  "devDependencies": {
+    "@redocly/cli": "2.46.0"
+  }
+}

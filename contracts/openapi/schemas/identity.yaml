@@ -1,0 +1,293 @@
+SmsPurpose:
+  type: string
+  enum: [LOGIN]
+
+SmsSendRequest:
+  type: object
+  additionalProperties: false
+  required: [phoneNumber, countryCode, purpose]
+  properties:
+    phoneNumber:
+      type: string
+      pattern: ^[0-9]{6,15}$
+      description: National significant number without separators.
+    countryCode:
+      type: string
+      pattern: ^\+[1-9][0-9]{0,3}$
+    purpose:
+      $ref: "#/SmsPurpose"
+    captchaToken:
+      type: [string, "null"]
+      maxLength: 2048
+
+SmsChallenge:
+  type: object
+  additionalProperties: false
+  required: [challengeId, expiresAt, resendAfterSeconds]
+  properties:
+    challengeId:
+      type: string
+    expiresAt:
+      type: string
+      format: date-time
+    resendAfterSeconds:
+      type: integer
+      minimum: 1
+
+SmsChallengeResponse:
+  allOf:
+    - $ref: ../components/schemas/common.yaml#/BaseSuccessEnvelope
+    - type: object
+      properties:
+        data:
+          $ref: "#/SmsChallenge"
+
+SmsLoginRequest:
+  type: object
+  additionalProperties: false
+  required: [challengeId, code]
+  properties:
+    challengeId:
+      type: string
+    code:
+      type: string
+      pattern: ^[0-9]{4,8}$
+
+TokenPair:
+  type: object
+  additionalProperties: false
+  required: [accessToken, accessTokenExpiresAt, refreshToken, refreshTokenExpiresAt]
+  properties:
+    accessToken:
+      type: string
+    accessTokenExpiresAt:
+      type: string
+      format: date-time
+    refreshToken:
+      type: string
+    refreshTokenExpiresAt:
+      type: string
+      format: date-time
+
+AccountStatus:
+  type: string
+  enum: [ACTIVE, DELETION_PENDING, SUSPENDED]
+
+User:
+  type: object
+  additionalProperties: false
+  required: [userId, status, locale, timeZone, resourceVersion, createdAt, updatedAt]
+  properties:
+    userId:
+      type: string
+    status:
+      $ref: "#/AccountStatus"
+    nickname:
+      type: [string, "null"]
+      maxLength: 64
+    avatarUrl:
+      type: [string, "null"]
+      format: uri
+    locale:
+      type: string
+    timeZone:
+      type: string
+    resourceVersion:
+      type: integer
+      minimum: 1
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: string
+      format: date-time
+
+PendingConsent:
+  type: object
+  additionalProperties: false
+  required: [consentType, documentVersion, required]
+  properties:
+    consentType:
+      $ref: "#/ConsentType"
+    documentVersion:
+      type: string
+    required:
+      type: boolean
+
+LoginData:
+  type: object
+  additionalProperties: false
+  required: [tokens, user, pendingConsents]
+  properties:
+    tokens:
+      $ref: "#/TokenPair"
+    user:
+      $ref: "#/User"
+    pendingConsents:
+      type: array
+      items:
+        $ref: "#/PendingConsent"
+
+LoginResponse:
+  allOf:
+    - $ref: ../components/schemas/common.yaml#/BaseSuccessEnvelope
+    - type: object
+      properties:
+        data:
+          $ref: "#/LoginData"
+
+RefreshRequest:
+  type: object
+  additionalProperties: false
+  required: [refreshToken]
+  properties:
+    refreshToken:
+      type: string
+
+TokenResponse:
+  allOf:
+    - $ref: ../components/schemas/common.yaml#/BaseSuccessEnvelope
+    - type: object
+      properties:
+        data:
+          $ref: "#/TokenPair"
+
+UserResponse:
+  allOf:
+    - $ref: ../components/schemas/common.yaml#/BaseSuccessEnvelope
+    - type: object
+      properties:
+        data:
+          $ref: "#/User"
+
+UpdateUserRequest:
+  type: object
+  additionalProperties: false
+  minProperties: 1
+  properties:
+    nickname:
+      type: [string, "null"]
+      maxLength: 64
+    avatarUrl:
+      type: [string, "null"]
+      format: uri
+    locale:
+      type: string
+      maxLength: 35
+    timeZone:
+      type: string
+      maxLength: 64
+
+Device:
+  type: object
+  additionalProperties: false
+  required: [deviceId, platform, current, lastSeenAt, createdAt]
+  properties:
+    deviceId:
+      type: string
+    platform:
+      type: string
+      const: ANDROID
+    model:
+      type: [string, "null"]
+    current:
+      type: boolean
+    lastSeenAt:
+      type: string
+      format: date-time
+    createdAt:
+      type: string
+      format: date-time
+
+DeviceListData:
+  type: object
+  additionalProperties: false
+  required: [items]
+  properties:
+    items:
+      type: array
+      items:
+        $ref: "#/Device"
+
+DeviceListResponse:
+  allOf:
+    - $ref: ../components/schemas/common.yaml#/BaseSuccessEnvelope
+    - type: object
+      properties:
+        data:
+          $ref: "#/DeviceListData"
+
+ConsentType:
+  type: string
+  enum: [TERMS_OF_SERVICE, PRIVACY_POLICY, SERVICE_REQUIRED, MODEL_TRAINING, MARKETING]
+
+ConsentRecord:
+  type: object
+  additionalProperties: false
+  required: [consentType, documentVersion, granted, required, resourceVersion, updatedAt]
+  properties:
+    consentType:
+      $ref: "#/ConsentType"
+    documentVersion:
+      type: string
+    granted:
+      type: boolean
+    required:
+      type: boolean
+    grantedAt:
+      type: [string, "null"]
+      format: date-time
+    resourceVersion:
+      type: integer
+      minimum: 1
+    updatedAt:
+      type: string
+      format: date-time
+
+ConsentListData:
+  type: object
+  additionalProperties: false
+  required: [items]
+  properties:
+    items:
+      type: array
+      items:
+        $ref: "#/ConsentRecord"
+
+ConsentListResponse:
+  allOf:
+    - $ref: ../components/schemas/common.yaml#/BaseSuccessEnvelope
+    - type: object
+      properties:
+        data:
+          $ref: "#/ConsentListData"
+
+UpdateConsentRequest:
+  type: object
+  additionalProperties: false
+  required: [documentVersion, granted]
+  properties:
+    documentVersion:
+      type: string
+    granted:
+      type: boolean
+
+ConsentResponse:
+  allOf:
+    - $ref: ../components/schemas/common.yaml#/BaseSuccessEnvelope
+    - type: object
+      properties:
+        data:
+          $ref: "#/ConsentRecord"
+
+EmptyData:
+  type: object
+  additionalProperties: false
+
+EmptyResponse:
+  allOf:
+    - $ref: ../components/schemas/common.yaml#/BaseSuccessEnvelope
+    - type: object
+      properties:
+        data:
+          $ref: "#/EmptyData"

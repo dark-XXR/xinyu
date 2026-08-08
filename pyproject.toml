@@ -1,0 +1,55 @@
+[build-system]
+requires = ["setuptools>=75", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "love-reply-api"
+version = "0.1.0"
+description = "Contract-first backend for the High-EQ Love Reply Assistant"
+requires-python = ">=3.11"
+dependencies = [
+  "alembic>=1.16,<2",
+  "asyncpg>=0.30,<1",
+  "fastapi>=0.116,<1",
+  "httpx>=0.28,<1",
+  "PyJWT[crypto]>=2.10,<3",
+  "pydantic-settings>=2.10,<3",
+  "python-multipart>=0.0.20,<1",
+  "redis>=6.2,<7",
+  "sqlalchemy[asyncio]>=2.0.41,<3",
+  "structlog>=25.4,<26",
+  "uvicorn[standard]>=0.35,<1",
+]
+
+[project.optional-dependencies]
+dev = [
+  "mypy>=1.17,<2",
+  "pytest>=8.4,<9",
+  "pytest-asyncio>=1.1,<2",
+  "pytest-cov>=6.2,<7",
+  "PyYAML>=6,<7",
+  "ruff>=0.12,<1",
+]
+
+[tool.setuptools]
+package-dir = {"" = "services/api/src"}
+
+[tool.setuptools.packages.find]
+where = ["services/api/src"]
+
+[tool.pytest.ini_options]
+addopts = "-q --strict-markers"
+testpaths = ["services/api/tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "ASYNC"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+packages = ["love_reply_api"]
+plugins = ["pydantic.mypy"]

@@ -1,0 +1,88 @@
+openapi: 3.1.0
+info:
+  title: Love Reply Assistant API
+  version: 1.0.0
+  description: |
+    Contract-first API for Android, administration, workers, and provider
+    integrations. Public wire fields use lowerCamelCase and all timestamps use
+    RFC 3339 UTC.
+  license:
+    name: Proprietary
+    identifier: LicenseRef-Proprietary
+servers:
+  - url: http://localhost:8000
+    description: Local development
+  - url: https://api.example.com
+    description: Production placeholder
+security:
+  - bearerAuth: []
+tags:
+  - name: APP_CONFIG
+    description: Application bootstrap, health, and release configuration.
+  - name: AUTH
+    description: SMS authentication, access tokens, and session revocation.
+  - name: USER
+    description: Account profile and authenticated device management.
+  - name: CONSENT
+    description: Legal and optional consent records.
+  - name: DATA_GOVERNANCE
+    description: User export and account deletion requests.
+paths:
+  /health:
+    get:
+      operationId: getHealth
+      summary: Read service health
+      tags: [APP_CONFIG]
+      security: []
+      parameters:
+        - $ref: ./components/parameters.yaml#/XRequestId
+      responses:
+        "200":
+          description: Service is accepting requests.
+          headers:
+            X-Request-Id:
+              $ref: ./components/headers.yaml#/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./components/schemas/common.yaml#/HealthSuccessResponse
+              examples:
+                healthy:
+                  $ref: ../examples/common/health-success.yaml
+        "400":
+          $ref: ./components/responses.yaml#/BadRequest
+        "500":
+          $ref: ./components/responses.yaml#/InternalError
+  /v1/auth/sms/send:
+    $ref: ./paths/auth.yaml#/smsSend
+  /v1/auth/sms/login:
+    $ref: ./paths/auth.yaml#/smsLogin
+  /v1/auth/refresh:
+    $ref: ./paths/auth.yaml#/refresh
+  /v1/auth/logout:
+    $ref: ./paths/auth.yaml#/logout
+  /v1/auth/logout-all:
+    $ref: ./paths/auth.yaml#/logoutAll
+  /v1/me:
+    $ref: ./paths/me.yaml#/me
+  /v1/me/devices:
+    $ref: ./paths/me.yaml#/devices
+  /v1/me/devices/{deviceId}:
+    $ref: ./paths/me.yaml#/device
+  /v1/me/consents:
+    $ref: ./paths/me.yaml#/consents
+  /v1/me/consents/{consentType}:
+    $ref: ./paths/me.yaml#/consent
+  /v1/me/data-export:
+    $ref: ./paths/me.yaml#/dataExport
+  /v1/me/data-requests/{requestId}:
+    $ref: ./paths/me.yaml#/dataRequest
+  /v1/me/deletion:
+    $ref: ./paths/me.yaml#/deletion
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Short-lived access token. Tokens are never accepted in URLs.

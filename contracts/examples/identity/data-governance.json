@@ -1,0 +1,231 @@
+{
+  "module": "DATA_GOVERNANCE",
+  "fixtures": [
+    {
+      "id": "privacy.requestDataExport.response.accepted",
+      "operationId": "requestDataExport",
+      "kind": "response",
+      "statusCode": "202",
+      "mediaType": "application/json",
+      "value": {
+        "code": "OK",
+        "message": "accepted",
+        "data": {
+          "requestId": "data_request_fixture_export_001",
+          "jobId": "job_fixture_export_001",
+          "requestType": "EXPORT",
+          "status": "REQUESTED",
+          "downloadUrl": null,
+          "expiresAt": null,
+          "rejectionReasonCode": null,
+          "createdAt": "2026-08-08T11:00:00Z",
+          "updatedAt": "2026-08-08T11:00:00Z"
+        },
+        "requestId": "req_fixture_privacy_001",
+        "timestamp": "2026-08-08T11:00:00Z"
+      }
+    },
+    {
+      "id": "privacy.requestDataExport.response.inProgress",
+      "operationId": "requestDataExport",
+      "kind": "response",
+      "statusCode": "409",
+      "mediaType": "application/json",
+      "value": {
+        "code": "DATA_REQUEST_IN_PROGRESS",
+        "message": "An export request is already in progress.",
+        "data": null,
+        "error": {
+          "retryable": false,
+          "retryAfterSeconds": null,
+          "fieldErrors": [],
+          "details": {"requestId": "data_request_fixture_export_001"}
+        },
+        "requestId": "req_fixture_privacy_002",
+        "timestamp": "2026-08-08T11:00:01Z"
+      }
+    },
+    {
+      "id": "privacy.getDataRequest.response.completed",
+      "operationId": "getDataRequest",
+      "kind": "response",
+      "statusCode": "200",
+      "mediaType": "application/json",
+      "value": {
+        "code": "OK",
+        "message": "success",
+        "data": {
+          "requestId": "data_request_fixture_export_001",
+          "jobId": "job_fixture_export_001",
+          "requestType": "EXPORT",
+          "status": "COMPLETED",
+          "downloadUrl": "https://download.example.invalid/fixture/export-001",
+          "expiresAt": "2026-08-09T11:30:00Z",
+          "rejectionReasonCode": null,
+          "createdAt": "2026-08-08T11:00:00Z",
+          "updatedAt": "2026-08-08T11:30:00Z"
+        },
+        "requestId": "req_fixture_privacy_003",
+        "timestamp": "2026-08-08T11:30:00Z"
+      }
+    },
+    {
+      "id": "privacy.getDataRequest.response.notFound",
+      "operationId": "getDataRequest",
+      "kind": "response",
+      "statusCode": "404",
+      "mediaType": "application/json",
+      "value": {
+        "code": "RESOURCE_NOT_FOUND",
+        "message": "The data request does not exist.",
+        "data": null,
+        "error": {
+          "retryable": false,
+          "retryAfterSeconds": null,
+          "fieldErrors": [],
+          "details": {}
+        },
+        "requestId": "req_fixture_privacy_004",
+        "timestamp": "2026-08-08T11:30:01Z"
+      }
+    },
+    {
+      "id": "privacy.getDeletionStatus.response.pending",
+      "operationId": "getDeletionStatus",
+      "kind": "response",
+      "statusCode": "200",
+      "mediaType": "application/json",
+      "value": {
+        "code": "OK",
+        "message": "success",
+        "data": {
+          "requestId": "data_request_fixture_deletion_001",
+          "jobId": null,
+          "requestType": "DELETION",
+          "status": "REQUESTED",
+          "downloadUrl": null,
+          "expiresAt": null,
+          "rejectionReasonCode": null,
+          "createdAt": "2026-08-08T12:00:00Z",
+          "updatedAt": "2026-08-08T12:00:00Z",
+          "coolingOffEndsAt": "2026-08-15T12:00:00Z",
+          "estimatedCompletionAt": "2026-08-16T12:00:00Z",
+          "blockers": []
+        },
+        "requestId": "req_fixture_privacy_005",
+        "timestamp": "2026-08-08T12:00:00Z"
+      }
+    },
+    {
+      "id": "privacy.getDeletionStatus.response.unauthorized",
+      "operationId": "getDeletionStatus",
+      "kind": "response",
+      "statusCode": "401",
+      "mediaType": "application/json",
+      "value": {
+        "code": "TOKEN_EXPIRED",
+        "message": "Authentication is required.",
+        "data": null,
+        "error": {
+          "retryable": false,
+          "retryAfterSeconds": null,
+          "fieldErrors": [],
+          "details": {}
+        },
+        "requestId": "req_fixture_privacy_006",
+        "timestamp": "2026-08-08T12:00:01Z"
+      }
+    },
+    {
+      "id": "privacy.requestAccountDeletion.request.valid",
+      "operationId": "requestAccountDeletion",
+      "kind": "request",
+      "mediaType": "application/json",
+      "value": {
+        "confirmation": "DELETE_MY_ACCOUNT",
+        "reasonCode": "PRIVACY_CONCERN"
+      }
+    },
+    {
+      "id": "privacy.requestAccountDeletion.response.accepted",
+      "operationId": "requestAccountDeletion",
+      "kind": "response",
+      "statusCode": "202",
+      "mediaType": "application/json",
+      "value": {
+        "code": "OK",
+        "message": "accepted",
+        "data": {
+          "requestId": "data_request_fixture_deletion_001",
+          "jobId": null,
+          "requestType": "DELETION",
+          "status": "REQUESTED",
+          "downloadUrl": null,
+          "expiresAt": null,
+          "rejectionReasonCode": null,
+          "createdAt": "2026-08-08T12:00:00Z",
+          "updatedAt": "2026-08-08T12:00:00Z",
+          "coolingOffEndsAt": "2026-08-15T12:00:00Z",
+          "estimatedCompletionAt": "2026-08-16T12:00:00Z",
+          "blockers": []
+        },
+        "requestId": "req_fixture_privacy_007",
+        "timestamp": "2026-08-08T12:00:00Z"
+      }
+    },
+    {
+      "id": "privacy.requestAccountDeletion.response.inProgress",
+      "operationId": "requestAccountDeletion",
+      "kind": "response",
+      "statusCode": "409",
+      "mediaType": "application/json",
+      "value": {
+        "code": "DATA_REQUEST_IN_PROGRESS",
+        "message": "An account deletion request is already active.",
+        "data": null,
+        "error": {
+          "retryable": false,
+          "retryAfterSeconds": null,
+          "fieldErrors": [],
+          "details": {"requestId": "data_request_fixture_deletion_001"}
+        },
+        "requestId": "req_fixture_privacy_008",
+        "timestamp": "2026-08-08T12:00:01Z"
+      }
+    },
+    {
+      "id": "privacy.cancelAccountDeletion.response.success",
+      "operationId": "cancelAccountDeletion",
+      "kind": "response",
+      "statusCode": "200",
+      "mediaType": "application/json",
+      "value": {
+        "code": "OK",
+        "message": "success",
+        "data": {},
+        "requestId": "req_fixture_privacy_009",
+        "timestamp": "2026-08-08T12:05:00Z"
+      }
+    },
+    {
+      "id": "privacy.cancelAccountDeletion.response.coolingOffExpired",
+      "operationId": "cancelAccountDeletion",
+      "kind": "response",
+      "statusCode": "409",
+      "mediaType": "application/json",
+      "value": {
+        "code": "DELETION_COOLING_OFF_EXPIRED",
+        "message": "The deletion request can no longer be cancelled.",
+        "data": null,
+        "error": {
+          "retryable": false,
+          "retryAfterSeconds": null,
+          "fieldErrors": [],
+          "details": {}
+        },
+        "requestId": "req_fixture_privacy_010",
+        "timestamp": "2026-08-08T12:05:01Z"
+      }
+    }
+  ]
+}

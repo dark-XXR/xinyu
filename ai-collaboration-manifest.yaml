@@ -1,0 +1,545 @@
+schemaVersion: "1.0"
+project:
+  code: love_reply_assistant
+  displayName: 高情商恋爱回复助手
+  contractVersion: "1.0.0"
+  phase: documentation_baseline
+  defaultLocale: zh-CN
+  timeZoneStorage: UTC
+  collaborationReadOrder:
+    - ai-collaboration-manifest.yaml
+    - 多AI协同开发接口命名与连接标准.md
+    - WORK_ITEMS.yaml
+    - 高情商恋爱回复助手 - Android页面与API规范文档.md
+    - 恋爱高情商回复助手 - 产品功能架构文档 (1).md
+
+authority:
+  securityRule: stricter_rule_wins
+  wireContract:
+    current: 高情商恋爱回复助手 - Android页面与API规范文档.md
+    future: contracts/openapi/openapi.yaml
+    futureStatus: draft_in_progress
+  moduleRegistry: ai-collaboration-manifest.yaml
+  workPlan: WORK_ITEMS.yaml
+  engineeringStandard: 多AI协同开发接口命名与连接标准.md
+  productScope: 恋爱高情商回复助手 - 产品功能架构文档 (1).md
+  validationReport: 文档可行性与接口联动验证报告.md
+
+api:
+  version: v1
+  userBasePath: /v1
+  adminBasePath: /admin/v1
+  internalBasePath: /internal/v1
+  wireFieldCase: lowerCamelCase
+  resourcePathCase: kebab-case
+  enumCase: UPPER_SNAKE_CASE
+  operationIdCase: lowerCamelCase
+  operationIdRequired: true
+  openApiTagSource: moduleCode
+  timeFormat: RFC3339_UTC
+  pagination: cursor
+  defaultPageLimit: 20
+  maxPageLimit: 100
+  requiredResponseFields:
+    - code
+    - message
+    - data
+    - requestId
+    - timestamp
+  errorResponseFields:
+    - code
+    - message
+    - data
+    - error
+    - requestId
+    - timestamp
+  commonRequestHeaders:
+    - X-Request-Id
+    - X-Client-Version
+    - X-Platform
+    - Accept-Language
+  authenticatedRequestHeaders:
+    - Authorization
+  conditionalRequestHeaders:
+    - Idempotency-Key
+    - If-Match
+    - Last-Event-ID
+
+naming:
+  moduleCode: UPPER_SNAKE_CASE
+  jsonField: lowerCamelCase
+  pathResource: plural-kebab-case
+  pathParameter: lowerCamelCase
+  typeName: PascalCase
+  typescriptFunction: lowerCamelCase
+  kotlinFunction: lowerCamelCase
+  pythonFunction: snake_case
+  databaseTable: plural_snake_case
+  databaseColumn: snake_case
+  environmentVariable: UPPER_SNAKE_CASE
+  sseEvent: lower.dot.past-tense
+  domainEvent: lower.dot.past-tense.vN
+  metric: love_reply_snake_case
+
+idPolicy:
+  wireType: opaque_string
+  implementation: UUID_or_ULID
+  clientMayParse: false
+  fieldSuffix: Id
+
+publicEnums:
+  RelationshipStage:
+    - MATCHING
+    - DATING
+    - AMBIGUOUS
+    - IN_RELATIONSHIP
+    - CONFLICT
+    - NO_CONTACT
+    - OTHER
+  CommunicationGoal:
+    - START_CONVERSATION
+    - KEEP_CONVERSATION
+    - ACCEPT_INVITATION
+    - DECLINE_POLITELY
+    - INVITE_DATE
+    - APOLOGIZE
+    - SET_BOUNDARY
+    - RESOLVE_CONFLICT
+    - OTHER
+  ReplyStrategy:
+    - SAFE
+    - PUSH_PULL
+    - DIRECT
+  SpeakerRole:
+    - SELF
+    - OTHER
+    - UNKNOWN
+  AttachmentStatus:
+    - UPLOADING
+    - SCANNING
+    - PARSING
+    - READY
+    - REJECTED
+    - DELETED
+  GenerationStatus:
+    - CREATED
+    - QUOTA_RESERVED
+    - PARSING
+    - ANALYZING
+    - GENERATING
+    - FILTERING
+    - SUCCEEDED
+    - FAILED
+    - CANCELLED
+  SafetyStatus:
+    - PENDING
+    - PASSED
+    - BLOCKED
+    - REVIEW_REQUIRED
+  CandidateActionType:
+    - COPY
+    - FAVORITE
+    - SENT
+    - LIKE
+    - DISLIKE
+    - OUTCOME
+  OrderStatus:
+    - CREATED
+    - PENDING_PAYMENT
+    - PAID
+    - FAILED
+    - CANCELLED
+    - REFUND_PENDING
+    - REFUNDED
+  RefundStatus:
+    - REQUESTED
+    - REVIEWING
+    - APPROVED
+    - REJECTED
+    - PROCESSING
+    - REFUNDED
+    - FAILED
+  JobStatus:
+    - QUEUED
+    - RUNNING
+    - SUCCEEDED
+    - FAILED
+    - CANCELLED
+    - EXPIRED
+  ContentStatus:
+    - DRAFT
+    - IN_REVIEW
+    - APPROVED
+    - PUBLISHED
+    - REVOKED
+  DataRequestStatus:
+    - REQUESTED
+    - IDENTITY_VERIFIED
+    - PROCESSING
+    - COMPLETED
+    - REJECTED
+    - CANCELLED
+  ConsentType:
+    - TERMS_OF_SERVICE
+    - PRIVACY_POLICY
+    - SERVICE_REQUIRED
+    - MODEL_TRAINING
+    - MARKETING
+  SupportTicketType:
+    - GENERAL
+    - BILLING
+    - REFUND
+    - PRIVACY
+    - CONTENT_COMPLAINT
+    - ACCOUNT_SECURITY
+
+fieldMappings:
+  - wire: userId
+    typescript: string
+    kotlin: String
+    python: str
+    databaseColumn: user_id
+  - wire: deviceId
+    typescript: string
+    kotlin: String
+    python: str
+    databaseColumn: device_id
+  - wire: profileId
+    typescript: string
+    kotlin: String
+    python: str
+    databaseColumn: profile_id
+  - wire: attachmentId
+    typescript: string
+    kotlin: String
+    python: str
+    databaseColumn: attachment_id
+  - wire: generationId
+    typescript: string
+    kotlin: String
+    python: str
+    databaseColumn: generation_id
+  - wire: candidateId
+    typescript: string
+    kotlin: String
+    python: str
+    databaseColumn: candidate_id
+  - wire: orderId
+    typescript: string
+    kotlin: String
+    python: str
+    databaseColumn: order_id
+  - wire: resourceVersion
+    typescript: number
+    kotlin: Long
+    python: int
+    databaseColumn: resource_version
+  - wire: createdAt
+    typescript: string
+    kotlin: Instant
+    python: datetime
+    databaseColumn: created_at
+  - wire: updatedAt
+    typescript: string
+    kotlin: Instant
+    python: datetime
+    databaseColumn: updated_at
+  - wire: expiresAt
+    typescript: string_or_null
+    kotlin: Instant?
+    python: datetime_or_none
+    databaseColumn: expires_at
+  - wire: priceAmountMinor
+    typescript: number
+    kotlin: Long
+    python: int
+    databaseColumn: price_amount_minor
+  - wire: energyAmount
+    typescript: number
+    kotlin: Long
+    python: int
+    databaseColumn: energy_amount
+
+modules:
+  - code: APP_CONFIG
+    clientApi: appConfigApi
+    backendContext: app_config
+    userPaths: [/app]
+    adminPaths: [/admin/v1/system-config]
+    tables: [app_config_versions]
+    dependsOn: []
+  - code: AUTH
+    clientApi: authApi
+    backendContext: identity
+    userPaths: [/auth]
+    adminPaths: []
+    tables: [auth_sessions, sms_challenges]
+    dependsOn: []
+  - code: USER
+    clientApi: userApi
+    backendContext: identity
+    userPaths: [/me]
+    adminPaths: [/admin/v1/users]
+    tables: [users, user_profiles]
+    dependsOn: [AUTH]
+  - code: DEVICE
+    clientApi: deviceApi
+    backendContext: identity
+    userPaths: [/me/devices]
+    adminPaths: []
+    tables: [user_devices, push_tokens]
+    dependsOn: [AUTH, USER]
+  - code: CONSENT
+    clientApi: consentApi
+    backendContext: privacy
+    userPaths: [/me/consents, /legal-documents]
+    adminPaths: [/admin/v1/legal-documents]
+    tables: [consent_records, legal_documents]
+    dependsOn: [USER]
+  - code: TARGET_PROFILE
+    clientApi: targetProfileApi
+    backendContext: persona
+    userPaths: [/target-profiles]
+    adminPaths: []
+    tables: [target_profiles]
+    dependsOn: [USER, CONSENT]
+  - code: MEMORY
+    clientApi: memoryApi
+    backendContext: persona
+    userPaths: [/memories]
+    adminPaths: []
+    tables: [profile_memories]
+    dependsOn: [TARGET_PROFILE, CONSENT]
+  - code: ATTACHMENT
+    clientApi: attachmentApi
+    backendContext: media
+    userPaths: [/attachments]
+    adminPaths: []
+    tables: [attachments]
+    dependsOn: [USER, CONSENT]
+  - code: OCR
+    clientApi: ocrApi
+    backendContext: media
+    userPaths: ["/attachments/{attachmentId}/ocr"]
+    adminPaths: []
+    tables: [ocr_results, ocr_turns]
+    dependsOn: [ATTACHMENT, AI_GATEWAY]
+  - code: ENTITLEMENT
+    clientApi: entitlementApi
+    backendContext: billing
+    userPaths: [/entitlements]
+    adminPaths: ["/admin/v1/users/{userId}/entitlements"]
+    tables: [user_entitlements, benefit_balances]
+    dependsOn: [USER]
+  - code: WALLET
+    clientApi: walletApi
+    backendContext: billing
+    userPaths: [/wallet]
+    adminPaths: ["/admin/v1/users/{userId}/ledger"]
+    tables: [wallet_accounts, wallet_ledger]
+    dependsOn: [USER, ENTITLEMENT]
+  - code: GENERATION
+    clientApi: generationApi
+    backendContext: generation
+    userPaths: [/generations]
+    adminPaths: []
+    tables: [generation_tasks, generation_usage]
+    dependsOn: [USER, CONSENT, ENTITLEMENT, WALLET, AI_GATEWAY, RISK]
+  - code: CANDIDATE
+    clientApi: candidateApi
+    backendContext: generation
+    userPaths: [/candidates]
+    adminPaths: []
+    tables: [reply_candidates, candidate_actions]
+    dependsOn: [GENERATION]
+  - code: CONVERSATION
+    clientApi: conversationApi
+    backendContext: history
+    userPaths: [/conversations]
+    adminPaths: []
+    tables: [conversations, conversation_items]
+    dependsOn: [USER, GENERATION]
+  - code: FAVORITE
+    clientApi: favoriteApi
+    backendContext: history
+    userPaths: [/favorites]
+    adminPaths: []
+    tables: [favorites]
+    dependsOn: [USER]
+  - code: KNOWLEDGE
+    clientApi: knowledgeApi
+    backendContext: content
+    userPaths: [/knowledge]
+    adminPaths: [/admin/v1/content-categories, /admin/v1/content-cards]
+    tables: [content_categories, content_cards, content_versions]
+    dependsOn: []
+  - code: SHARE_CARD
+    clientApi: shareCardApi
+    backendContext: content
+    userPaths: [/share-cards]
+    adminPaths: [/admin/v1/share-card-templates]
+    tables: [share_cards, share_card_templates]
+    dependsOn: [USER, JOB, CONSENT]
+  - code: PRODUCT
+    clientApi: productApi
+    backendContext: billing
+    userPaths: [/products]
+    adminPaths: [/admin/v1/products]
+    tables: [products, product_prices]
+    dependsOn: []
+  - code: ORDER
+    clientApi: orderApi
+    backendContext: billing
+    userPaths: [/orders]
+    adminPaths: [/admin/v1/orders]
+    tables: [orders, payment_attempts, payment_events]
+    dependsOn: [USER, PRODUCT, ENTITLEMENT, WALLET, INTEGRATION]
+  - code: SUBSCRIPTION
+    clientApi: subscriptionApi
+    backendContext: billing
+    userPaths: [/subscriptions]
+    adminPaths: []
+    tables: [subscriptions]
+    dependsOn: [USER, PRODUCT, ORDER, ENTITLEMENT]
+  - code: REFUND
+    clientApi: refundApi
+    backendContext: billing
+    userPaths: [/refund-requests]
+    adminPaths: [/admin/v1/refunds]
+    tables: [refund_requests, refund_events]
+    dependsOn: [ORDER, ENTITLEMENT, WALLET]
+  - code: AD_REWARD
+    clientApi: adRewardApi
+    backendContext: billing
+    userPaths: [/ad-rewards]
+    adminPaths: []
+    tables: [ad_reward_sessions]
+    dependsOn: [USER, ENTITLEMENT, INTEGRATION]
+  - code: NOTICE
+    clientApi: noticeApi
+    backendContext: operations
+    userPaths: [/notices]
+    adminPaths: [/admin/v1/notices]
+    tables: [notices, notice_deliveries]
+    dependsOn: [APP_CONFIG]
+  - code: INBOX
+    clientApi: inboxApi
+    backendContext: notification
+    userPaths: [/inbox]
+    adminPaths: []
+    tables: [inbox_messages]
+    dependsOn: [USER, DEVICE]
+  - code: SUPPORT
+    clientApi: supportApi
+    backendContext: support
+    userPaths: [/support-tickets]
+    adminPaths: [/admin/v1/support-tickets]
+    tables: [support_tickets, support_messages]
+    dependsOn: [USER, INBOX, AUDIT]
+  - code: JOB
+    clientApi: jobApi
+    backendContext: async_job
+    userPaths: [/jobs]
+    adminPaths: []
+    tables: [async_jobs]
+    dependsOn: [USER]
+  - code: TELEMETRY
+    clientApi: telemetryApi
+    backendContext: analytics
+    userPaths: [/telemetry]
+    adminPaths: [/admin/v1/telemetry-schema]
+    tables: [telemetry_events]
+    dependsOn: [APP_CONFIG, CONSENT]
+  - code: AI_GATEWAY
+    clientApi: modelAdminApi
+    backendContext: ai_gateway
+    userPaths: []
+    adminPaths: [/admin/v1/model-providers, /admin/v1/models, /admin/v1/model-routes]
+    tables: [model_providers, ai_models, model_routes]
+    dependsOn: [INTEGRATION, AUDIT]
+  - code: PROMPT
+    clientApi: promptAdminApi
+    backendContext: ai_gateway
+    userPaths: []
+    adminPaths: [/admin/v1/prompts]
+    tables: [prompts, prompt_versions]
+    dependsOn: [AI_GATEWAY, EVALUATION, AUDIT]
+  - code: EVALUATION
+    clientApi: evaluationAdminApi
+    backendContext: evaluation
+    userPaths: []
+    adminPaths: [/admin/v1/evaluation-suites, /admin/v1/evaluation-runs]
+    tables: [evaluation_suites, evaluation_runs]
+    dependsOn: [AI_GATEWAY, RISK]
+  - code: RISK
+    clientApi: riskApi
+    adminClientApi: riskAdminApi
+    backendContext: risk
+    userPaths: [/risk-events]
+    adminPaths: [/admin/v1/risk-policies, /admin/v1/risk-events, /admin/v1/appeals]
+    tables: [risk_events, risk_policies, appeals]
+    dependsOn: [USER, AUDIT]
+  - code: FEATURE_FLAG
+    clientApi: featureFlagAdminApi
+    backendContext: operations
+    userPaths: []
+    adminPaths: [/admin/v1/feature-flags, /admin/v1/experiments]
+    tables: [feature_flags, experiments, experiment_assignments]
+    dependsOn: [APP_CONFIG, AUDIT]
+  - code: RELEASE
+    clientApi: releaseApi
+    backendContext: operations
+    userPaths: [/app/releases]
+    adminPaths: [/admin/v1/app-releases]
+    tables: [app_releases]
+    dependsOn: [APP_CONFIG, FEATURE_FLAG, AUDIT]
+  - code: DATA_GOVERNANCE
+    clientApi: dataGovernanceApi
+    backendContext: privacy
+    userPaths: [/me/data-export, /me/deletion]
+    adminPaths: [/admin/v1/data-requests, /admin/v1/datasets, /admin/v1/export-jobs]
+    tables: [data_requests, datasets, dataset_items, export_jobs]
+    dependsOn: [USER, CONSENT, JOB, AUDIT]
+  - code: ADMIN_RBAC
+    clientApi: adminRbacApi
+    backendContext: admin_identity
+    userPaths: []
+    adminPaths: [/admin/v1/roles, /admin/v1/admin-users]
+    tables: [admin_users, roles, role_permissions]
+    dependsOn: [AUDIT]
+  - code: AUDIT
+    clientApi: auditAdminApi
+    backendContext: audit
+    userPaths: []
+    adminPaths: [/admin/v1/audit-logs]
+    tables: [audit_logs]
+    dependsOn: []
+  - code: INTEGRATION
+    clientApi: integrationAdminApi
+    backendContext: integration
+    userPaths: []
+    adminPaths: [/admin/v1/integrations, /admin/v1/webhook-events]
+    tables: [integrations, webhook_events]
+    dependsOn: [AUDIT]
+
+workItemRequiredFields:
+  - taskId
+  - title
+  - moduleCode
+  - owner
+  - status
+  - allowedPaths
+  - dependsOn
+  - contractVersion
+  - acceptanceTests
+  - handoffNotes
+
+mergeGates:
+  - contract_lint_passed
+  - no_breaking_change_without_version
+  - generated_code_clean
+  - contract_tests_passed
+  - module_dependency_rules_passed
+  - secrets_scan_passed
+  - privacy_logging_check_passed
+  - docs_and_manifest_synchronized

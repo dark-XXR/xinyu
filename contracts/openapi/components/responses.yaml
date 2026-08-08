@@ -1,0 +1,45 @@
+BadRequest:
+  description: Request syntax or fields are invalid.
+  content:
+    application/json:
+      schema:
+        $ref: ./schemas/common.yaml#/ErrorResponse
+
+Unauthorized:
+  description: Access token is missing, expired, or revoked.
+  content:
+    application/json:
+      schema:
+        $ref: ./schemas/common.yaml#/ErrorResponse
+
+Forbidden:
+  description: The authenticated actor lacks permission or required consent.
+  content:
+    application/json:
+      schema:
+        $ref: ./schemas/common.yaml#/ErrorResponse
+
+Conflict:
+  description: Idempotency, version, or state-machine conflict.
+  content:
+    application/json:
+      schema:
+        $ref: ./schemas/common.yaml#/ErrorResponse
+
+RateLimited:
+  description: Rate limit exceeded.
+  headers:
+    Retry-After:
+      $ref: ./headers.yaml#/RetryAfter
+  content:
+    application/json:
+      schema:
+        $ref: ./schemas/common.yaml#/ErrorResponse
+
+InternalError:
+  description: Unexpected internal failure with no sensitive implementation detail.
+  content:
+    application/json:
+      schema:
+        $ref: ./schemas/common.yaml#/ErrorResponse
+

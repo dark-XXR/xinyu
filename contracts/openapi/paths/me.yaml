@@ -1,0 +1,314 @@
+me:
+  get:
+    operationId: getCurrentUser
+    summary: Get the current account
+    tags: [USER]
+    parameters:
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/XDeviceId
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+    responses:
+      "200":
+        description: Current account.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/identity.yaml#/UserResponse
+      "401":
+        $ref: ../components/responses.yaml#/Unauthorized
+      "500":
+        $ref: ../components/responses.yaml#/InternalError
+  patch:
+    operationId: updateCurrentUser
+    summary: Update non-sensitive account profile fields
+    tags: [USER]
+    parameters:
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/XDeviceId
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+      - $ref: ../components/parameters.yaml#/IfMatch
+      - $ref: ../components/parameters.yaml#/IdempotencyKey
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/identity.yaml#/UpdateUserRequest
+    responses:
+      "200":
+        description: Updated account.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/identity.yaml#/UserResponse
+      "400":
+        $ref: ../components/responses.yaml#/BadRequest
+      "401":
+        $ref: ../components/responses.yaml#/Unauthorized
+      "409":
+        $ref: ../components/responses.yaml#/Conflict
+      "500":
+        $ref: ../components/responses.yaml#/InternalError
+
+devices:
+  get:
+    operationId: listDevices
+    summary: List authenticated devices
+    tags: [USER]
+    parameters:
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/XDeviceId
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+    responses:
+      "200":
+        description: Devices owned by the current user.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/identity.yaml#/DeviceListResponse
+      "401":
+        $ref: ../components/responses.yaml#/Unauthorized
+      "500":
+        $ref: ../components/responses.yaml#/InternalError
+
+device:
+  parameters:
+    - name: deviceId
+      in: path
+      required: true
+      schema:
+        type: string
+  delete:
+    operationId: revokeDevice
+    summary: Revoke one authenticated device
+    tags: [USER]
+    parameters:
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/XDeviceId
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+      - $ref: ../components/parameters.yaml#/IdempotencyKey
+    responses:
+      "200":
+        description: Device revoked.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/identity.yaml#/EmptyResponse
+      "401":
+        $ref: ../components/responses.yaml#/Unauthorized
+      "404":
+        $ref: ../components/responses.yaml#/BadRequest
+      "409":
+        $ref: ../components/responses.yaml#/Conflict
+      "500":
+        $ref: ../components/responses.yaml#/InternalError
+
+consents:
+  get:
+    operationId: listMyConsents
+    summary: Read current consent records
+    tags: [CONSENT]
+    parameters:
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/XDeviceId
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+    responses:
+      "200":
+        description: Consent records.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/identity.yaml#/ConsentListResponse
+      "401":
+        $ref: ../components/responses.yaml#/Unauthorized
+      "500":
+        $ref: ../components/responses.yaml#/InternalError
+
+consent:
+  parameters:
+    - name: consentType
+      in: path
+      required: true
+      schema:
+        $ref: ../schemas/identity.yaml#/ConsentType
+  put:
+    operationId: updateConsent
+    summary: Grant or revoke an optional consent
+    tags: [CONSENT]
+    parameters:
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/XDeviceId
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+      - $ref: ../components/parameters.yaml#/IdempotencyKey
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/identity.yaml#/UpdateConsentRequest
+    responses:
+      "200":
+        description: Updated consent.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/identity.yaml#/ConsentResponse
+      "400":
+        $ref: ../components/responses.yaml#/BadRequest
+      "401":
+        $ref: ../components/responses.yaml#/Unauthorized
+      "409":
+        $ref: ../components/responses.yaml#/Conflict
+      "500":
+        $ref: ../components/responses.yaml#/InternalError
+
+dataExport:
+  post:
+    operationId: requestDataExport
+    summary: Request an asynchronous personal data export
+    tags: [DATA_GOVERNANCE]
+    parameters:
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/XDeviceId
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+      - $ref: ../components/parameters.yaml#/IdempotencyKey
+    responses:
+      "202":
+        description: Export request accepted.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/privacy.yaml#/DataRequestResponse
+      "401":
+        $ref: ../components/responses.yaml#/Unauthorized
+      "409":
+        $ref: ../components/responses.yaml#/Conflict
+      "429":
+        $ref: ../components/responses.yaml#/RateLimited
+      "500":
+        $ref: ../components/responses.yaml#/InternalError
+
+dataRequest:
+  parameters:
+    - name: requestId
+      in: path
+      required: true
+      schema:
+        type: string
+  get:
+    operationId: getDataRequest
+    summary: Read a personal data request
+    tags: [DATA_GOVERNANCE]
+    parameters:
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/XDeviceId
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+    responses:
+      "200":
+        description: Data request state.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/privacy.yaml#/DataRequestResponse
+      "401":
+        $ref: ../components/responses.yaml#/Unauthorized
+      "404":
+        $ref: ../components/responses.yaml#/BadRequest
+      "500":
+        $ref: ../components/responses.yaml#/InternalError
+
+deletion:
+  get:
+    operationId: getDeletionStatus
+    summary: Read account deletion status
+    tags: [DATA_GOVERNANCE]
+    parameters:
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/XDeviceId
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+    responses:
+      "200":
+        description: Deletion status or an empty active state.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/privacy.yaml#/DeletionStatusResponse
+      "401":
+        $ref: ../components/responses.yaml#/Unauthorized
+      "500":
+        $ref: ../components/responses.yaml#/InternalError
+  post:
+    operationId: requestAccountDeletion
+    summary: Request account deletion with a cooling-off period
+    tags: [DATA_GOVERNANCE]
+    parameters:
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/XDeviceId
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+      - $ref: ../components/parameters.yaml#/IdempotencyKey
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/privacy.yaml#/DeletionRequest
+    responses:
+      "202":
+        description: Deletion request accepted.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/privacy.yaml#/DeletionStatusResponse
+      "400":
+        $ref: ../components/responses.yaml#/BadRequest
+      "401":
+        $ref: ../components/responses.yaml#/Unauthorized
+      "409":
+        $ref: ../components/responses.yaml#/Conflict
+      "500":
+        $ref: ../components/responses.yaml#/InternalError
+  delete:
+    operationId: cancelAccountDeletion
+    summary: Cancel deletion during the cooling-off period
+    tags: [DATA_GOVERNANCE]
+    parameters:
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/XDeviceId
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+      - $ref: ../components/parameters.yaml#/IdempotencyKey
+    responses:
+      "200":
+        description: Deletion cancelled.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/identity.yaml#/EmptyResponse
+      "401":
+        $ref: ../components/responses.yaml#/Unauthorized
+      "409":
+        $ref: ../components/responses.yaml#/Conflict
+      "500":
+        $ref: ../components/responses.yaml#/InternalError
+

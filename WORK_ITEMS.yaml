@@ -1,0 +1,350 @@
+schemaVersion: "1.0"
+projectCode: love_reply_assistant
+contractVersion: "1.0.0"
+purpose: multi_ai_contract_planning
+
+statusValues:
+  - planned
+  - ready
+  - in_progress
+  - blocked
+  - review
+  - done
+
+rules:
+  singleWriterPerPath: true
+  contractFirst: true
+  generatedCodeEditable: false
+  requireHandoffNotes: true
+  requireAcceptanceTests: true
+
+items:
+  - taskId: ARCH-001
+    title: Establish repository layout and architecture decisions
+    moduleCode: APP_CONFIG
+    owner: codex-root
+    status: done
+    allowedPaths:
+      - docs/adr/**
+      - contracts/**
+      - apps/**
+      - services/**
+      - packages/**
+      - database/**
+    dependsOn: []
+    contractVersion: "1.0.0"
+    acceptanceTests:
+      - repository_layout_matches_collaboration_standard
+      - architecture_decisions_are_recorded
+    handoffNotes: "Repository layout, ADR 0001, local infrastructure, Python package, and baseline quality gates completed. pytest, ruff, mypy, and docker compose config pass."
+
+  - taskId: CONTRACT-COMMON-001
+    title: Define OpenAPI common headers envelopes errors pagination and security
+    moduleCode: APP_CONFIG
+    owner: codex-root
+    status: done
+    allowedPaths:
+      - contracts/openapi/openapi.yaml
+      - contracts/openapi/components/**
+      - contracts/examples/common/**
+    dependsOn: [ARCH-001]
+    contractVersion: "1.0.0"
+    acceptanceTests:
+      - openapi_31_document_lints
+      - success_and_error_envelopes_match_standard
+      - idempotency_and_concurrency_headers_are_reusable
+    handoffNotes: "OpenAPI 3.1 root, reusable success/error envelopes, request/response headers, cursor pagination, bearer security, idempotency, optimistic concurrency, fixtures, and warning-free Redocly lint completed."
+
+  - taskId: CONTRACT-IDENTITY-001
+    title: Define auth user device consent and data request operations
+    moduleCode: AUTH
+    owner: codex-root
+    status: done
+    allowedPaths:
+      - contracts/openapi/paths/auth.yaml
+      - contracts/openapi/paths/me.yaml
+      - contracts/openapi/schemas/identity.yaml
+      - contracts/openapi/schemas/privacy.yaml
+    dependsOn: [CONTRACT-COMMON-001]
+    contractVersion: "1.0.0"
+    acceptanceTests:
+      - identity_operation_ids_are_unique
+      - token_rotation_and_device_revocation_are_specified
+      - consent_export_and_deletion_states_are_complete
+    handoffNotes: "16 identity operations, token rotation, device revocation, consent, export, and deletion state contracts completed. 38 synthetic fixtures validate with no personal data."
+
+  - taskId: CONTRACT-PERSONA-001
+    title: Define target profile and memory operations
+    moduleCode: TARGET_PROFILE
+    owner: unassigned
+    status: planned
+    allowedPaths:
+      - contracts/openapi/paths/target-profiles.yaml
+      - contracts/openapi/paths/memories.yaml
+      - contracts/openapi/schemas/persona.yaml
+    dependsOn: [CONTRACT-COMMON-001, CONTRACT-IDENTITY-001]
+    contractVersion: "1.0.0"
+    acceptanceTests:
+      - profile_updates_use_resource_version
+      - memory_opt_in_and_delete_are_represented
+    handoffNotes: ""
+
+  - taskId: CONTRACT-MEDIA-001
+    title: Define secure attachment upload OCR polling and correction
+    moduleCode: ATTACHMENT
+    owner: unassigned
+    status: planned
+    allowedPaths:
+      - contracts/openapi/paths/attachments.yaml
+      - contracts/openapi/schemas/media.yaml
+    dependsOn: [CONTRACT-COMMON-001, CONTRACT-IDENTITY-001]
+    contractVersion: "1.0.0"
+    acceptanceTests:
+      - multipart_limits_and_media_errors_are_defined
+      - ocr_confirmation_requires_resource_version
+      - attachment_expiry_and_delete_are_defined
+    handoffNotes: ""
+
+  - taskId: CONTRACT-GENERATION-001
+    title: Define quote generation candidate SSE and risk appeal operations
+    moduleCode: GENERATION
+    owner: unassigned
+    status: planned
+    allowedPaths:
+      - contracts/openapi/paths/generations.yaml
+      - contracts/openapi/paths/candidates.yaml
+      - contracts/openapi/paths/risk-events.yaml
+      - contracts/openapi/schemas/generation.yaml
+      - contracts/events/generation-events.yaml
+    dependsOn: [CONTRACT-COMMON-001, CONTRACT-IDENTITY-001, CONTRACT-PERSONA-001]
+    contractVersion: "1.0.0"
+    acceptanceTests:
+      - generation_create_is_idempotent
+      - generation_state_machine_has_no_undefined_state
+      - sse_envelope_and_reconnect_are_specified
+      - failure_and_cancel_release_reservation
+    handoffNotes: ""
+
+  - taskId: CONTRACT-HISTORY-001
+    title: Define conversations favorites knowledge and share cards
+    moduleCode: CONVERSATION
+    owner: unassigned
+    status: planned
+    allowedPaths:
+      - contracts/openapi/paths/conversations.yaml
+      - contracts/openapi/paths/favorites.yaml
+      - contracts/openapi/paths/knowledge.yaml
+      - contracts/openapi/paths/share-cards.yaml
+      - contracts/openapi/schemas/history-content.yaml
+    dependsOn: [CONTRACT-COMMON-001, CONTRACT-GENERATION-001]
+    contractVersion: "1.0.0"
+    acceptanceTests:
+      - list_operations_use_cursor_pagination
+      - delete_and_batch_delete_states_are_defined
+      - share_card_requires_privacy_preview_confirmation
+    handoffNotes: ""
+
+  - taskId: CONTRACT-BILLING-001
+    title: Define entitlement wallet product order subscription refund and ad reward
+    moduleCode: ORDER
+    owner: unassigned
+    status: planned
+    allowedPaths:
+      - contracts/openapi/paths/entitlements.yaml
+      - contracts/openapi/paths/wallet.yaml
+      - contracts/openapi/paths/products.yaml
+      - contracts/openapi/paths/orders.yaml
+      - contracts/openapi/paths/subscriptions.yaml
+      - contracts/openapi/paths/refunds.yaml
+      - contracts/openapi/paths/ad-rewards.yaml
+      - contracts/openapi/schemas/billing.yaml
+      - contracts/webhooks/payment-providers.yaml
+      - contracts/webhooks/ad-providers.yaml
+    dependsOn: [CONTRACT-COMMON-001, CONTRACT-IDENTITY-001]
+    contractVersion: "1.0.0"
+    acceptanceTests:
+      - quote_reserve_settle_release_is_complete
+      - monetary_fields_use_minor_units
+      - order_refund_and_webhook_states_are_complete
+      - duplicate_webhooks_do_not_duplicate_entitlements
+    handoffNotes: ""
+
+  - taskId: CONTRACT-OPERATIONS-001
+    title: Define bootstrap notices inbox support jobs releases and telemetry
+    moduleCode: APP_CONFIG
+    owner: unassigned
+    status: planned
+    allowedPaths:
+      - contracts/openapi/paths/app.yaml
+      - contracts/openapi/paths/notices.yaml
+      - contracts/openapi/paths/inbox.yaml
+      - contracts/openapi/paths/support-tickets.yaml
+      - contracts/openapi/paths/jobs.yaml
+      - contracts/openapi/paths/telemetry.yaml
+      - contracts/openapi/schemas/operations.yaml
+    dependsOn: [CONTRACT-COMMON-001, CONTRACT-IDENTITY-001]
+    contractVersion: "1.0.0"
+    acceptanceTests:
+      - bootstrap_has_offline_fallback_version_fields
+      - support_ticket_permissions_are_defined
+      - telemetry_schema_rejects_sensitive_free_text
+    handoffNotes: ""
+
+  - taskId: CONTRACT-ADMIN-AI-001
+    title: Define model gateway prompt evaluation and risk admin operations
+    moduleCode: AI_GATEWAY
+    owner: unassigned
+    status: planned
+    allowedPaths:
+      - contracts/openapi/admin/model-gateway.yaml
+      - contracts/openapi/admin/prompts.yaml
+      - contracts/openapi/admin/evaluations.yaml
+      - contracts/openapi/admin/risk.yaml
+      - contracts/openapi/schemas/admin-ai.yaml
+    dependsOn: [CONTRACT-COMMON-001]
+    contractVersion: "1.0.0"
+    acceptanceTests:
+      - provider_secrets_are_write_only
+      - prompt_publish_requires_evaluation_gate
+      - route_and_policy_rollback_are_defined
+    handoffNotes: ""
+
+  - taskId: CONTRACT-ADMIN-BUSINESS-001
+    title: Define user support content operations and finance admin operations
+    moduleCode: ADMIN_RBAC
+    owner: unassigned
+    status: planned
+    allowedPaths:
+      - contracts/openapi/admin/users.yaml
+      - contracts/openapi/admin/support.yaml
+      - contracts/openapi/admin/content.yaml
+      - contracts/openapi/admin/finance.yaml
+      - contracts/openapi/schemas/admin-business.yaml
+    dependsOn: [CONTRACT-COMMON-001, CONTRACT-BILLING-001]
+    contractVersion: "1.0.0"
+    acceptanceTests:
+      - entitlement_adjustment_is_idempotent_and_audited
+      - editor_cannot_self_approve_content
+      - refund_and_reconciliation_operations_are_complete
+    handoffNotes: ""
+
+  - taskId: CONTRACT-ADMIN-PLATFORM-001
+    title: Define dynamic operations system risk data governance RBAC and audit
+    moduleCode: ADMIN_RBAC
+    owner: unassigned
+    status: planned
+    allowedPaths:
+      - contracts/openapi/admin/dynamic-operations.yaml
+      - contracts/openapi/admin/system.yaml
+      - contracts/openapi/admin/data-governance.yaml
+      - contracts/openapi/admin/rbac-audit.yaml
+      - contracts/openapi/schemas/admin-platform.yaml
+    dependsOn: [CONTRACT-COMMON-001]
+    contractVersion: "1.0.0"
+    acceptanceTests:
+      - high_risk_admin_operations_require_audit_reason
+      - published_config_has_version_gray_release_and_rollback
+      - data_export_requires_approval_and_expiry
+    handoffNotes: ""
+
+  - taskId: CONTRACT-FIXTURES-001
+    title: Build shared success error SSE and webhook fixtures
+    moduleCode: APP_CONFIG
+    owner: unassigned
+    status: planned
+    allowedPaths:
+      - contracts/examples/**
+      - packages/contract-test-fixtures/**
+    dependsOn:
+      - CONTRACT-GENERATION-001
+      - CONTRACT-BILLING-001
+      - CONTRACT-OPERATIONS-001
+      - CONTRACT-ADMIN-AI-001
+      - CONTRACT-ADMIN-BUSINESS-001
+      - CONTRACT-ADMIN-PLATFORM-001
+    contractVersion: "1.0.0"
+    acceptanceTests:
+      - every_operation_has_success_or_expected_error_fixture
+      - fixtures_validate_against_openapi_and_event_schemas
+      - fixtures_contain_no_real_personal_data
+    handoffNotes: ""
+
+  - taskId: CONTRACT-CODEGEN-001
+    title: Configure Android TypeScript and backend contract generation
+    moduleCode: APP_CONFIG
+    owner: unassigned
+    status: planned
+    allowedPaths:
+      - packages/generated-api/**
+      - tools/codegen/**
+      - build.gradle*
+      - package.json
+      - pyproject.toml
+    dependsOn: [CONTRACT-FIXTURES-001]
+    contractVersion: "1.0.0"
+    acceptanceTests:
+      - android_client_uses_operation_ids
+      - typescript_client_uses_operation_ids
+      - backend_dtos_preserve_lower_camel_wire_fields
+      - regeneration_has_no_uncommitted_diff
+    handoffNotes: ""
+
+  - taskId: CI-CONTRACT-001
+    title: Add contract lint breaking change codegen and secret scan gates
+    moduleCode: APP_CONFIG
+    owner: unassigned
+    status: planned
+    allowedPaths:
+      - .github/workflows/**
+      - tools/contract-ci/**
+      - contracts/**
+    dependsOn: [CONTRACT-CODEGEN-001]
+    contractVersion: "1.0.0"
+    acceptanceTests:
+      - invalid_openapi_fails_ci
+      - breaking_change_without_version_fails_ci
+      - generated_code_drift_fails_ci
+      - committed_secret_fixture_fails_ci
+    handoffNotes: ""
+
+  - taskId: BACKEND-FOUNDATION-001
+    title: Build FastAPI PostgreSQL Redis migrations and common HTTP transport
+    moduleCode: APP_CONFIG
+    owner: codex-root
+    status: done
+    allowedPaths:
+      - services/api/**
+      - database/migrations/**
+      - compose.yaml
+      - pyproject.toml
+    dependsOn: [ARCH-001, CONTRACT-COMMON-001]
+    contractVersion: "1.0.0"
+    acceptanceTests:
+      - api_health_test_passes
+      - postgres_and_redis_are_healthy
+      - migrations_upgrade_downgrade_upgrade
+      - ruff_and_mypy_pass
+    handoffNotes: "Isolated PostgreSQL uses host port 55432 to avoid the existing local PostgreSQL 18 instance. Initial migrations passed upgrade, downgrade, and re-upgrade."
+
+  - taskId: BACKEND-IDENTITY-001
+    title: Implement user authentication devices consents export and deletion
+    moduleCode: AUTH
+    owner: codex-root
+    status: review
+    allowedPaths:
+      - services/api/src/love_reply_api/application/**
+      - services/api/src/love_reply_api/domain/**
+      - services/api/src/love_reply_api/infrastructure/**
+      - services/api/src/love_reply_api/transport/http/**
+      - services/api/tests/**
+      - database/migrations/**
+    dependsOn: [BACKEND-FOUNDATION-001, CONTRACT-IDENTITY-001]
+    contractVersion: "1.0.0"
+    acceptanceTests:
+      - sms_login_uses_injected_provider
+      - refresh_token_rotation_rejects_replay
+      - device_revocation_revokes_sessions
+      - consent_export_and_deletion_flows_pass
+      - provider_operations_match_openapi
+      - idempotency_replay_returns_original_response
+    handoffNotes: "All tests except durable idempotency replay are implemented and passing. Real SMS credentials remain an external integration input; an unavailable adapter fails explicitly until configured."

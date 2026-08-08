@@ -1,0 +1,15 @@
+summary: Request validation failed
+value:
+  code: VALIDATION_ERROR
+  message: One or more fields are invalid.
+  data: null
+  error:
+    retryable: false
+    retryAfterSeconds: null
+    fieldErrors:
+      - field: context.relationshipStage
+        reason: Unsupported value.
+    details: {}
+  requestId: req_01JTESTREQUEST0002
+  timestamp: "2026-08-07T22:00:00Z"
+

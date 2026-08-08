@@ -1,0 +1,37 @@
+from enum import StrEnum
+
+
+class AccountStatus(StrEnum):
+    ACTIVE = "ACTIVE"
+    DELETION_PENDING = "DELETION_PENDING"
+    SUSPENDED = "SUSPENDED"
+
+
+class ConsentType(StrEnum):
+    TERMS_OF_SERVICE = "TERMS_OF_SERVICE"
+    PRIVACY_POLICY = "PRIVACY_POLICY"
+    SERVICE_REQUIRED = "SERVICE_REQUIRED"
+    MODEL_TRAINING = "MODEL_TRAINING"
+    MARKETING = "MARKETING"
+
+
+class DataRequestType(StrEnum):
+    EXPORT = "EXPORT"
+    DELETION = "DELETION"
+
+
+class DataRequestStatus(StrEnum):
+    REQUESTED = "REQUESTED"
+    IDENTITY_VERIFIED = "IDENTITY_VERIFIED"
+    PROCESSING = "PROCESSING"
+    COMPLETED = "COMPLETED"
+    REJECTED = "REJECTED"
+    CANCELLED = "CANCELLED"
+
+
+TERMINAL_DATA_REQUEST_STATUSES = {
+    DataRequestStatus.COMPLETED,
+    DataRequestStatus.REJECTED,
+    DataRequestStatus.CANCELLED,
+}
+

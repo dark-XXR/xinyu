@@ -1,0 +1,84 @@
+DataRequestType:
+  type: string
+  enum: [EXPORT, DELETION]
+
+DataRequestStatus:
+  type: string
+  enum: [REQUESTED, IDENTITY_VERIFIED, PROCESSING, COMPLETED, REJECTED, CANCELLED]
+
+DataRequestBase:
+  type: object
+  required: [requestId, requestType, status, createdAt, updatedAt]
+  properties:
+    requestId:
+      type: string
+    jobId:
+      type: [string, "null"]
+    requestType:
+      $ref: "#/DataRequestType"
+    status:
+      $ref: "#/DataRequestStatus"
+    downloadUrl:
+      type: [string, "null"]
+      format: uri
+    expiresAt:
+      type: [string, "null"]
+      format: date-time
+    rejectionReasonCode:
+      type: [string, "null"]
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: string
+      format: date-time
+
+DataRequest:
+  $ref: "#/DataRequestBase"
+  unevaluatedProperties: false
+
+DataRequestResponse:
+  allOf:
+    - $ref: ../components/schemas/common.yaml#/BaseSuccessEnvelope
+    - type: object
+      properties:
+        data:
+          $ref: "#/DataRequest"
+
+DeletionRequest:
+  type: object
+  additionalProperties: false
+  required: [confirmation, reasonCode]
+  properties:
+    confirmation:
+      type: string
+      const: DELETE_MY_ACCOUNT
+    reasonCode:
+      type: string
+      enum: [NO_LONGER_NEEDED, PRIVACY_CONCERN, EXPERIENCE, OTHER]
+
+DeletionStatus:
+  allOf:
+    - $ref: "#/DataRequestBase"
+    - type: object
+      required: [coolingOffEndsAt, blockers]
+      properties:
+        coolingOffEndsAt:
+          type: string
+          format: date-time
+        estimatedCompletionAt:
+          type: [string, "null"]
+          format: date-time
+        blockers:
+          type: array
+          items:
+            type: string
+  unevaluatedProperties: false
+
+DeletionStatusResponse:
+  allOf:
+    - $ref: ../components/schemas/common.yaml#/BaseSuccessEnvelope
+    - type: object
+      properties:
+        data:
+          $ref: "#/DeletionStatus"

@@ -1,0 +1,159 @@
+smsSend:
+  post:
+    operationId: sendSmsChallenge
+    summary: Send a login verification code
+    tags: [AUTH]
+    security: []
+    parameters:
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/XDeviceId
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+      - $ref: ../components/parameters.yaml#/IdempotencyKey
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/identity.yaml#/SmsSendRequest
+    responses:
+      "200":
+        description: Verification challenge created.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/identity.yaml#/SmsChallengeResponse
+      "400":
+        $ref: ../components/responses.yaml#/BadRequest
+      "409":
+        $ref: ../components/responses.yaml#/Conflict
+      "429":
+        $ref: ../components/responses.yaml#/RateLimited
+      "500":
+        $ref: ../components/responses.yaml#/InternalError
+
+smsLogin:
+  post:
+    operationId: loginWithSms
+    summary: Login or register with a verified SMS challenge
+    tags: [AUTH]
+    security: []
+    parameters:
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/XDeviceId
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+      - $ref: ../components/parameters.yaml#/IdempotencyKey
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/identity.yaml#/SmsLoginRequest
+    responses:
+      "200":
+        description: Access and refresh tokens issued.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/identity.yaml#/LoginResponse
+      "400":
+        $ref: ../components/responses.yaml#/BadRequest
+      "401":
+        $ref: ../components/responses.yaml#/Unauthorized
+      "409":
+        $ref: ../components/responses.yaml#/Conflict
+      "429":
+        $ref: ../components/responses.yaml#/RateLimited
+      "500":
+        $ref: ../components/responses.yaml#/InternalError
+
+refresh:
+  post:
+    operationId: refreshAccessToken
+    summary: Rotate a refresh token
+    tags: [AUTH]
+    security: []
+    parameters:
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/XDeviceId
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+      - $ref: ../components/parameters.yaml#/IdempotencyKey
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/identity.yaml#/RefreshRequest
+    responses:
+      "200":
+        description: Rotated access and refresh tokens.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/identity.yaml#/TokenResponse
+      "400":
+        $ref: ../components/responses.yaml#/BadRequest
+      "401":
+        $ref: ../components/responses.yaml#/Unauthorized
+      "409":
+        $ref: ../components/responses.yaml#/Conflict
+      "500":
+        $ref: ../components/responses.yaml#/InternalError
+
+logout:
+  post:
+    operationId: logoutCurrentDevice
+    summary: Revoke the current device session
+    tags: [AUTH]
+    parameters:
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/XDeviceId
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+      - $ref: ../components/parameters.yaml#/IdempotencyKey
+    responses:
+      "200":
+        description: Session revoked.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/identity.yaml#/EmptyResponse
+      "401":
+        $ref: ../components/responses.yaml#/Unauthorized
+      "409":
+        $ref: ../components/responses.yaml#/Conflict
+      "500":
+        $ref: ../components/responses.yaml#/InternalError
+
+logoutAll:
+  post:
+    operationId: logoutAllDevices
+    summary: Revoke all sessions for the current user
+    tags: [AUTH]
+    parameters:
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/XDeviceId
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+      - $ref: ../components/parameters.yaml#/IdempotencyKey
+    responses:
+      "200":
+        description: All sessions revoked.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/identity.yaml#/EmptyResponse
+      "401":
+        $ref: ../components/responses.yaml#/Unauthorized
+      "409":
+        $ref: ../components/responses.yaml#/Conflict
+      "500":
+        $ref: ../components/responses.yaml#/InternalError
+

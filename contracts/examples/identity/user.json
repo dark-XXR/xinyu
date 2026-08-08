@@ -1,0 +1,191 @@
+{
+  "module": "USER",
+  "fixtures": [
+    {
+      "id": "user.getCurrentUser.response.success",
+      "operationId": "getCurrentUser",
+      "kind": "response",
+      "statusCode": "200",
+      "mediaType": "application/json",
+      "value": {
+        "code": "OK",
+        "message": "success",
+        "data": {
+          "userId": "usr_fixture_001",
+          "status": "ACTIVE",
+          "nickname": "Fixture User",
+          "avatarUrl": null,
+          "locale": "zh-CN",
+          "timeZone": "UTC",
+          "resourceVersion": 2,
+          "createdAt": "2026-08-08T08:00:00Z",
+          "updatedAt": "2026-08-08T09:00:00Z"
+        },
+        "requestId": "req_fixture_user_001",
+        "timestamp": "2026-08-08T09:00:00Z"
+      }
+    },
+    {
+      "id": "user.getCurrentUser.response.unauthorized",
+      "operationId": "getCurrentUser",
+      "kind": "response",
+      "statusCode": "401",
+      "mediaType": "application/json",
+      "value": {
+        "code": "TOKEN_EXPIRED",
+        "message": "Authentication is required.",
+        "data": null,
+        "error": {
+          "retryable": false,
+          "retryAfterSeconds": null,
+          "fieldErrors": [],
+          "details": {}
+        },
+        "requestId": "req_fixture_user_002",
+        "timestamp": "2026-08-08T09:00:01Z"
+      }
+    },
+    {
+      "id": "user.updateCurrentUser.request.valid",
+      "operationId": "updateCurrentUser",
+      "kind": "request",
+      "mediaType": "application/json",
+      "value": {
+        "nickname": "Updated Fixture User",
+        "locale": "zh-CN",
+        "timeZone": "UTC"
+      }
+    },
+    {
+      "id": "user.updateCurrentUser.response.success",
+      "operationId": "updateCurrentUser",
+      "kind": "response",
+      "statusCode": "200",
+      "mediaType": "application/json",
+      "value": {
+        "code": "OK",
+        "message": "success",
+        "data": {
+          "userId": "usr_fixture_001",
+          "status": "ACTIVE",
+          "nickname": "Updated Fixture User",
+          "avatarUrl": null,
+          "locale": "zh-CN",
+          "timeZone": "UTC",
+          "resourceVersion": 3,
+          "createdAt": "2026-08-08T08:00:00Z",
+          "updatedAt": "2026-08-08T09:05:00Z"
+        },
+        "requestId": "req_fixture_user_003",
+        "timestamp": "2026-08-08T09:05:00Z"
+      }
+    },
+    {
+      "id": "user.updateCurrentUser.response.versionConflict",
+      "operationId": "updateCurrentUser",
+      "kind": "response",
+      "statusCode": "409",
+      "mediaType": "application/json",
+      "value": {
+        "code": "VERSION_CONFLICT",
+        "message": "The account changed after it was loaded.",
+        "data": null,
+        "error": {
+          "retryable": false,
+          "retryAfterSeconds": null,
+          "fieldErrors": [],
+          "details": {"currentResourceVersion": 3}
+        },
+        "requestId": "req_fixture_user_004",
+        "timestamp": "2026-08-08T09:05:01Z"
+      }
+    },
+    {
+      "id": "user.listDevices.response.success",
+      "operationId": "listDevices",
+      "kind": "response",
+      "statusCode": "200",
+      "mediaType": "application/json",
+      "value": {
+        "code": "OK",
+        "message": "success",
+        "data": {
+          "items": [
+            {
+              "deviceId": "device_fixture_current",
+              "platform": "ANDROID",
+              "model": "Fixture Android Device",
+              "current": true,
+              "lastSeenAt": "2026-08-08T09:10:00Z",
+              "createdAt": "2026-08-08T08:00:00Z"
+            },
+            {
+              "deviceId": "device_fixture_previous",
+              "platform": "ANDROID",
+              "model": null,
+              "current": false,
+              "lastSeenAt": "2026-08-07T09:10:00Z",
+              "createdAt": "2026-08-01T08:00:00Z"
+            }
+          ]
+        },
+        "requestId": "req_fixture_user_005",
+        "timestamp": "2026-08-08T09:10:00Z"
+      }
+    },
+    {
+      "id": "user.listDevices.response.unauthorized",
+      "operationId": "listDevices",
+      "kind": "response",
+      "statusCode": "401",
+      "mediaType": "application/json",
+      "value": {
+        "code": "TOKEN_EXPIRED",
+        "message": "Authentication is required.",
+        "data": null,
+        "error": {
+          "retryable": false,
+          "retryAfterSeconds": null,
+          "fieldErrors": [],
+          "details": {}
+        },
+        "requestId": "req_fixture_user_006",
+        "timestamp": "2026-08-08T09:10:01Z"
+      }
+    },
+    {
+      "id": "user.revokeDevice.response.success",
+      "operationId": "revokeDevice",
+      "kind": "response",
+      "statusCode": "200",
+      "mediaType": "application/json",
+      "value": {
+        "code": "OK",
+        "message": "success",
+        "data": {},
+        "requestId": "req_fixture_user_007",
+        "timestamp": "2026-08-08T09:15:00Z"
+      }
+    },
+    {
+      "id": "user.revokeDevice.response.notFound",
+      "operationId": "revokeDevice",
+      "kind": "response",
+      "statusCode": "404",
+      "mediaType": "application/json",
+      "value": {
+        "code": "RESOURCE_NOT_FOUND",
+        "message": "The device does not exist.",
+        "data": null,
+        "error": {
+          "retryable": false,
+          "retryAfterSeconds": null,
+          "fieldErrors": [],
+          "details": {}
+        },
+        "requestId": "req_fixture_user_008",
+        "timestamp": "2026-08-08T09:15:01Z"
+      }
+    }
+  ]
+}

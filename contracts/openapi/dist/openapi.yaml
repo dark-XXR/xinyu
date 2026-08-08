@@ -1,0 +1,1202 @@
+openapi: 3.1.0
+info:
+  title: Love Reply Assistant API
+  version: 1.0.0
+  description: |
+    Contract-first API for Android, administration, workers, and provider
+    integrations. Public wire fields use lowerCamelCase and all timestamps use
+    RFC 3339 UTC.
+  license:
+    name: Proprietary
+    identifier: LicenseRef-Proprietary
+servers:
+  - url: http://localhost:8000
+    description: Local development
+  - url: https://api.example.com
+    description: Production placeholder
+security:
+  - bearerAuth: []
+tags:
+  - name: APP_CONFIG
+    description: Application bootstrap, health, and release configuration.
+  - name: AUTH
+    description: SMS authentication, access tokens, and session revocation.
+  - name: USER
+    description: Account profile and authenticated device management.
+  - name: CONSENT
+    description: Legal and optional consent records.
+  - name: DATA_GOVERNANCE
+    description: User export and account deletion requests.
+paths:
+  /health:
+    get:
+      operationId: getHealth
+      summary: Read service health
+      tags:
+        - APP_CONFIG
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+      responses:
+        '200':
+          description: Service is accepting requests.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthSuccessResponse'
+              examples:
+                healthy:
+                  $ref: '#/components/examples/health-success'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /v1/auth/sms/send:
+    post:
+      operationId: sendSmsChallenge
+      summary: Send a login verification code
+      tags:
+        - AUTH
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/XDeviceId'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SmsSendRequest'
+      responses:
+        '200':
+          description: Verification challenge created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SmsChallengeResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /v1/auth/sms/login:
+    post:
+      operationId: loginWithSms
+      summary: Login or register with a verified SMS challenge
+      tags:
+        - AUTH
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/XDeviceId'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SmsLoginRequest'
+      responses:
+        '200':
+          description: Access and refresh tokens issued.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /v1/auth/refresh:
+    post:
+      operationId: refreshAccessToken
+      summary: Rotate a refresh token
+      tags:
+        - AUTH
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/XDeviceId'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshRequest'
+      responses:
+        '200':
+          description: Rotated access and refresh tokens.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /v1/auth/logout:
+    post:
+      operationId: logoutCurrentDevice
+      summary: Revoke the current device session
+      tags:
+        - AUTH
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/XDeviceId'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Session revoked.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmptyResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /v1/auth/logout-all:
+    post:
+      operationId: logoutAllDevices
+      summary: Revoke all sessions for the current user
+      tags:
+        - AUTH
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/XDeviceId'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: All sessions revoked.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmptyResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /v1/me:
+    get:
+      operationId: getCurrentUser
+      summary: Get the current account
+      tags:
+        - USER
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/XDeviceId'
+        - $ref: '#/components/parameters/AcceptLanguage'
+      responses:
+        '200':
+          description: Current account.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    patch:
+      operationId: updateCurrentUser
+      summary: Update non-sensitive account profile fields
+      tags:
+        - USER
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/XDeviceId'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IfMatch'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+      responses:
+        '200':
+          description: Updated account.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /v1/me/devices:
+    get:
+      operationId: listDevices
+      summary: List authenticated devices
+      tags:
+        - USER
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/XDeviceId'
+        - $ref: '#/components/parameters/AcceptLanguage'
+      responses:
+        '200':
+          description: Devices owned by the current user.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /v1/me/devices/{deviceId}:
+    parameters:
+      - name: deviceId
+        in: path
+        required: true
+        schema:
+          type: string
+    delete:
+      operationId: revokeDevice
+      summary: Revoke one authenticated device
+      tags:
+        - USER
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/XDeviceId'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Device revoked.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmptyResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /v1/me/consents:
+    get:
+      operationId: listMyConsents
+      summary: Read current consent records
+      tags:
+        - CONSENT
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/XDeviceId'
+        - $ref: '#/components/parameters/AcceptLanguage'
+      responses:
+        '200':
+          description: Consent records.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConsentListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /v1/me/consents/{consentType}:
+    parameters:
+      - name: consentType
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/ConsentType'
+    put:
+      operationId: updateConsent
+      summary: Grant or revoke an optional consent
+      tags:
+        - CONSENT
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/XDeviceId'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateConsentRequest'
+      responses:
+        '200':
+          description: Updated consent.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConsentResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /v1/me/data-export:
+    post:
+      operationId: requestDataExport
+      summary: Request an asynchronous personal data export
+      tags:
+        - DATA_GOVERNANCE
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/XDeviceId'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '202':
+          description: Export request accepted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataRequestResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /v1/me/data-requests/{requestId}:
+    parameters:
+      - name: requestId
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: getDataRequest
+      summary: Read a personal data request
+      tags:
+        - DATA_GOVERNANCE
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/XDeviceId'
+        - $ref: '#/components/parameters/AcceptLanguage'
+      responses:
+        '200':
+          description: Data request state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataRequestResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /v1/me/deletion:
+    get:
+      operationId: getDeletionStatus
+      summary: Read account deletion status
+      tags:
+        - DATA_GOVERNANCE
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/XDeviceId'
+        - $ref: '#/components/parameters/AcceptLanguage'
+      responses:
+        '200':
+          description: Deletion status or an empty active state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeletionStatusResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    post:
+      operationId: requestAccountDeletion
+      summary: Request account deletion with a cooling-off period
+      tags:
+        - DATA_GOVERNANCE
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/XDeviceId'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeletionRequest'
+      responses:
+        '202':
+          description: Deletion request accepted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeletionStatusResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    delete:
+      operationId: cancelAccountDeletion
+      summary: Cancel deletion during the cooling-off period
+      tags:
+        - DATA_GOVERNANCE
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/XDeviceId'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Deletion cancelled.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmptyResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Short-lived access token. Tokens are never accepted in URLs.
+  parameters:
+    XRequestId:
+      name: X-Request-Id
+      in: header
+      required: false
+      description: Client correlation ID. The server returns the final accepted value.
+      schema:
+        type: string
+        minLength: 8
+        maxLength: 128
+    XClientVersion:
+      name: X-Client-Version
+      in: header
+      required: true
+      description: Semantic application version used for compatibility enforcement.
+      schema:
+        type: string
+        pattern: ^[0-9]+\.[0-9]+\.[0-9]+(?:[-+][0-9A-Za-z.-]+)?$
+    XPlatform:
+      name: X-Platform
+      in: header
+      required: true
+      schema:
+        type: string
+        enum:
+          - ANDROID
+          - ADMIN_WEB
+    XDeviceId:
+      name: X-Device-Id
+      in: header
+      required: true
+      description: Opaque installation ID. It is not an authentication credential.
+      schema:
+        type: string
+        minLength: 8
+        maxLength: 128
+    AcceptLanguage:
+      name: Accept-Language
+      in: header
+      required: true
+      schema:
+        type: string
+        default: zh-CN
+        maxLength: 64
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: Unique key scoped to authenticated actor, operation, and request fingerprint.
+      schema:
+        type: string
+        minLength: 16
+        maxLength: 128
+    IfMatch:
+      name: If-Match
+      in: header
+      required: true
+      description: Decimal resourceVersion expected by the caller.
+      schema:
+        type: string
+        pattern: ^[1-9][0-9]*$
+  headers:
+    XRequestId:
+      description: Final request correlation ID used by support and logs.
+      schema:
+        type: string
+    RetryAfter:
+      description: Seconds before a rate-limited request may be retried.
+      schema:
+        type: integer
+        minimum: 1
+  schemas:
+    ApiCode:
+      type: string
+      pattern: ^[A-Z][A-Z0-9_]*$
+    RequestId:
+      type: string
+      minLength: 8
+      maxLength: 128
+    Timestamp:
+      type: string
+      format: date-time
+    BaseSuccessEnvelope:
+      type: object
+      additionalProperties: false
+      required:
+        - code
+        - message
+        - data
+        - requestId
+        - timestamp
+      properties:
+        code:
+          $ref: '#/components/schemas/ApiCode'
+        message:
+          type: string
+        data: {}
+        requestId:
+          $ref: '#/components/schemas/RequestId'
+        timestamp:
+          $ref: '#/components/schemas/Timestamp'
+    HealthData:
+      type: object
+      additionalProperties: false
+      required:
+        - status
+        - version
+      properties:
+        status:
+          type: string
+          const: ok
+        version:
+          type: string
+    HealthSuccessResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/HealthData'
+    FieldError:
+      type: object
+      additionalProperties: false
+      required:
+        - field
+        - reason
+      properties:
+        field:
+          type: string
+          description: lowerCamelCase JSON pointer or logical field name.
+        reason:
+          type: string
+    ErrorDetail:
+      type: object
+      additionalProperties: false
+      required:
+        - retryable
+        - fieldErrors
+        - details
+      properties:
+        retryable:
+          type: boolean
+        retryAfterSeconds:
+          type:
+            - integer
+            - 'null'
+          minimum: 0
+        fieldErrors:
+          type: array
+          items:
+            $ref: '#/components/schemas/FieldError'
+        details:
+          type: object
+          additionalProperties: true
+          description: Structured non-sensitive error metadata only.
+    ErrorResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - code
+        - message
+        - data
+        - error
+        - requestId
+        - timestamp
+      properties:
+        code:
+          $ref: '#/components/schemas/ApiCode'
+        message:
+          type: string
+        data:
+          type: 'null'
+        error:
+          $ref: '#/components/schemas/ErrorDetail'
+        requestId:
+          $ref: '#/components/schemas/RequestId'
+        timestamp:
+          $ref: '#/components/schemas/Timestamp'
+    SmsPurpose:
+      type: string
+      enum:
+        - LOGIN
+    SmsSendRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - phoneNumber
+        - countryCode
+        - purpose
+      properties:
+        phoneNumber:
+          type: string
+          pattern: ^[0-9]{6,15}$
+          description: National significant number without separators.
+        countryCode:
+          type: string
+          pattern: ^\+[1-9][0-9]{0,3}$
+        purpose:
+          $ref: '#/components/schemas/SmsPurpose'
+        captchaToken:
+          type:
+            - string
+            - 'null'
+          maxLength: 2048
+    SmsChallenge:
+      type: object
+      additionalProperties: false
+      required:
+        - challengeId
+        - expiresAt
+        - resendAfterSeconds
+      properties:
+        challengeId:
+          type: string
+        expiresAt:
+          type: string
+          format: date-time
+        resendAfterSeconds:
+          type: integer
+          minimum: 1
+    SmsChallengeResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/SmsChallenge'
+    SmsLoginRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - challengeId
+        - code
+      properties:
+        challengeId:
+          type: string
+        code:
+          type: string
+          pattern: ^[0-9]{4,8}$
+    TokenPair:
+      type: object
+      additionalProperties: false
+      required:
+        - accessToken
+        - accessTokenExpiresAt
+        - refreshToken
+        - refreshTokenExpiresAt
+      properties:
+        accessToken:
+          type: string
+        accessTokenExpiresAt:
+          type: string
+          format: date-time
+        refreshToken:
+          type: string
+        refreshTokenExpiresAt:
+          type: string
+          format: date-time
+    AccountStatus:
+      type: string
+      enum:
+        - ACTIVE
+        - DELETION_PENDING
+        - SUSPENDED
+    User:
+      type: object
+      additionalProperties: false
+      required:
+        - userId
+        - status
+        - locale
+        - timeZone
+        - resourceVersion
+        - createdAt
+        - updatedAt
+      properties:
+        userId:
+          type: string
+        status:
+          $ref: '#/components/schemas/AccountStatus'
+        nickname:
+          type:
+            - string
+            - 'null'
+          maxLength: 64
+        avatarUrl:
+          type:
+            - string
+            - 'null'
+          format: uri
+        locale:
+          type: string
+        timeZone:
+          type: string
+        resourceVersion:
+          type: integer
+          minimum: 1
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    ConsentType:
+      type: string
+      enum:
+        - TERMS_OF_SERVICE
+        - PRIVACY_POLICY
+        - SERVICE_REQUIRED
+        - MODEL_TRAINING
+        - MARKETING
+    PendingConsent:
+      type: object
+      additionalProperties: false
+      required:
+        - consentType
+        - documentVersion
+        - required
+      properties:
+        consentType:
+          $ref: '#/components/schemas/ConsentType'
+        documentVersion:
+          type: string
+        required:
+          type: boolean
+    LoginData:
+      type: object
+      additionalProperties: false
+      required:
+        - tokens
+        - user
+        - pendingConsents
+      properties:
+        tokens:
+          $ref: '#/components/schemas/TokenPair'
+        user:
+          $ref: '#/components/schemas/User'
+        pendingConsents:
+          type: array
+          items:
+            $ref: '#/components/schemas/PendingConsent'
+    LoginResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/LoginData'
+    RefreshRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - refreshToken
+      properties:
+        refreshToken:
+          type: string
+    TokenResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/TokenPair'
+    EmptyData:
+      type: object
+      additionalProperties: false
+    EmptyResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/EmptyData'
+    UserResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/User'
+    UpdateUserRequest:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      properties:
+        nickname:
+          type:
+            - string
+            - 'null'
+          maxLength: 64
+        avatarUrl:
+          type:
+            - string
+            - 'null'
+          format: uri
+        locale:
+          type: string
+          maxLength: 35
+        timeZone:
+          type: string
+          maxLength: 64
+    Device:
+      type: object
+      additionalProperties: false
+      required:
+        - deviceId
+        - platform
+        - current
+        - lastSeenAt
+        - createdAt
+      properties:
+        deviceId:
+          type: string
+        platform:
+          type: string
+          const: ANDROID
+        model:
+          type:
+            - string
+            - 'null'
+        current:
+          type: boolean
+        lastSeenAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+    DeviceListData:
+      type: object
+      additionalProperties: false
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Device'
+    DeviceListResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/DeviceListData'
+    ConsentRecord:
+      type: object
+      additionalProperties: false
+      required:
+        - consentType
+        - documentVersion
+        - granted
+        - required
+        - resourceVersion
+        - updatedAt
+      properties:
+        consentType:
+          $ref: '#/components/schemas/ConsentType'
+        documentVersion:
+          type: string
+        granted:
+          type: boolean
+        required:
+          type: boolean
+        grantedAt:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        resourceVersion:
+          type: integer
+          minimum: 1
+        updatedAt:
+          type: string
+          format: date-time
+    ConsentListData:
+      type: object
+      additionalProperties: false
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConsentRecord'
+    ConsentListResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/ConsentListData'
+    UpdateConsentRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - documentVersion
+        - granted
+      properties:
+        documentVersion:
+          type: string
+        granted:
+          type: boolean
+    ConsentResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/ConsentRecord'
+    DataRequestType:
+      type: string
+      enum:
+        - EXPORT
+        - DELETION
+    DataRequestStatus:
+      type: string
+      enum:
+        - REQUESTED
+        - IDENTITY_VERIFIED
+        - PROCESSING
+        - COMPLETED
+        - REJECTED
+        - CANCELLED
+    DataRequestBase:
+      type: object
+      required:
+        - requestId
+        - requestType
+        - status
+        - createdAt
+        - updatedAt
+      properties:
+        requestId:
+          type: string
+        jobId:
+          type:
+            - string
+            - 'null'
+        requestType:
+          $ref: '#/components/schemas/DataRequestType'
+        status:
+          $ref: '#/components/schemas/DataRequestStatus'
+        downloadUrl:
+          type:
+            - string
+            - 'null'
+          format: uri
+        expiresAt:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        rejectionReasonCode:
+          type:
+            - string
+            - 'null'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    DataRequest:
+      $ref: '#/components/schemas/DataRequestBase'
+      unevaluatedProperties: false
+    DataRequestResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/DataRequest'
+    DeletionStatus:
+      allOf:
+        - $ref: '#/components/schemas/DataRequestBase'
+        - type: object
+          required:
+            - coolingOffEndsAt
+            - blockers
+          properties:
+            coolingOffEndsAt:
+              type: string
+              format: date-time
+            estimatedCompletionAt:
+              type:
+                - string
+                - 'null'
+              format: date-time
+            blockers:
+              type: array
+              items:
+                type: string
+      unevaluatedProperties: false
+    DeletionStatusResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/DeletionStatus'
+    DeletionRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - confirmation
+        - reasonCode
+      properties:
+        confirmation:
+          type: string
+          const: DELETE_MY_ACCOUNT
+        reasonCode:
+          type: string
+          enum:
+            - NO_LONGER_NEEDED
+            - PRIVACY_CONCERN
+            - EXPERIENCE
+            - OTHER
+  examples:
+    health-success:
+      summary: Healthy service
+      value:
+        code: OK
+        message: success
+        data:
+          status: ok
+          version: 1.0.0
+        requestId: req_01JTESTREQUEST0001
+        timestamp: '2026-08-07T22:00:00Z'
+  responses:
+    BadRequest:
+      description: Request syntax or fields are invalid.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    InternalError:
+      description: Unexpected internal failure with no sensitive implementation detail.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Conflict:
+      description: Idempotency, version, or state-machine conflict.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    RateLimited:
+      description: Rate limit exceeded.
+      headers:
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Unauthorized:
+      description: Access token is missing, expired, or revoked.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'

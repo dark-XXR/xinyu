@@ -1,0 +1,105 @@
+ApiCode:
+  type: string
+  pattern: ^[A-Z][A-Z0-9_]*$
+
+RequestId:
+  type: string
+  minLength: 8
+  maxLength: 128
+
+Timestamp:
+  type: string
+  format: date-time
+
+BaseSuccessEnvelope:
+  type: object
+  additionalProperties: false
+  required: [code, message, data, requestId, timestamp]
+  properties:
+    code:
+      $ref: "#/ApiCode"
+    message:
+      type: string
+    data: {}
+    requestId:
+      $ref: "#/RequestId"
+    timestamp:
+      $ref: "#/Timestamp"
+
+FieldError:
+  type: object
+  additionalProperties: false
+  required: [field, reason]
+  properties:
+    field:
+      type: string
+      description: lowerCamelCase JSON pointer or logical field name.
+    reason:
+      type: string
+
+ErrorDetail:
+  type: object
+  additionalProperties: false
+  required: [retryable, fieldErrors, details]
+  properties:
+    retryable:
+      type: boolean
+    retryAfterSeconds:
+      type: [integer, "null"]
+      minimum: 0
+    fieldErrors:
+      type: array
+      items:
+        $ref: "#/FieldError"
+    details:
+      type: object
+      additionalProperties: true
+      description: Structured non-sensitive error metadata only.
+
+ErrorResponse:
+  type: object
+  additionalProperties: false
+  required: [code, message, data, error, requestId, timestamp]
+  properties:
+    code:
+      $ref: "#/ApiCode"
+    message:
+      type: string
+    data:
+      type: "null"
+    error:
+      $ref: "#/ErrorDetail"
+    requestId:
+      $ref: "#/RequestId"
+    timestamp:
+      $ref: "#/Timestamp"
+
+CursorPage:
+  type: object
+  additionalProperties: false
+  required: [nextCursor, hasMore]
+  properties:
+    nextCursor:
+      type: [string, "null"]
+    hasMore:
+      type: boolean
+
+HealthData:
+  type: object
+  additionalProperties: false
+  required: [status, version]
+  properties:
+    status:
+      type: string
+      const: ok
+    version:
+      type: string
+
+HealthSuccessResponse:
+  allOf:
+    - $ref: "#/BaseSuccessEnvelope"
+    - type: object
+      properties:
+        data:
+          $ref: "#/HealthData"
+

@@ -1,0 +1,114 @@
+{
+  "module": "CONSENT",
+  "fixtures": [
+    {
+      "id": "consent.listMyConsents.response.success",
+      "operationId": "listMyConsents",
+      "kind": "response",
+      "statusCode": "200",
+      "mediaType": "application/json",
+      "value": {
+        "code": "OK",
+        "message": "success",
+        "data": {
+          "items": [
+            {
+              "consentType": "PRIVACY_POLICY",
+              "documentVersion": "privacy-fixture-v1",
+              "granted": true,
+              "required": true,
+              "grantedAt": "2026-08-08T08:01:00Z",
+              "resourceVersion": 1,
+              "updatedAt": "2026-08-08T08:01:00Z"
+            },
+            {
+              "consentType": "MODEL_TRAINING",
+              "documentVersion": "training-fixture-v1",
+              "granted": false,
+              "required": false,
+              "grantedAt": null,
+              "resourceVersion": 1,
+              "updatedAt": "2026-08-08T08:01:00Z"
+            }
+          ]
+        },
+        "requestId": "req_fixture_consent_001",
+        "timestamp": "2026-08-08T10:00:00Z"
+      }
+    },
+    {
+      "id": "consent.listMyConsents.response.unauthorized",
+      "operationId": "listMyConsents",
+      "kind": "response",
+      "statusCode": "401",
+      "mediaType": "application/json",
+      "value": {
+        "code": "TOKEN_EXPIRED",
+        "message": "Authentication is required.",
+        "data": null,
+        "error": {
+          "retryable": false,
+          "retryAfterSeconds": null,
+          "fieldErrors": [],
+          "details": {}
+        },
+        "requestId": "req_fixture_consent_002",
+        "timestamp": "2026-08-08T10:00:01Z"
+      }
+    },
+    {
+      "id": "consent.updateConsent.request.valid",
+      "operationId": "updateConsent",
+      "kind": "request",
+      "mediaType": "application/json",
+      "value": {
+        "documentVersion": "training-fixture-v1",
+        "granted": true
+      }
+    },
+    {
+      "id": "consent.updateConsent.response.success",
+      "operationId": "updateConsent",
+      "kind": "response",
+      "statusCode": "200",
+      "mediaType": "application/json",
+      "value": {
+        "code": "OK",
+        "message": "success",
+        "data": {
+          "consentType": "MODEL_TRAINING",
+          "documentVersion": "training-fixture-v1",
+          "granted": true,
+          "required": false,
+          "grantedAt": "2026-08-08T10:05:00Z",
+          "resourceVersion": 2,
+          "updatedAt": "2026-08-08T10:05:00Z"
+        },
+        "requestId": "req_fixture_consent_003",
+        "timestamp": "2026-08-08T10:05:00Z"
+      }
+    },
+    {
+      "id": "consent.updateConsent.response.requiredConsentImmutable",
+      "operationId": "updateConsent",
+      "kind": "response",
+      "statusCode": "409",
+      "mediaType": "application/json",
+      "value": {
+        "code": "REQUIRED_CONSENT_IMMUTABLE",
+        "message": "A service-required consent cannot be revoked here.",
+        "data": null,
+        "error": {
+          "retryable": false,
+          "retryAfterSeconds": null,
+          "fieldErrors": [
+            {"field": "granted", "reason": "SERVICE_REQUIRED"}
+          ],
+          "details": {}
+        },
+        "requestId": "req_fixture_consent_004",
+        "timestamp": "2026-08-08T10:05:01Z"
+      }
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+XRequestId:
+  description: Final request correlation ID used by support and logs.
+  schema:
+    type: string
+
+RetryAfter:
+  description: Seconds before a rate-limited request may be retried.
+  schema:
+    type: integer
+    minimum: 1
+
+ETag:
+  description: Decimal resourceVersion of the returned resource.
+  schema:
+    type: string
+

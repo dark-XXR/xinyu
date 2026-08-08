@@ -1,0 +1,93 @@
+XRequestId:
+  name: X-Request-Id
+  in: header
+  required: false
+  description: Client correlation ID. The server returns the final accepted value.
+  schema:
+    type: string
+    minLength: 8
+    maxLength: 128
+
+XClientVersion:
+  name: X-Client-Version
+  in: header
+  required: true
+  description: Semantic application version used for compatibility enforcement.
+  schema:
+    type: string
+    pattern: ^[0-9]+\.[0-9]+\.[0-9]+(?:[-+][0-9A-Za-z.-]+)?$
+
+XPlatform:
+  name: X-Platform
+  in: header
+  required: true
+  schema:
+    type: string
+    enum: [ANDROID, ADMIN_WEB]
+
+XDeviceId:
+  name: X-Device-Id
+  in: header
+  required: true
+  description: Opaque installation ID. It is not an authentication credential.
+  schema:
+    type: string
+    minLength: 8
+    maxLength: 128
+
+AcceptLanguage:
+  name: Accept-Language
+  in: header
+  required: true
+  schema:
+    type: string
+    default: zh-CN
+    maxLength: 64
+
+IdempotencyKey:
+  name: Idempotency-Key
+  in: header
+  required: true
+  description: Unique key scoped to authenticated actor, operation, and request fingerprint.
+  schema:
+    type: string
+    minLength: 16
+    maxLength: 128
+
+IfMatch:
+  name: If-Match
+  in: header
+  required: true
+  description: Decimal resourceVersion expected by the caller.
+  schema:
+    type: string
+    pattern: ^[1-9][0-9]*$
+
+LastEventId:
+  name: Last-Event-ID
+  in: header
+  required: false
+  description: Last fully processed SSE event ID used to resume a stream.
+  schema:
+    type: string
+    minLength: 8
+    maxLength: 128
+
+Cursor:
+  name: cursor
+  in: query
+  required: false
+  description: Opaque server-issued cursor. Clients must not parse it.
+  schema:
+    type: [string, "null"]
+
+Limit:
+  name: limit
+  in: query
+  required: false
+  schema:
+    type: integer
+    minimum: 1
+    maximum: 100
+    default: 20
+

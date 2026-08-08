@@ -1,0 +1,16 @@
+{
+  "schemaVersion": "1.0",
+  "openapi": "contracts/openapi/openapi.yaml",
+  "targetTags": ["AUTH", "USER", "CONSENT", "DATA_GOVERNANCE"],
+  "fixtureFiles": [
+    "contracts/examples/identity/auth.json",
+    "contracts/examples/identity/user.json",
+    "contracts/examples/identity/consent.json",
+    "contracts/examples/identity/data-governance.json"
+  ],
+  "coverage": {
+    "requireSuccessResponsePerOperation": true,
+    "requireErrorResponsePerOperation": true,
+    "requireRequestFixtureForRequestBody": true
+  }
+}
