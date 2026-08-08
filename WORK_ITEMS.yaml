@@ -376,7 +376,7 @@ items:
     title: Build Android Compose login and text generation flow in Antigravity IDE
     moduleCode: APP_CONFIG
     owner: codex-root
-    status: in_progress
+    status: done
     allowedPaths:
       - apps/android/**
     dependsOn: [CONTRACT-CODEGEN-001, BACKEND-GENERATION-001]
@@ -388,4 +388,4 @@ items:
       - failed_generation_shows_retry_without_losing_entitlement
       - p1_features_are_hidden_by_feature_flags
       - compose_ui_tests_pass_on_emulator
-    handoffNotes: "Compose P0 implementation is complete: generated Kotlin API integration, encrypted token persistence and refresh, SMS login, entitlements, quote/create/poll, analysis, SAFE/PUSH_PULL/DIRECT result cards, and failure retry without clearing the draft. Three ViewModel tests, three Android 35 Compose tests, Debug APK assembly, and a real local API SMS login/quote/fail-closed generation flow pass. Login and composer screenshots show no overlap at 1080x2400. Codex computer-use was reconfigured by the user; restart Codex and perform the final Antigravity visual review before marking done."
+    handoffNotes: "Compose P0 implementation is complete: generated Kotlin API integration, encrypted token persistence and refresh, SMS login, entitlements, quote/create/poll, analysis, SAFE/PUSH_PULL/DIRECT result cards, and failure retry without clearing the draft. Three ViewModel tests and five Android 35 Compose tests pass at default and compact 360x640dp-equivalent sizes; Android Lint and Debug APK assembly pass. A real local API SMS login/quote/fail-closed generation flow verifies quota release. Antigravity loaded and displayed the final test changes, and exported login, composer, quote, success, and failure screenshots show no overlap or clipping."
