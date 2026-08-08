@@ -8,6 +8,7 @@ from love_reply_api.application.errors import ApiError
 from love_reply_api.config import get_settings
 from love_reply_api.schemas import HealthData, SuccessEnvelope
 from love_reply_api.transport.http.errors import api_error_handler, validation_error_handler
+from love_reply_api.transport.http.idempotency import IdempotencyMiddleware
 from love_reply_api.transport.http.routes.auth import router as auth_router
 from love_reply_api.transport.http.routes.me import router as me_router
 
@@ -25,6 +26,7 @@ app.add_exception_handler(ApiError, api_error_handler)  # type: ignore[arg-type]
 app.add_exception_handler(RequestValidationError, validation_error_handler)  # type: ignore[arg-type]
 app.include_router(auth_router)
 app.include_router(me_router)
+app.add_middleware(IdempotencyMiddleware)
 
 
 @app.middleware("http")

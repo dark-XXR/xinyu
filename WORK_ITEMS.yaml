@@ -147,8 +147,8 @@ items:
   - taskId: CONTRACT-BILLING-001
     title: Define entitlement wallet product order subscription refund and ad reward
     moduleCode: ORDER
-    owner: unassigned
-    status: planned
+    owner: codex-root
+    status: in_progress
     allowedPaths:
       - contracts/openapi/paths/entitlements.yaml
       - contracts/openapi/paths/wallet.yaml
@@ -330,7 +330,7 @@ items:
     title: Implement user authentication devices consents export and deletion
     moduleCode: AUTH
     owner: codex-root
-    status: review
+    status: done
     allowedPaths:
       - services/api/src/love_reply_api/application/**
       - services/api/src/love_reply_api/domain/**
@@ -347,4 +347,4 @@ items:
       - consent_export_and_deletion_flows_pass
       - provider_operations_match_openapi
       - idempotency_replay_returns_original_response
-    handoffNotes: "All tests except durable idempotency replay are implemented and passing. Real SMS credentials remain an external integration input; an unavailable adapter fails explicitly until configured."
+    handoffNotes: "All acceptance tests pass, including encrypted durable idempotency replay and mismatched-request conflicts. Real SMS credentials remain an external integration input; an unavailable adapter fails explicitly until configured."

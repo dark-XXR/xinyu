@@ -4,10 +4,10 @@ Last updated: 2026-08-07
 
 ## Current checkpoint
 
-- Active task: `BACKEND-IDENTITY-001`
+- Active task: `CONTRACT-BILLING-001`
 - State: `in_progress`
 - Contract version: `1.0.0`
-- Current phase: identity backend review and durable idempotency
+- Current phase: entitlement, wallet, and generation contract design
 
 ## Completed
 
@@ -24,13 +24,14 @@ Last updated: 2026-08-07
 - Implemented SMS login, JWT access tokens, refresh rotation, session and device revocation.
 - Implemented account profile, consent, export, deletion, and cancellation endpoints.
 - Verified all 17 implemented Provider operations match the bundled OpenAPI exactly.
+- Added encrypted durable idempotency responses with 24-hour scoped replay.
+- Completed all `BACKEND-IDENTITY-001` acceptance tests.
 
 ## Next exact actions
 
-1. Implement durable idempotency records and replay behavior.
-2. Freeze entitlement, wallet, and generation contracts.
-3. Implement reservation, generation, SSE, settlement, and failure release.
-4. Generate frontend clients before opening Antigravity UI implementation.
+1. Freeze entitlement, wallet, and generation contracts.
+2. Implement reservation, generation, SSE, settlement, and failure release.
+3. Generate frontend clients before opening Antigravity UI implementation.
 
 ## Resume procedure
 

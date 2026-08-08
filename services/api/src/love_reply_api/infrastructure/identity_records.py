@@ -120,3 +120,30 @@ class DataRequestRecord(Base):
     resource_version: Mapped[int] = mapped_column(BigInteger, nullable=False, default=1)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class IdempotencyRecord(Base):
+    __tablename__ = "idempotency_records"
+    __table_args__ = (
+        UniqueConstraint(
+            "actor_key",
+            "http_method",
+            "normalized_path",
+            "idempotency_key",
+            name="uq_idempotency_scope_key",
+        ),
+    )
+
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    actor_key: Mapped[str] = mapped_column(String(64), nullable=False)
+    http_method: Mapped[str] = mapped_column(String(16), nullable=False)
+    normalized_path: Mapped[str] = mapped_column(String(255), nullable=False)
+    idempotency_key: Mapped[str] = mapped_column(String(128), nullable=False)
+    request_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    state: Mapped[str] = mapped_column(String(16), nullable=False)
+    response_status: Mapped[int | None] = mapped_column(Integer)
+    response_ciphertext: Mapped[str | None] = mapped_column(Text)
+    response_content_type: Mapped[str | None] = mapped_column(String(128))
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)

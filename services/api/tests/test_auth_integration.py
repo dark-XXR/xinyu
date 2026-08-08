@@ -9,6 +9,7 @@ from love_reply_api.infrastructure.identity_records import (
     AuthSessionRecord,
     ConsentRecord,
     DataRequestRecord,
+    IdempotencyRecord,
     SmsChallengeRecord,
     UserDeviceRecord,
     UserProfileRecord,
@@ -44,6 +45,7 @@ async def clean_identity_tables() -> AsyncIterator[None]:
 
 async def _delete_identity_data(session: AsyncSession) -> None:
     for record in (
+        IdempotencyRecord,
         ConsentRecord,
         DataRequestRecord,
         AuthSessionRecord,
@@ -84,6 +86,33 @@ async def test_sms_login_refresh_rotation_and_logout() -> None:
         assert send_response.status_code == 200
         assert sms_sender.code is not None
 
+        send_replay = await client.post(
+            "/v1/auth/sms/send",
+            headers={**common_headers, "Idempotency-Key": "idem-send-auth-test"},
+            json={
+                "phoneNumber": "5550000000",
+                "countryCode": "+1",
+                "purpose": "LOGIN",
+                "captchaToken": None,
+            },
+        )
+        assert send_replay.status_code == 200
+        assert send_replay.content == send_response.content
+        assert send_replay.headers["Idempotency-Replayed"] == "true"
+
+        reused_key = await client.post(
+            "/v1/auth/sms/send",
+            headers={**common_headers, "Idempotency-Key": "idem-send-auth-test"},
+            json={
+                "phoneNumber": "5550000001",
+                "countryCode": "+1",
+                "purpose": "LOGIN",
+                "captchaToken": None,
+            },
+        )
+        assert reused_key.status_code == 409
+        assert reused_key.json()["code"] == "IDEMPOTENCY_KEY_REUSED"
+
         login_response = await client.post(
             "/v1/auth/sms/login",
             headers={**common_headers, "Idempotency-Key": "idem-login-auth-test"},
@@ -103,6 +132,15 @@ async def test_sms_login_refresh_rotation_and_logout() -> None:
         assert refresh_response.status_code == 200
         rotated_tokens = refresh_response.json()["data"]
         assert rotated_tokens["refreshToken"] != first_tokens["refreshToken"]
+
+        refresh_replay = await client.post(
+            "/v1/auth/refresh",
+            headers={**common_headers, "Idempotency-Key": "idem-refresh-auth-test"},
+            json={"refreshToken": first_tokens["refreshToken"]},
+        )
+        assert refresh_replay.status_code == 200
+        assert refresh_replay.content == refresh_response.content
+        assert refresh_replay.headers["Idempotency-Replayed"] == "true"
 
         replay_response = await client.post(
             "/v1/auth/refresh",
