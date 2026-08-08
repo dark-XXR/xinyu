@@ -4,15 +4,17 @@ Last updated: 2026-08-08
 
 ## Current checkpoint
 
-- Active task: `FRONTEND-ANDROID-MVP-001`
-- State: `done`
+- Active task: `CONTRACT-ADMIN-PROVIDERS-001`
+- State: `in_progress`
 - Contract version: `1.0.0`
-- Current phase: Android P0 accepted; P1 entry points remain hidden until their contracts and backends exist
+- Current phase: Android P0 accepted; configurable provider, email auth, Epay, and commerce contracts are next
 
 ## Completed
 
 - P0 backend, identity, privacy, entitlement, wallet, quote, generation, candidate,
   SSE, risk appeal, generated Kotlin client, and generated TypeScript client.
+- Additive email-first authentication contract with public channel policy, email OTP challenge,
+  email login, stable provider-unavailable errors, and SMS compatibility.
 - Android Compose project with an app module and a read-only generated API module.
 - Encrypted access/refresh token persistence, atomic refresh retry, and installation ID.
 - SMS login, server-authoritative entitlement display, composer draft, relationship/goal/style
@@ -39,11 +41,15 @@ cd apps/android
 Last results: 3 unit tests, 5 default-size device UI tests, 5 compact-size UI tests,
 Android Lint, and Debug APK assembly all passed.
 
+Identity contract validation now covers 46 fixtures across 19 tagged operations. Generated
+Kotlin and TypeScript clients both compile with the new email/channel models and operations.
+
 ## External inputs
 
-- Real SMS credentials and sender registration are not configured.
+- Real email/SMTP credentials and verified sender domain are not configured.
+- Real SMS credentials and sender registration are not configured; SMS is now the fallback channel.
 - Real AI provider credentials and production model mapping are not configured.
-- Payment credentials are P1 and are not needed for the P0 free-quota flow.
+- Epay gateway URL, merchant ID/key, enabled payment types, and callback domain are not configured.
 
 ## Final acceptance
 
@@ -52,9 +58,19 @@ workspace and final source changes loaded. The `sky` activation/input methods st
 `node_repl exec context not found`, but this no longer blocks IDE source synchronization,
 emulator verification, or screenshot review.
 
-## Recommended next phase
+## Accepted provider and commerce direction
 
-1. Complete the P1 persona and attachment/OCR contracts before adding Android entry points.
-2. Implement their backend ownership, expiry, privacy, and correction flows.
-3. Regenerate clients, then expose profile and screenshot features behind server feature flags.
-4. Keep payment, history, and knowledge UI hidden until their respective P1 tasks are complete.
+- Email OTP is the primary login method; SMS remains fallback, recovery, and step-up.
+- AI, email, SMS, and payment integrations use encrypted, versioned provider adapters managed
+  from the administration console.
+- Payment includes an `EPAY_COMPAT` adapter and never grants benefits from a browser redirect.
+- Free, VIP Standard, VIP Pro, and energy-pack defaults are catalog templates, not client constants.
+- The complete decision and initial prices are in
+  `docs/product/provider-and-subscription-spec.md` and ADR 0003.
+
+## Next exact actions
+
+1. Define unified admin provider contracts and finish product/order/subscription/refund contracts.
+2. Implement email auth, encrypted provider registry, AI routes, Epay, and catalog versioning.
+3. Build the administration console for provider, model, payment, product, and audit operations.
+4. Change Android to email-first login only after generated contracts and backend tests pass.

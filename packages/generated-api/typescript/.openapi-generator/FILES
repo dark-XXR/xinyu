@@ -43,6 +43,11 @@ src/models/AdminTokenResponse.ts
 src/models/Appeal.ts
 src/models/AppealRequest.ts
 src/models/AppealResponse.ts
+src/models/AuthChallengeMode.ts
+src/models/AuthChannel.ts
+src/models/AuthChannelAvailability.ts
+src/models/AuthChannelPolicy.ts
+src/models/AuthChannelPolicyResponse.ts
 src/models/BaseSuccessEnvelope.ts
 src/models/BenefitBalances.ts
 src/models/Candidate.ts
@@ -68,6 +73,11 @@ src/models/DeletionStatusResponse.ts
 src/models/Device.ts
 src/models/DeviceListData.ts
 src/models/DeviceListResponse.ts
+src/models/EmailChallenge.ts
+src/models/EmailChallengeResponse.ts
+src/models/EmailLoginRequest.ts
+src/models/EmailPurpose.ts
+src/models/EmailSendRequest.ts
 src/models/EmptyResponse.ts
 src/models/Entitlement.ts
 src/models/EntitlementResponse.ts

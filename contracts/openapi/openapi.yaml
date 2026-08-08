@@ -20,7 +20,7 @@ tags:
   - name: APP_CONFIG
     description: Application bootstrap, health, and release configuration.
   - name: AUTH
-    description: SMS authentication, access tokens, and session revocation.
+    description: Email-first and SMS-fallback authentication, tokens, and session revocation.
   - name: USER
     description: Account profile and authenticated device management.
   - name: CONSENT
@@ -69,6 +69,12 @@ paths:
     $ref: ./paths/auth.yaml#/smsSend
   /v1/auth/sms/login:
     $ref: ./paths/auth.yaml#/smsLogin
+  /v1/auth/channels:
+    $ref: ./paths/auth.yaml#/channels
+  /v1/auth/email/send:
+    $ref: ./paths/auth.yaml#/emailSend
+  /v1/auth/email/login:
+    $ref: ./paths/auth.yaml#/emailLogin
   /v1/auth/refresh:
     $ref: ./paths/auth.yaml#/refresh
   /v1/auth/logout:

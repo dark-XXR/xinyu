@@ -56,6 +56,11 @@ src/main/kotlin/com/love_reply/generated/model/AdminTokenResponse.kt
 src/main/kotlin/com/love_reply/generated/model/Appeal.kt
 src/main/kotlin/com/love_reply/generated/model/AppealRequest.kt
 src/main/kotlin/com/love_reply/generated/model/AppealResponse.kt
+src/main/kotlin/com/love_reply/generated/model/AuthChallengeMode.kt
+src/main/kotlin/com/love_reply/generated/model/AuthChannel.kt
+src/main/kotlin/com/love_reply/generated/model/AuthChannelAvailability.kt
+src/main/kotlin/com/love_reply/generated/model/AuthChannelPolicy.kt
+src/main/kotlin/com/love_reply/generated/model/AuthChannelPolicyResponse.kt
 src/main/kotlin/com/love_reply/generated/model/BaseSuccessEnvelope.kt
 src/main/kotlin/com/love_reply/generated/model/BenefitBalances.kt
 src/main/kotlin/com/love_reply/generated/model/Candidate.kt
@@ -81,6 +86,11 @@ src/main/kotlin/com/love_reply/generated/model/DeletionStatusResponse.kt
 src/main/kotlin/com/love_reply/generated/model/Device.kt
 src/main/kotlin/com/love_reply/generated/model/DeviceListData.kt
 src/main/kotlin/com/love_reply/generated/model/DeviceListResponse.kt
+src/main/kotlin/com/love_reply/generated/model/EmailChallenge.kt
+src/main/kotlin/com/love_reply/generated/model/EmailChallengeResponse.kt
+src/main/kotlin/com/love_reply/generated/model/EmailLoginRequest.kt
+src/main/kotlin/com/love_reply/generated/model/EmailPurpose.kt
+src/main/kotlin/com/love_reply/generated/model/EmailSendRequest.kt
 src/main/kotlin/com/love_reply/generated/model/EmptyResponse.kt
 src/main/kotlin/com/love_reply/generated/model/Entitlement.kt
 src/main/kotlin/com/love_reply/generated/model/EntitlementResponse.kt

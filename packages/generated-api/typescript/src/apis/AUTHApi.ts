@@ -14,6 +14,26 @@
 
 import * as runtime from '../runtime';
 import {
+    type AuthChannelPolicyResponse,
+    AuthChannelPolicyResponseFromJSON,
+    AuthChannelPolicyResponseToJSON,
+} from '../models/AuthChannelPolicyResponse';
+import {
+    type EmailChallengeResponse,
+    EmailChallengeResponseFromJSON,
+    EmailChallengeResponseToJSON,
+} from '../models/EmailChallengeResponse';
+import {
+    type EmailLoginRequest,
+    EmailLoginRequestFromJSON,
+    EmailLoginRequestToJSON,
+} from '../models/EmailLoginRequest';
+import {
+    type EmailSendRequest,
+    EmailSendRequestFromJSON,
+    EmailSendRequestToJSON,
+} from '../models/EmailSendRequest';
+import {
     type EmptyResponse,
     EmptyResponseFromJSON,
     EmptyResponseToJSON,
@@ -54,6 +74,24 @@ import {
     TokenResponseToJSON,
 } from '../models/TokenResponse';
 
+export interface GetAuthChannelsRequest {
+    xClientVersion: string;
+    xPlatform: GetAuthChannelsXPlatformEnum;
+    xDeviceId: string;
+    acceptLanguage: string;
+    xRequestId?: string;
+}
+
+export interface LoginWithEmailRequest {
+    xClientVersion: string;
+    xPlatform: LoginWithEmailXPlatformEnum;
+    xDeviceId: string;
+    acceptLanguage: string;
+    idempotencyKey: string;
+    emailLoginRequest: EmailLoginRequest;
+    xRequestId?: string;
+}
+
 export interface LoginWithSmsRequest {
     xClientVersion: string;
     xPlatform: LoginWithSmsXPlatformEnum;
@@ -92,6 +130,16 @@ export interface RefreshAccessTokenRequest {
     xRequestId?: string;
 }
 
+export interface SendEmailChallengeRequest {
+    xClientVersion: string;
+    xPlatform: SendEmailChallengeXPlatformEnum;
+    xDeviceId: string;
+    acceptLanguage: string;
+    idempotencyKey: string;
+    emailSendRequest: EmailSendRequest;
+    xRequestId?: string;
+}
+
 export interface SendSmsChallengeRequest {
     xClientVersion: string;
     xPlatform: SendSmsChallengeXPlatformEnum;
@@ -109,6 +157,73 @@ export interface SendSmsChallengeRequest {
  * @interface AUTHApiInterface
  */
 export interface AUTHApiInterface {
+    /**
+     * Creates request options for getAuthChannels without sending the request
+     * @param {string} xClientVersion Semantic application version used for compatibility enforcement.
+     * @param {'ANDROID' | 'ADMIN_WEB'} xPlatform
+     * @param {string} xDeviceId Opaque installation ID. It is not an authentication credential.
+     * @param {string} acceptLanguage
+     * @param {string} [xRequestId] Client correlation ID. The server returns the final accepted value.
+     * @throws {RequiredError}
+     * @memberof AUTHApiInterface
+     */
+    getAuthChannelsRequestOpts(requestParameters: GetAuthChannelsRequest): Promise<runtime.RequestOpts>;
+
+    /**
+     * Returns server-authoritative channel order and availability. Clients use EMAIL as their safe default if this request is unavailable and never infer account existence from channel availability.
+     * @summary Read the public authentication channel policy
+     * @param {string} xClientVersion Semantic application version used for compatibility enforcement.
+     * @param {'ANDROID' | 'ADMIN_WEB'} xPlatform
+     * @param {string} xDeviceId Opaque installation ID. It is not an authentication credential.
+     * @param {string} acceptLanguage
+     * @param {string} [xRequestId] Client correlation ID. The server returns the final accepted value.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AUTHApiInterface
+     */
+    getAuthChannelsRaw(requestParameters: GetAuthChannelsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AuthChannelPolicyResponse>>;
+
+    /**
+     * Returns server-authoritative channel order and availability. Clients use EMAIL as their safe default if this request is unavailable and never infer account existence from channel availability.
+     * Read the public authentication channel policy
+     */
+    getAuthChannels(requestParameters: GetAuthChannelsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AuthChannelPolicyResponse>;
+
+    /**
+     * Creates request options for loginWithEmail without sending the request
+     * @param {string} xClientVersion Semantic application version used for compatibility enforcement.
+     * @param {'ANDROID' | 'ADMIN_WEB'} xPlatform
+     * @param {string} xDeviceId Opaque installation ID. It is not an authentication credential.
+     * @param {string} acceptLanguage
+     * @param {string} idempotencyKey Unique key scoped to authenticated actor, operation, and request fingerprint.
+     * @param {EmailLoginRequest} emailLoginRequest
+     * @param {string} [xRequestId] Client correlation ID. The server returns the final accepted value.
+     * @throws {RequiredError}
+     * @memberof AUTHApiInterface
+     */
+    loginWithEmailRequestOpts(requestParameters: LoginWithEmailRequest): Promise<runtime.RequestOpts>;
+
+    /**
+     *
+     * @summary Login or register with a verified email challenge
+     * @param {string} xClientVersion Semantic application version used for compatibility enforcement.
+     * @param {'ANDROID' | 'ADMIN_WEB'} xPlatform
+     * @param {string} xDeviceId Opaque installation ID. It is not an authentication credential.
+     * @param {string} acceptLanguage
+     * @param {string} idempotencyKey Unique key scoped to authenticated actor, operation, and request fingerprint.
+     * @param {EmailLoginRequest} emailLoginRequest
+     * @param {string} [xRequestId] Client correlation ID. The server returns the final accepted value.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AUTHApiInterface
+     */
+    loginWithEmailRaw(requestParameters: LoginWithEmailRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<LoginResponse>>;
+
+    /**
+     * Login or register with a verified email challenge
+     */
+    loginWithEmail(requestParameters: LoginWithEmailRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<LoginResponse>;
+
     /**
      * Creates request options for loginWithSms without sending the request
      * @param {string} xClientVersion Semantic application version used for compatibility enforcement.
@@ -246,6 +361,42 @@ export interface AUTHApiInterface {
     refreshAccessToken(requestParameters: RefreshAccessTokenRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<TokenResponse>;
 
     /**
+     * Creates request options for sendEmailChallenge without sending the request
+     * @param {string} xClientVersion Semantic application version used for compatibility enforcement.
+     * @param {'ANDROID' | 'ADMIN_WEB'} xPlatform
+     * @param {string} xDeviceId Opaque installation ID. It is not an authentication credential.
+     * @param {string} acceptLanguage
+     * @param {string} idempotencyKey Unique key scoped to authenticated actor, operation, and request fingerprint.
+     * @param {EmailSendRequest} emailSendRequest
+     * @param {string} [xRequestId] Client correlation ID. The server returns the final accepted value.
+     * @throws {RequiredError}
+     * @memberof AUTHApiInterface
+     */
+    sendEmailChallengeRequestOpts(requestParameters: SendEmailChallengeRequest): Promise<runtime.RequestOpts>;
+
+    /**
+     * The response is indistinguishable for existing and new email addresses. Provider details and account existence are never disclosed.
+     * @summary Send a passwordless email login code
+     * @param {string} xClientVersion Semantic application version used for compatibility enforcement.
+     * @param {'ANDROID' | 'ADMIN_WEB'} xPlatform
+     * @param {string} xDeviceId Opaque installation ID. It is not an authentication credential.
+     * @param {string} acceptLanguage
+     * @param {string} idempotencyKey Unique key scoped to authenticated actor, operation, and request fingerprint.
+     * @param {EmailSendRequest} emailSendRequest
+     * @param {string} [xRequestId] Client correlation ID. The server returns the final accepted value.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AUTHApiInterface
+     */
+    sendEmailChallengeRaw(requestParameters: SendEmailChallengeRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<EmailChallengeResponse>>;
+
+    /**
+     * The response is indistinguishable for existing and new email addresses. Provider details and account existence are never disclosed.
+     * Send a passwordless email login code
+     */
+    sendEmailChallenge(requestParameters: SendEmailChallengeRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<EmailChallengeResponse>;
+
+    /**
      * Creates request options for sendSmsChallenge without sending the request
      * @param {string} xClientVersion Semantic application version used for compatibility enforcement.
      * @param {'ANDROID' | 'ADMIN_WEB'} xPlatform
@@ -286,6 +437,199 @@ export interface AUTHApiInterface {
  *
  */
 export class AUTHApi extends runtime.BaseAPI implements AUTHApiInterface {
+
+    /**
+     * Creates request options for getAuthChannels without sending the request
+     */
+    async getAuthChannelsRequestOpts(requestParameters: GetAuthChannelsRequest): Promise<runtime.RequestOpts> {
+        if (requestParameters['xClientVersion'] == null) {
+            throw new runtime.RequiredError(
+                'xClientVersion',
+                'Required parameter "xClientVersion" was null or undefined when calling getAuthChannels().'
+            );
+        }
+
+        if (requestParameters['xPlatform'] == null) {
+            throw new runtime.RequiredError(
+                'xPlatform',
+                'Required parameter "xPlatform" was null or undefined when calling getAuthChannels().'
+            );
+        }
+
+        if (requestParameters['xDeviceId'] == null) {
+            throw new runtime.RequiredError(
+                'xDeviceId',
+                'Required parameter "xDeviceId" was null or undefined when calling getAuthChannels().'
+            );
+        }
+
+        if (requestParameters['acceptLanguage'] == null) {
+            throw new runtime.RequiredError(
+                'acceptLanguage',
+                'Required parameter "acceptLanguage" was null or undefined when calling getAuthChannels().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (requestParameters['xRequestId'] != null) {
+            headerParameters['X-Request-Id'] = String(requestParameters['xRequestId']);
+        }
+
+        if (requestParameters['xClientVersion'] != null) {
+            headerParameters['X-Client-Version'] = String(requestParameters['xClientVersion']);
+        }
+
+        if (requestParameters['xPlatform'] != null) {
+            headerParameters['X-Platform'] = String(requestParameters['xPlatform']);
+        }
+
+        if (requestParameters['xDeviceId'] != null) {
+            headerParameters['X-Device-Id'] = String(requestParameters['xDeviceId']);
+        }
+
+        if (requestParameters['acceptLanguage'] != null) {
+            headerParameters['Accept-Language'] = String(requestParameters['acceptLanguage']);
+        }
+
+
+        let urlPath = `/v1/auth/channels`;
+
+        return {
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        };
+    }
+
+    /**
+     * Returns server-authoritative channel order and availability. Clients use EMAIL as their safe default if this request is unavailable and never infer account existence from channel availability.
+     * Read the public authentication channel policy
+     */
+    async getAuthChannelsRaw(requestParameters: GetAuthChannelsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AuthChannelPolicyResponse>> {
+        const requestOptions = await this.getAuthChannelsRequestOpts(requestParameters);
+        const response = await this.request(requestOptions, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => AuthChannelPolicyResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Returns server-authoritative channel order and availability. Clients use EMAIL as their safe default if this request is unavailable and never infer account existence from channel availability.
+     * Read the public authentication channel policy
+     */
+    async getAuthChannels(requestParameters: GetAuthChannelsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AuthChannelPolicyResponse> {
+        const response = await this.getAuthChannelsRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Creates request options for loginWithEmail without sending the request
+     */
+    async loginWithEmailRequestOpts(requestParameters: LoginWithEmailRequest): Promise<runtime.RequestOpts> {
+        if (requestParameters['xClientVersion'] == null) {
+            throw new runtime.RequiredError(
+                'xClientVersion',
+                'Required parameter "xClientVersion" was null or undefined when calling loginWithEmail().'
+            );
+        }
+
+        if (requestParameters['xPlatform'] == null) {
+            throw new runtime.RequiredError(
+                'xPlatform',
+                'Required parameter "xPlatform" was null or undefined when calling loginWithEmail().'
+            );
+        }
+
+        if (requestParameters['xDeviceId'] == null) {
+            throw new runtime.RequiredError(
+                'xDeviceId',
+                'Required parameter "xDeviceId" was null or undefined when calling loginWithEmail().'
+            );
+        }
+
+        if (requestParameters['acceptLanguage'] == null) {
+            throw new runtime.RequiredError(
+                'acceptLanguage',
+                'Required parameter "acceptLanguage" was null or undefined when calling loginWithEmail().'
+            );
+        }
+
+        if (requestParameters['idempotencyKey'] == null) {
+            throw new runtime.RequiredError(
+                'idempotencyKey',
+                'Required parameter "idempotencyKey" was null or undefined when calling loginWithEmail().'
+            );
+        }
+
+        if (requestParameters['emailLoginRequest'] == null) {
+            throw new runtime.RequiredError(
+                'emailLoginRequest',
+                'Required parameter "emailLoginRequest" was null or undefined when calling loginWithEmail().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (requestParameters['xRequestId'] != null) {
+            headerParameters['X-Request-Id'] = String(requestParameters['xRequestId']);
+        }
+
+        if (requestParameters['xClientVersion'] != null) {
+            headerParameters['X-Client-Version'] = String(requestParameters['xClientVersion']);
+        }
+
+        if (requestParameters['xPlatform'] != null) {
+            headerParameters['X-Platform'] = String(requestParameters['xPlatform']);
+        }
+
+        if (requestParameters['xDeviceId'] != null) {
+            headerParameters['X-Device-Id'] = String(requestParameters['xDeviceId']);
+        }
+
+        if (requestParameters['acceptLanguage'] != null) {
+            headerParameters['Accept-Language'] = String(requestParameters['acceptLanguage']);
+        }
+
+        if (requestParameters['idempotencyKey'] != null) {
+            headerParameters['Idempotency-Key'] = String(requestParameters['idempotencyKey']);
+        }
+
+
+        let urlPath = `/v1/auth/email/login`;
+
+        return {
+            path: urlPath,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: EmailLoginRequestToJSON(requestParameters['emailLoginRequest']),
+        };
+    }
+
+    /**
+     * Login or register with a verified email challenge
+     */
+    async loginWithEmailRaw(requestParameters: LoginWithEmailRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<LoginResponse>> {
+        const requestOptions = await this.loginWithEmailRequestOpts(requestParameters);
+        const response = await this.request(requestOptions, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => LoginResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Login or register with a verified email challenge
+     */
+    async loginWithEmail(requestParameters: LoginWithEmailRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<LoginResponse> {
+        const response = await this.loginWithEmailRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
 
     /**
      * Creates request options for loginWithSms without sending the request
@@ -708,6 +1052,114 @@ export class AUTHApi extends runtime.BaseAPI implements AUTHApiInterface {
     }
 
     /**
+     * Creates request options for sendEmailChallenge without sending the request
+     */
+    async sendEmailChallengeRequestOpts(requestParameters: SendEmailChallengeRequest): Promise<runtime.RequestOpts> {
+        if (requestParameters['xClientVersion'] == null) {
+            throw new runtime.RequiredError(
+                'xClientVersion',
+                'Required parameter "xClientVersion" was null or undefined when calling sendEmailChallenge().'
+            );
+        }
+
+        if (requestParameters['xPlatform'] == null) {
+            throw new runtime.RequiredError(
+                'xPlatform',
+                'Required parameter "xPlatform" was null or undefined when calling sendEmailChallenge().'
+            );
+        }
+
+        if (requestParameters['xDeviceId'] == null) {
+            throw new runtime.RequiredError(
+                'xDeviceId',
+                'Required parameter "xDeviceId" was null or undefined when calling sendEmailChallenge().'
+            );
+        }
+
+        if (requestParameters['acceptLanguage'] == null) {
+            throw new runtime.RequiredError(
+                'acceptLanguage',
+                'Required parameter "acceptLanguage" was null or undefined when calling sendEmailChallenge().'
+            );
+        }
+
+        if (requestParameters['idempotencyKey'] == null) {
+            throw new runtime.RequiredError(
+                'idempotencyKey',
+                'Required parameter "idempotencyKey" was null or undefined when calling sendEmailChallenge().'
+            );
+        }
+
+        if (requestParameters['emailSendRequest'] == null) {
+            throw new runtime.RequiredError(
+                'emailSendRequest',
+                'Required parameter "emailSendRequest" was null or undefined when calling sendEmailChallenge().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (requestParameters['xRequestId'] != null) {
+            headerParameters['X-Request-Id'] = String(requestParameters['xRequestId']);
+        }
+
+        if (requestParameters['xClientVersion'] != null) {
+            headerParameters['X-Client-Version'] = String(requestParameters['xClientVersion']);
+        }
+
+        if (requestParameters['xPlatform'] != null) {
+            headerParameters['X-Platform'] = String(requestParameters['xPlatform']);
+        }
+
+        if (requestParameters['xDeviceId'] != null) {
+            headerParameters['X-Device-Id'] = String(requestParameters['xDeviceId']);
+        }
+
+        if (requestParameters['acceptLanguage'] != null) {
+            headerParameters['Accept-Language'] = String(requestParameters['acceptLanguage']);
+        }
+
+        if (requestParameters['idempotencyKey'] != null) {
+            headerParameters['Idempotency-Key'] = String(requestParameters['idempotencyKey']);
+        }
+
+
+        let urlPath = `/v1/auth/email/send`;
+
+        return {
+            path: urlPath,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: EmailSendRequestToJSON(requestParameters['emailSendRequest']),
+        };
+    }
+
+    /**
+     * The response is indistinguishable for existing and new email addresses. Provider details and account existence are never disclosed.
+     * Send a passwordless email login code
+     */
+    async sendEmailChallengeRaw(requestParameters: SendEmailChallengeRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<EmailChallengeResponse>> {
+        const requestOptions = await this.sendEmailChallengeRequestOpts(requestParameters);
+        const response = await this.request(requestOptions, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => EmailChallengeResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * The response is indistinguishable for existing and new email addresses. Provider details and account existence are never disclosed.
+     * Send a passwordless email login code
+     */
+    async sendEmailChallenge(requestParameters: SendEmailChallengeRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<EmailChallengeResponse> {
+        const response = await this.sendEmailChallengeRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
      * Creates request options for sendSmsChallenge without sending the request
      */
     async sendSmsChallengeRequestOpts(requestParameters: SendSmsChallengeRequest): Promise<runtime.RequestOpts> {
@@ -818,6 +1270,22 @@ export class AUTHApi extends runtime.BaseAPI implements AUTHApiInterface {
 /**
  * @export
  */
+export const GetAuthChannelsXPlatformEnum = {
+    Android: 'ANDROID',
+    AdminWeb: 'ADMIN_WEB'
+} as const;
+export type GetAuthChannelsXPlatformEnum = typeof GetAuthChannelsXPlatformEnum[keyof typeof GetAuthChannelsXPlatformEnum];
+/**
+ * @export
+ */
+export const LoginWithEmailXPlatformEnum = {
+    Android: 'ANDROID',
+    AdminWeb: 'ADMIN_WEB'
+} as const;
+export type LoginWithEmailXPlatformEnum = typeof LoginWithEmailXPlatformEnum[keyof typeof LoginWithEmailXPlatformEnum];
+/**
+ * @export
+ */
 export const LoginWithSmsXPlatformEnum = {
     Android: 'ANDROID',
     AdminWeb: 'ADMIN_WEB'
@@ -847,6 +1315,14 @@ export const RefreshAccessTokenXPlatformEnum = {
     AdminWeb: 'ADMIN_WEB'
 } as const;
 export type RefreshAccessTokenXPlatformEnum = typeof RefreshAccessTokenXPlatformEnum[keyof typeof RefreshAccessTokenXPlatformEnum];
+/**
+ * @export
+ */
+export const SendEmailChallengeXPlatformEnum = {
+    Android: 'ANDROID',
+    AdminWeb: 'ADMIN_WEB'
+} as const;
+export type SendEmailChallengeXPlatformEnum = typeof SendEmailChallengeXPlatformEnum[keyof typeof SendEmailChallengeXPlatformEnum];
 /**
  * @export
  */

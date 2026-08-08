@@ -1,3 +1,116 @@
+AuthChannel:
+  type: string
+  enum: [EMAIL, SMS]
+
+AuthChallengeMode:
+  type: string
+  enum: [OTP]
+
+AuthChannelAvailability:
+  type: object
+  additionalProperties: false
+  required: [channel, available, challengeModes]
+  properties:
+    channel:
+      $ref: "#/AuthChannel"
+    available:
+      type: boolean
+    challengeModes:
+      type: array
+      minItems: 1
+      uniqueItems: true
+      items:
+        $ref: "#/AuthChallengeMode"
+    unavailableReasonCode:
+      type: [string, "null"]
+      pattern: ^[A-Z][A-Z0-9_]*$
+
+AuthChannelPolicy:
+  type: object
+  additionalProperties: false
+  required: [primaryChannel, fallbackChannels, channels, policyVersion]
+  properties:
+    primaryChannel:
+      $ref: "#/AuthChannel"
+    fallbackChannels:
+      type: array
+      uniqueItems: true
+      items:
+        $ref: "#/AuthChannel"
+    channels:
+      type: array
+      minItems: 1
+      items:
+        $ref: "#/AuthChannelAvailability"
+    policyVersion:
+      type: integer
+      minimum: 1
+
+AuthChannelPolicyResponse:
+  allOf:
+    - $ref: ../components/schemas/common.yaml#/BaseSuccessEnvelope
+    - type: object
+      properties:
+        data:
+          $ref: "#/AuthChannelPolicy"
+
+EmailPurpose:
+  type: string
+  enum: [LOGIN]
+
+EmailSendRequest:
+  type: object
+  additionalProperties: false
+  required: [email, purpose]
+  properties:
+    email:
+      type: string
+      format: email
+      minLength: 3
+      maxLength: 254
+      description: Address is normalized by the server and never logged in full.
+    purpose:
+      $ref: "#/EmailPurpose"
+    captchaToken:
+      type: [string, "null"]
+      maxLength: 2048
+
+EmailChallenge:
+  type: object
+  additionalProperties: false
+  required: [challengeId, expiresAt, resendAfterSeconds, maskedDestination]
+  properties:
+    challengeId:
+      type: string
+    expiresAt:
+      type: string
+      format: date-time
+    resendAfterSeconds:
+      type: integer
+      minimum: 1
+    maskedDestination:
+      type: string
+      description: Non-secret display hint that does not disclose account existence.
+
+EmailChallengeResponse:
+  allOf:
+    - $ref: ../components/schemas/common.yaml#/BaseSuccessEnvelope
+    - type: object
+      properties:
+        data:
+          $ref: "#/EmailChallenge"
+
+EmailLoginRequest:
+  type: object
+  additionalProperties: false
+  required: [challengeId, code]
+  properties:
+    challengeId:
+      type: string
+    code:
+      type: string
+      pattern: ^[0-9]{6}$
+
 SmsPurpose:
   type: string
   enum: [LOGIN]

@@ -66,10 +66,13 @@ All URIs are relative to *http://localhost:8000*
 *ADMINRBACApi* | [**refreshAdminAccessToken**](docs/ADMINRBACApi.md#refreshadminaccesstoken) | **POST** /admin/v1/auth/refresh | Rotate an administrator refresh token
 *ADMINRBACApi* | [**verifyAdminMfa**](docs/ADMINRBACApi.md#verifyadminmfa) | **POST** /admin/v1/auth/mfa/verify | Verify an administrator MFA challenge
 *APPCONFIGApi* | [**getHealth**](docs/APPCONFIGApi.md#gethealth) | **GET** /health | Read service health
+*AUTHApi* | [**getAuthChannels**](docs/AUTHApi.md#getauthchannels) | **GET** /v1/auth/channels | Read the public authentication channel policy
+*AUTHApi* | [**loginWithEmail**](docs/AUTHApi.md#loginwithemail) | **POST** /v1/auth/email/login | Login or register with a verified email challenge
 *AUTHApi* | [**loginWithSms**](docs/AUTHApi.md#loginwithsms) | **POST** /v1/auth/sms/login | Login or register with a verified SMS challenge
 *AUTHApi* | [**logoutAllDevices**](docs/AUTHApi.md#logoutalldevices) | **POST** /v1/auth/logout-all | Revoke all sessions for the current user
 *AUTHApi* | [**logoutCurrentDevice**](docs/AUTHApi.md#logoutcurrentdevice) | **POST** /v1/auth/logout | Revoke the current device session
 *AUTHApi* | [**refreshAccessToken**](docs/AUTHApi.md#refreshaccesstoken) | **POST** /v1/auth/refresh | Rotate a refresh token
+*AUTHApi* | [**sendEmailChallenge**](docs/AUTHApi.md#sendemailchallenge) | **POST** /v1/auth/email/send | Send a passwordless email login code
 *AUTHApi* | [**sendSmsChallenge**](docs/AUTHApi.md#sendsmschallenge) | **POST** /v1/auth/sms/send | Send a login verification code
 *CANDIDATEApi* | [**recordCandidateAction**](docs/CANDIDATEApi.md#recordcandidateaction) | **POST** /v1/candidates/{candidateId}/actions | Record an explicit candidate action
 *CANDIDATEApi* | [**refineCandidate**](docs/CANDIDATEApi.md#refinecandidateoperation) | **POST** /v1/candidates/{candidateId}/refine | Create a refined child generation for one candidate
@@ -125,6 +128,11 @@ All URIs are relative to *http://localhost:8000*
 - [Appeal](docs/Appeal.md)
 - [AppealRequest](docs/AppealRequest.md)
 - [AppealResponse](docs/AppealResponse.md)
+- [AuthChallengeMode](docs/AuthChallengeMode.md)
+- [AuthChannel](docs/AuthChannel.md)
+- [AuthChannelAvailability](docs/AuthChannelAvailability.md)
+- [AuthChannelPolicy](docs/AuthChannelPolicy.md)
+- [AuthChannelPolicyResponse](docs/AuthChannelPolicyResponse.md)
 - [BaseSuccessEnvelope](docs/BaseSuccessEnvelope.md)
 - [BenefitBalances](docs/BenefitBalances.md)
 - [Candidate](docs/Candidate.md)
@@ -150,6 +158,11 @@ All URIs are relative to *http://localhost:8000*
 - [Device](docs/Device.md)
 - [DeviceListData](docs/DeviceListData.md)
 - [DeviceListResponse](docs/DeviceListResponse.md)
+- [EmailChallenge](docs/EmailChallenge.md)
+- [EmailChallengeResponse](docs/EmailChallengeResponse.md)
+- [EmailLoginRequest](docs/EmailLoginRequest.md)
+- [EmailPurpose](docs/EmailPurpose.md)
+- [EmailSendRequest](docs/EmailSendRequest.md)
 - [EmptyResponse](docs/EmptyResponse.md)
 - [Entitlement](docs/Entitlement.md)
 - [EntitlementResponse](docs/EntitlementResponse.md)

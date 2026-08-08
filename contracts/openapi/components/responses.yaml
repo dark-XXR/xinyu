@@ -50,6 +50,16 @@ RateLimited:
       schema:
         $ref: ./schemas/common.yaml#/ErrorResponse
 
+ServiceUnavailable:
+  description: A required external provider or dependency is temporarily unavailable.
+  headers:
+    Retry-After:
+      $ref: ./headers.yaml#/RetryAfter
+  content:
+    application/json:
+      schema:
+        $ref: ./schemas/common.yaml#/ErrorResponse
+
 InternalError:
   description: Unexpected internal failure with no sensitive implementation detail.
   content:

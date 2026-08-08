@@ -38,6 +38,23 @@ items:
       - architecture_decisions_are_recorded
     handoffNotes: "Repository layout, ADR 0001, local infrastructure, Python package, and baseline quality gates completed. pytest, ruff, mypy, and docker compose config pass."
 
+  - taskId: ARCH-PROVIDERS-001
+    title: Specify configurable providers primary email auth Epay and subscription defaults
+    moduleCode: APP_CONFIG
+    owner: codex-root
+    status: done
+    allowedPaths:
+      - docs/adr/0003-configurable-external-providers.md
+      - docs/product/provider-and-subscription-spec.md
+    dependsOn: [ARCH-001]
+    contractVersion: "1.0.0"
+    acceptanceTests:
+      - provider_credentials_are_write_only_and_versioned
+      - email_is_primary_and_sms_is_fallback
+      - epay_compatibility_is_behind_payment_adapter
+      - subscription_prices_and_benefits_are_server_configured
+    handoffNotes: "Accepted ADR 0003 and the initial operator-editable catalog. It defines email OTP as primary, SMS fallback, AI/email/SMS/payment provider registries, EPAY_COMPAT behavior, and draft Free/Standard/Pro prices and benefits."
+
   - taskId: CONTRACT-COMMON-001
     title: Define OpenAPI common headers envelopes errors pagination and security
     moduleCode: APP_CONFIG
@@ -72,6 +89,25 @@ items:
       - token_rotation_and_device_revocation_are_specified
       - consent_export_and_deletion_states_are_complete
     handoffNotes: "16 identity operations, token rotation, device revocation, consent, export, and deletion state contracts completed. 38 synthetic fixtures validate with no personal data."
+
+  - taskId: CONTRACT-AUTH-CHANNELS-001
+    title: Add primary email authentication SMS fallback and auth provider configuration contracts
+    moduleCode: AUTH
+    owner: codex-root
+    status: done
+    allowedPaths:
+      - contracts/openapi/paths/auth.yaml
+      - contracts/openapi/schemas/identity.yaml
+      - contracts/examples/identity/**
+      - packages/contract-test-fixtures/**
+    dependsOn: [ARCH-PROVIDERS-001, CONTRACT-IDENTITY-001]
+    contractVersion: "1.0.0"
+    acceptanceTests:
+      - email_challenge_does_not_disclose_account_existence
+      - email_otp_login_rotates_tokens_like_sms_login
+      - sms_remains_an_explicit_fallback_and_step_up_channel
+      - auth_rate_limits_and_provider_unavailability_are_stable_codes
+    handoffNotes: "Added public auth-channel policy, email challenge, and email login operations without changing existing SMS operations. Eight new synthetic fixtures cover success, invalid code, internal failure, and email provider unavailability. Redocly, fixture coverage, generated Kotlin Android compilation, and generated TypeScript compilation pass."
 
   - taskId: CONTRACT-PERSONA-001
     title: Define target profile and memory operations
@@ -167,6 +203,8 @@ items:
       - monetary_fields_use_minor_units
       - order_refund_and_webhook_states_are_complete
       - duplicate_webhooks_do_not_duplicate_entitlements
+      - epay_callbacks_verify_signature_merchant_order_and_amount
+      - product_versions_bind_price_benefits_region_and_channel
     handoffNotes: "P0 entitlement, wallet, immutable ledger, quote reservation, settlement, and release contracts are complete. Product, payment order, subscription, refund, and ad reward operations remain P1 and are hidden from the MVP UI."
 
   - taskId: CONTRACT-OPERATIONS-001
@@ -191,7 +229,7 @@ items:
     handoffNotes: ""
 
   - taskId: CONTRACT-ADMIN-AI-001
-    title: Define model gateway prompt evaluation and risk admin operations
+    title: Define configurable model gateway prompt evaluation and risk admin operations
     moduleCode: AI_GATEWAY
     owner: unassigned
     status: planned
@@ -205,6 +243,7 @@ items:
     contractVersion: "1.0.0"
     acceptanceTests:
       - provider_secrets_are_write_only
+      - openai_compatible_anthropic_and_gemini_adapters_share_logical_models
       - prompt_publish_requires_evaluation_gate
       - route_and_policy_rollback_are_defined
     handoffNotes: ""
@@ -246,6 +285,24 @@ items:
       - published_config_has_version_gray_release_and_rollback
       - data_export_requires_approval_and_expiry
     handoffNotes: ""
+
+  - taskId: CONTRACT-ADMIN-PROVIDERS-001
+    title: Define unified AI email SMS and payment provider administration contracts
+    moduleCode: APP_CONFIG
+    owner: codex-root
+    status: in_progress
+    allowedPaths:
+      - contracts/openapi/admin/providers.yaml
+      - contracts/openapi/schemas/admin-providers.yaml
+      - contracts/examples/admin/providers/**
+    dependsOn: [ARCH-PROVIDERS-001, CONTRACT-COMMON-001, CONTRACT-AUTH-CHANNELS-001]
+    contractVersion: "1.0.0"
+    acceptanceTests:
+      - secrets_are_write_only_encrypted_and_rotatable
+      - provider_health_checks_are_redacted_and_audited
+      - publish_gray_rollout_and_rollback_are_versioned
+      - adapter_configuration_rejects_arbitrary_executable_content
+    handoffNotes: "Covers operator-managed adapters and credentials for AI, SMTP/API email, SMS, and EPAY_COMPAT or future payment providers."
 
   - taskId: CONTRACT-FIXTURES-001
     title: Build shared success error SSE and webhook fixtures
@@ -389,3 +446,98 @@ items:
       - p1_features_are_hidden_by_feature_flags
       - compose_ui_tests_pass_on_emulator
     handoffNotes: "Compose P0 implementation is complete: generated Kotlin API integration, encrypted token persistence and refresh, SMS login, entitlements, quote/create/poll, analysis, SAFE/PUSH_PULL/DIRECT result cards, and failure retry without clearing the draft. Three ViewModel tests and five Android 35 Compose tests pass at default and compact 360x640dp-equivalent sizes; Android Lint and Debug APK assembly pass. A real local API SMS login/quote/fail-closed generation flow verifies quota release. Antigravity loaded and displayed the final test changes, and exported login, composer, quote, success, and failure screenshots show no overlap or clipping."
+
+  - taskId: BACKEND-AUTH-CHANNELS-001
+    title: Implement email OTP primary authentication and configurable SMS fallback
+    moduleCode: AUTH
+    owner: codex-root
+    status: planned
+    allowedPaths:
+      - services/api/src/love_reply_api/application/**
+      - services/api/src/love_reply_api/domain/**
+      - services/api/src/love_reply_api/infrastructure/**
+      - services/api/src/love_reply_api/transport/http/**
+      - services/api/tests/**
+      - database/migrations/**
+    dependsOn: [CONTRACT-AUTH-CHANNELS-001, BACKEND-IDENTITY-001]
+    contractVersion: "1.0.0"
+    acceptanceTests:
+      - smtp_provider_sends_email_otp_without_storing_raw_code
+      - email_login_refresh_and_revocation_pass_against_postgres
+      - sms_fallback_is_policy_controlled_and_fail_closed
+      - auth_provider_errors_do_not_reveal_account_existence
+    handoffNotes: ""
+
+  - taskId: BACKEND-PROVIDER-REGISTRY-001
+    title: Implement encrypted configurable provider registry health checks and rollout
+    moduleCode: APP_CONFIG
+    owner: codex-root
+    status: planned
+    allowedPaths:
+      - services/api/src/love_reply_api/application/**
+      - services/api/src/love_reply_api/domain/**
+      - services/api/src/love_reply_api/infrastructure/**
+      - services/api/src/love_reply_api/transport/http/**
+      - services/api/tests/**
+      - database/migrations/**
+    dependsOn: [CONTRACT-ADMIN-PROVIDERS-001, CONTRACT-ADMIN-AI-001]
+    contractVersion: "1.0.0"
+    acceptanceTests:
+      - provider_secrets_are_encrypted_and_never_read_back
+      - health_checks_redact_credentials_and_sensitive_payloads
+      - active_configuration_can_roll_back_atomically
+      - ai_routes_fail_over_with_bounded_retry_and_cost
+    handoffNotes: ""
+
+  - taskId: BACKEND-COMMERCE-001
+    title: Implement products subscriptions Epay orders callbacks refunds and reconciliation
+    moduleCode: ORDER
+    owner: codex-root
+    status: planned
+    allowedPaths:
+      - services/api/src/love_reply_api/application/**
+      - services/api/src/love_reply_api/domain/**
+      - services/api/src/love_reply_api/infrastructure/**
+      - services/api/src/love_reply_api/transport/http/**
+      - services/api/tests/**
+      - database/migrations/**
+    dependsOn: [CONTRACT-BILLING-001, CONTRACT-ADMIN-BUSINESS-001, CONTRACT-ADMIN-PROVIDERS-001]
+    contractVersion: "1.0.0"
+    acceptanceTests:
+      - epay_sandbox_create_query_callback_and_refund_pass
+      - redirect_never_grants_entitlement
+      - duplicate_or_conflicting_callbacks_do_not_double_settle
+      - catalog_versions_preserve_completed_order_facts
+    handoffNotes: ""
+
+  - taskId: FRONTEND-ADMIN-CONSOLE-001
+    title: Build provider AI commerce subscription and audit administration console
+    moduleCode: ADMIN_RBAC
+    owner: codex-root
+    status: planned
+    allowedPaths:
+      - apps/admin-web/**
+    dependsOn: [BACKEND-PROVIDER-REGISTRY-001, BACKEND-COMMERCE-001, BACKEND-AUTH-CHANNELS-001]
+    contractVersion: "1.0.0"
+    acceptanceTests:
+      - administrators_can_add_test_publish_rotate_and_disable_providers
+      - secret_values_are_never_rendered_after_submission
+      - product_price_and_benefit_versions_require_confirmation
+      - payment_and_provider_actions_have_audit_readback
+    handoffNotes: "The admin web directory is currently empty; this is the first implementation task for the operator UI requested by the product owner."
+
+  - taskId: FRONTEND-ANDROID-AUTH-002
+    title: Upgrade Android to email-first authentication with explicit SMS fallback
+    moduleCode: AUTH
+    owner: codex-root
+    status: planned
+    allowedPaths:
+      - apps/android/**
+    dependsOn: [BACKEND-AUTH-CHANNELS-001, CONTRACT-CODEGEN-001]
+    contractVersion: "1.0.0"
+    acceptanceTests:
+      - email_is_default_login_channel
+      - sms_fallback_is_visible_only_when_server_policy_allows
+      - channel_switch_preserves_non_secret_input
+      - email_and_sms_login_share_session_refresh_behavior
+    handoffNotes: "The current Android P0 screen remains SMS-first until the additive email contract and backend are complete."

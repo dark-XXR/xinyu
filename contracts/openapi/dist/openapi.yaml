@@ -20,7 +20,7 @@ tags:
   - name: APP_CONFIG
     description: Application bootstrap, health, and release configuration.
   - name: AUTH
-    description: SMS authentication, access tokens, and session revocation.
+    description: Email-first and SMS-fallback authentication, tokens, and session revocation.
   - name: USER
     description: Account profile and authenticated device management.
   - name: CONSENT
@@ -138,6 +138,113 @@ paths:
           $ref: '#/components/responses/RateLimited'
         '500':
           $ref: '#/components/responses/InternalError'
+  /v1/auth/channels:
+    get:
+      operationId: getAuthChannels
+      summary: Read the public authentication channel policy
+      description: |
+        Returns server-authoritative channel order and availability. Clients use
+        EMAIL as their safe default if this request is unavailable and never infer
+        account existence from channel availability.
+      tags:
+        - AUTH
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/XDeviceId'
+        - $ref: '#/components/parameters/AcceptLanguage'
+      responses:
+        '200':
+          description: Current public channel policy.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthChannelPolicyResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /v1/auth/email/send:
+    post:
+      operationId: sendEmailChallenge
+      summary: Send a passwordless email login code
+      description: |
+        The response is indistinguishable for existing and new email addresses.
+        Provider details and account existence are never disclosed.
+      tags:
+        - AUTH
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/XDeviceId'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmailSendRequest'
+      responses:
+        '200':
+          description: Email verification challenge accepted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmailChallengeResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /v1/auth/email/login:
+    post:
+      operationId: loginWithEmail
+      summary: Login or register with a verified email challenge
+      tags:
+        - AUTH
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/XDeviceId'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmailLoginRequest'
+      responses:
+        '200':
+          description: Access and refresh tokens issued.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
   /v1/auth/refresh:
     post:
       operationId: refreshAccessToken
@@ -1581,6 +1688,132 @@ components:
           properties:
             data:
               $ref: '#/components/schemas/LoginData'
+    AuthChannel:
+      type: string
+      enum:
+        - EMAIL
+        - SMS
+    AuthChallengeMode:
+      type: string
+      enum:
+        - OTP
+    AuthChannelAvailability:
+      type: object
+      additionalProperties: false
+      required:
+        - channel
+        - available
+        - challengeModes
+      properties:
+        channel:
+          $ref: '#/components/schemas/AuthChannel'
+        available:
+          type: boolean
+        challengeModes:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items:
+            $ref: '#/components/schemas/AuthChallengeMode'
+        unavailableReasonCode:
+          type:
+            - string
+            - 'null'
+          pattern: ^[A-Z][A-Z0-9_]*$
+    AuthChannelPolicy:
+      type: object
+      additionalProperties: false
+      required:
+        - primaryChannel
+        - fallbackChannels
+        - channels
+        - policyVersion
+      properties:
+        primaryChannel:
+          $ref: '#/components/schemas/AuthChannel'
+        fallbackChannels:
+          type: array
+          uniqueItems: true
+          items:
+            $ref: '#/components/schemas/AuthChannel'
+        channels:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/AuthChannelAvailability'
+        policyVersion:
+          type: integer
+          minimum: 1
+    AuthChannelPolicyResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/AuthChannelPolicy'
+    EmailPurpose:
+      type: string
+      enum:
+        - LOGIN
+    EmailSendRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - email
+        - purpose
+      properties:
+        email:
+          type: string
+          format: email
+          minLength: 3
+          maxLength: 254
+          description: Address is normalized by the server and never logged in full.
+        purpose:
+          $ref: '#/components/schemas/EmailPurpose'
+        captchaToken:
+          type:
+            - string
+            - 'null'
+          maxLength: 2048
+    EmailChallenge:
+      type: object
+      additionalProperties: false
+      required:
+        - challengeId
+        - expiresAt
+        - resendAfterSeconds
+        - maskedDestination
+      properties:
+        challengeId:
+          type: string
+        expiresAt:
+          type: string
+          format: date-time
+        resendAfterSeconds:
+          type: integer
+          minimum: 1
+        maskedDestination:
+          type: string
+          description: Non-secret display hint that does not disclose account existence.
+    EmailChallengeResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/EmailChallenge'
+    EmailLoginRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - challengeId
+        - code
+      properties:
+        challengeId:
+          type: string
+        code:
+          type: string
+          pattern: ^[0-9]{6}$
     RefreshRequest:
       type: object
       additionalProperties: false
@@ -2962,6 +3195,15 @@ components:
             $ref: '#/components/schemas/ErrorResponse'
     Unauthorized:
       description: Access token is missing, expired, or revoked.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ServiceUnavailable:
+      description: A required external provider or dependency is temporarily unavailable.
+      headers:
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
       content:
         application/json:
           schema:

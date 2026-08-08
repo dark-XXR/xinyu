@@ -1,3 +1,110 @@
+channels:
+  get:
+    operationId: getAuthChannels
+    summary: Read the public authentication channel policy
+    description: |
+      Returns server-authoritative channel order and availability. Clients use
+      EMAIL as their safe default if this request is unavailable and never infer
+      account existence from channel availability.
+    tags: [AUTH]
+    security: []
+    parameters:
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/XDeviceId
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+    responses:
+      "200":
+        description: Current public channel policy.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/identity.yaml#/AuthChannelPolicyResponse
+      "400":
+        $ref: ../components/responses.yaml#/BadRequest
+      "500":
+        $ref: ../components/responses.yaml#/InternalError
+
+emailSend:
+  post:
+    operationId: sendEmailChallenge
+    summary: Send a passwordless email login code
+    description: |
+      The response is indistinguishable for existing and new email addresses.
+      Provider details and account existence are never disclosed.
+    tags: [AUTH]
+    security: []
+    parameters:
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/XDeviceId
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+      - $ref: ../components/parameters.yaml#/IdempotencyKey
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/identity.yaml#/EmailSendRequest
+    responses:
+      "200":
+        description: Email verification challenge accepted.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/identity.yaml#/EmailChallengeResponse
+      "400":
+        $ref: ../components/responses.yaml#/BadRequest
+      "409":
+        $ref: ../components/responses.yaml#/Conflict
+      "429":
+        $ref: ../components/responses.yaml#/RateLimited
+      "503":
+        $ref: ../components/responses.yaml#/ServiceUnavailable
+      "500":
+        $ref: ../components/responses.yaml#/InternalError
+
+emailLogin:
+  post:
+    operationId: loginWithEmail
+    summary: Login or register with a verified email challenge
+    tags: [AUTH]
+    security: []
+    parameters:
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/XDeviceId
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+      - $ref: ../components/parameters.yaml#/IdempotencyKey
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/identity.yaml#/EmailLoginRequest
+    responses:
+      "200":
+        description: Access and refresh tokens issued.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/identity.yaml#/LoginResponse
+      "400":
+        $ref: ../components/responses.yaml#/BadRequest
+      "401":
+        $ref: ../components/responses.yaml#/Unauthorized
+      "409":
+        $ref: ../components/responses.yaml#/Conflict
+      "429":
+        $ref: ../components/responses.yaml#/RateLimited
+      "503":
+        $ref: ../components/responses.yaml#/ServiceUnavailable
+      "500":
+        $ref: ../components/responses.yaml#/InternalError
+
 smsSend:
   post:
     operationId: sendSmsChallenge
@@ -156,4 +263,3 @@ logoutAll:
         $ref: ../components/responses.yaml#/Conflict
       "500":
         $ref: ../components/responses.yaml#/InternalError
-
