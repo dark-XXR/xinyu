@@ -273,7 +273,7 @@ items:
     title: Configure Android TypeScript and backend contract generation
     moduleCode: APP_CONFIG
     owner: codex-root
-    status: review
+    status: done
     allowedPaths:
       - packages/generated-api/**
       - tools/codegen/**
@@ -287,7 +287,7 @@ items:
       - typescript_client_uses_operation_ids
       - backend_dtos_preserve_lower_camel_wire_fields
       - regeneration_has_no_uncommitted_diff
-    handoffNotes: "OpenAPI Generator 7.24.0 produces an Android-only Kotlin Retrofit/Moshi client and a full TypeScript Fetch client. Both compile; final no-diff regeneration check remains before marking done."
+    handoffNotes: "OpenAPI Generator 7.24.0 produces an Android-only Kotlin Retrofit/Moshi client and a full TypeScript Fetch client. Both compile, and regeneration after commit produces a clean Git worktree."
 
   - taskId: CI-CONTRACT-001
     title: Add contract lint breaking change codegen and secret scan gates
@@ -371,3 +371,21 @@ items:
       - refine_regenerate_actions_and_appeals_are_owned_and_persisted
       - unconfigured_ai_provider_fails_explicitly_without_fake_output
     handoffNotes: "All acceptance tests pass against PostgreSQL, including the authenticated HTTP flow from SMS login through quote, generation, SSE, candidate action, refine, regenerate, and risk appeal. The default AI provider fails explicitly until real credentials are configured and always releases reservations on failure."
+
+  - taskId: FRONTEND-ANDROID-MVP-001
+    title: Build Android Compose login and text generation flow in Antigravity IDE
+    moduleCode: APP_CONFIG
+    owner: codex-root
+    status: blocked
+    allowedPaths:
+      - apps/android/**
+    dependsOn: [CONTRACT-CODEGEN-001, BACKEND-GENERATION-001]
+    contractVersion: "1.0.0"
+    acceptanceTests:
+      - android_uses_generated_kotlin_api_and_models
+      - sms_login_and_token_refresh_work_against_local_api
+      - text_generation_renders_analysis_and_three_strategies
+      - failed_generation_shows_retry_without_losing_entitlement
+      - p1_features_are_hidden_by_feature_flags
+      - compose_ui_tests_pass_on_emulator
+    handoffNotes: "Antigravity IDE is installed, launched, and opens the D:\\ai code workspace, but it requires administrator integrity. The computer-use helper runs at a lower integrity level and Windows rejects capture/input with 0x80070005. Resume after launching Codex desktop as Administrator; no Android UI files have been created."
