@@ -1,0 +1,82 @@
+refine:
+  parameters:
+    - name: candidateId
+      in: path
+      required: true
+      schema:
+        type: string
+  post:
+    operationId: refineCandidate
+    summary: Create a refined child generation for one candidate
+    tags: [CANDIDATE]
+    parameters:
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/XDeviceId
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+      - $ref: ../components/parameters.yaml#/IdempotencyKey
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/generation.yaml#/RefineCandidateRequest
+    responses:
+      "202":
+        description: Refined generation accepted.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/generation.yaml#/GenerationResponse
+      "400":
+        $ref: ../components/responses.yaml#/BadRequest
+      "401":
+        $ref: ../components/responses.yaml#/Unauthorized
+      "404":
+        $ref: ../components/responses.yaml#/NotFound
+      "409":
+        $ref: ../components/responses.yaml#/Conflict
+      "500":
+        $ref: ../components/responses.yaml#/InternalError
+actions:
+  parameters:
+    - name: candidateId
+      in: path
+      required: true
+      schema:
+        type: string
+  post:
+    operationId: recordCandidateAction
+    summary: Record an explicit candidate action
+    tags: [CANDIDATE]
+    parameters:
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/XDeviceId
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+      - $ref: ../components/parameters.yaml#/IdempotencyKey
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/generation.yaml#/CandidateActionRequest
+    responses:
+      "200":
+        description: Candidate action recorded exactly once.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/generation.yaml#/CandidateActionResponse
+      "400":
+        $ref: ../components/responses.yaml#/BadRequest
+      "401":
+        $ref: ../components/responses.yaml#/Unauthorized
+      "404":
+        $ref: ../components/responses.yaml#/NotFound
+      "409":
+        $ref: ../components/responses.yaml#/Conflict
+      "500":
+        $ref: ../components/responses.yaml#/InternalError

@@ -1,0 +1,386 @@
+RelationshipStage:
+  type: string
+  enum: [MATCHING, DATING, AMBIGUOUS, IN_RELATIONSHIP, CONFLICT, NO_CONTACT, OTHER]
+
+CommunicationGoal:
+  type: string
+  enum:
+    - START_CONVERSATION
+    - KEEP_CONVERSATION
+    - ACCEPT_INVITATION
+    - DECLINE_POLITELY
+    - INVITE_DATE
+    - APOLOGIZE
+    - SET_BOUNDARY
+    - RESOLVE_CONFLICT
+    - OTHER
+
+GenerationInput:
+  type: object
+  additionalProperties: false
+  required: [text, attachmentIds]
+  properties:
+    text:
+      type: string
+      minLength: 1
+      maxLength: 12000
+    attachmentIds:
+      type: array
+      maxItems: 10
+      items:
+        type: string
+    confirmedOcrVersion:
+      type: [integer, "null"]
+      minimum: 1
+
+GenerationContext:
+  type: object
+  additionalProperties: false
+  required: [relationshipStage, communicationGoal, styleIds]
+  properties:
+    targetProfileId:
+      type: [string, "null"]
+    relationshipStage:
+      $ref: "#/RelationshipStage"
+    communicationGoal:
+      $ref: "#/CommunicationGoal"
+    styleIds:
+      type: array
+      minItems: 1
+      maxItems: 5
+      uniqueItems: true
+      items:
+        type: string
+    additionalContext:
+      type: [string, "null"]
+      maxLength: 2000
+
+GenerationQuoteRequest:
+  type: object
+  additionalProperties: false
+  required: [input, context, saveToHistory]
+  properties:
+    input:
+      $ref: "#/GenerationInput"
+    context:
+      $ref: "#/GenerationContext"
+    requestedModelId:
+      type: [string, "null"]
+    saveToHistory:
+      type: boolean
+
+ModelQuoteOption:
+  type: object
+  additionalProperties: false
+  required: [modelId, energyAmount, available, recommended]
+  properties:
+    modelId:
+      type: string
+    energyAmount:
+      type: integer
+      minimum: 1
+    available:
+      type: boolean
+    recommended:
+      type: boolean
+    unavailableReasonCode:
+      type: [string, "null"]
+
+GenerationQuote:
+  type: object
+  additionalProperties: false
+  required:
+    - quoteId
+    - modelOptions
+    - selectedModelId
+    - estimatedEnergyAmount
+    - chargedFrom
+    - entitlementVersion
+    - expiresAt
+  properties:
+    quoteId:
+      type: string
+    modelOptions:
+      type: array
+      minItems: 1
+      items:
+        $ref: "#/ModelQuoteOption"
+    selectedModelId:
+      type: string
+    estimatedEnergyAmount:
+      type: integer
+      minimum: 1
+    chargedFrom:
+      $ref: ./billing.yaml#/ChargedFrom
+    entitlementVersion:
+      type: integer
+      minimum: 1
+    expiresAt:
+      type: string
+      format: date-time
+
+GenerationQuoteResponse:
+  allOf:
+    - $ref: ../components/schemas/common.yaml#/BaseSuccessEnvelope
+    - type: object
+      properties:
+        data:
+          $ref: "#/GenerationQuote"
+
+CreateGenerationRequest:
+  type: object
+  additionalProperties: false
+  required: [clientRequestId, input, context, modelId, saveToHistory, quoteId]
+  properties:
+    clientRequestId:
+      type: string
+      minLength: 8
+      maxLength: 128
+    input:
+      $ref: "#/GenerationInput"
+    context:
+      $ref: "#/GenerationContext"
+    modelId:
+      type: string
+    saveToHistory:
+      type: boolean
+    quoteId:
+      type: string
+
+GenerationStatus:
+  type: string
+  enum: [CREATED, QUOTA_RESERVED, PARSING, ANALYZING, GENERATING, FILTERING, SUCCEEDED, FAILED, CANCELLED]
+
+SafetyStatus:
+  type: string
+  enum: [PENDING, PASSED, BLOCKED, REVIEW_REQUIRED]
+
+ReplyStrategy:
+  type: string
+  enum: [SAFE, PUSH_PULL, DIRECT]
+
+Candidate:
+  type: object
+  additionalProperties: false
+  required: [candidateId, strategy, styleId, text, safetyStatus]
+  properties:
+    candidateId:
+      type: string
+    strategy:
+      $ref: "#/ReplyStrategy"
+    styleId:
+      type: string
+    text:
+      type: string
+      maxLength: 4000
+    safetyStatus:
+      $ref: "#/SafetyStatus"
+
+GenerationAnalysis:
+  type: object
+  additionalProperties: false
+  required: [possibleIntent, emotion, uncertaintyNote, riskTips]
+  properties:
+    possibleIntent:
+      type: string
+      maxLength: 1000
+    emotion:
+      type: string
+      maxLength: 500
+    uncertaintyNote:
+      type: string
+      maxLength: 500
+    riskTips:
+      type: array
+      maxItems: 10
+      items:
+        type: string
+
+GenerationUsage:
+  type: object
+  additionalProperties: false
+  required: [modelId, inputTokens, outputTokens, reservedEnergy, chargedEnergy, chargedFrom]
+  properties:
+    modelId:
+      type: string
+    inputTokens:
+      type: integer
+      minimum: 0
+    outputTokens:
+      type: integer
+      minimum: 0
+    reservedEnergy:
+      type: integer
+      minimum: 0
+    chargedEnergy:
+      type: integer
+      minimum: 0
+    chargedFrom:
+      $ref: ./billing.yaml#/ChargedFrom
+
+GenerationSnapshot:
+  type: object
+  additionalProperties: false
+  required: [generationId, status, candidates, resourceVersion, createdAt, updatedAt]
+  properties:
+    generationId:
+      type: string
+    parentGenerationId:
+      type: [string, "null"]
+    status:
+      $ref: "#/GenerationStatus"
+    analysis:
+      oneOf:
+        - $ref: "#/GenerationAnalysis"
+        - type: "null"
+    candidates:
+      type: array
+      maxItems: 3
+      items:
+        $ref: "#/Candidate"
+    usage:
+      oneOf:
+        - $ref: "#/GenerationUsage"
+        - type: "null"
+    failureCode:
+      type: [string, "null"]
+    riskEventId:
+      type: [string, "null"]
+    resourceVersion:
+      type: integer
+      minimum: 1
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: string
+      format: date-time
+  allOf:
+    - if:
+        properties:
+          status:
+            const: SUCCEEDED
+      then:
+        properties:
+          candidates:
+            minItems: 3
+            maxItems: 3
+
+GenerationResponse:
+  allOf:
+    - $ref: ../components/schemas/common.yaml#/BaseSuccessEnvelope
+    - type: object
+      properties:
+        data:
+          $ref: "#/GenerationSnapshot"
+
+RegenerateRequest:
+  type: object
+  additionalProperties: false
+  required: [quoteId, clientRequestId]
+  properties:
+    quoteId:
+      type: string
+    clientRequestId:
+      type: string
+
+RefineCandidateRequest:
+  type: object
+  additionalProperties: false
+  required: [quoteId, clientRequestId]
+  properties:
+    quoteId:
+      type: string
+    clientRequestId:
+      type: string
+    instructionCode:
+      type: [string, "null"]
+      enum: [SHORTER, WARMER, FUNNIER, MORE_DIRECT, CUSTOM, null]
+    customInstruction:
+      type: [string, "null"]
+      maxLength: 500
+
+CandidateActionType:
+  type: string
+  enum: [COPY, FAVORITE, SENT, LIKE, DISLIKE, OUTCOME]
+
+CandidateActionRequest:
+  type: object
+  additionalProperties: false
+  required: [clientActionId, actionType, occurredAt]
+  properties:
+    clientActionId:
+      type: string
+    actionType:
+      $ref: "#/CandidateActionType"
+    occurredAt:
+      type: string
+      format: date-time
+    outcomeCode:
+      type: [string, "null"]
+      enum: [POSITIVE, NEUTRAL, NEGATIVE, UNKNOWN, null]
+
+CandidateAction:
+  type: object
+  additionalProperties: false
+  required: [actionId, candidateId, actionType, occurredAt, recordedAt]
+  properties:
+    actionId:
+      type: string
+    candidateId:
+      type: string
+    actionType:
+      $ref: "#/CandidateActionType"
+    occurredAt:
+      type: string
+      format: date-time
+    recordedAt:
+      type: string
+      format: date-time
+
+CandidateActionResponse:
+  allOf:
+    - $ref: ../components/schemas/common.yaml#/BaseSuccessEnvelope
+    - type: object
+      properties:
+        data:
+          $ref: "#/CandidateAction"
+
+AppealRequest:
+  type: object
+  additionalProperties: false
+  required: [reasonCode]
+  properties:
+    reasonCode:
+      type: string
+      enum: [FALSE_POSITIVE, CONTEXT_MISUNDERSTOOD, OTHER]
+    comment:
+      type: [string, "null"]
+      maxLength: 500
+
+Appeal:
+  type: object
+  additionalProperties: false
+  required: [appealId, riskEventId, status, createdAt, updatedAt]
+  properties:
+    appealId:
+      type: string
+    riskEventId:
+      type: string
+    status:
+      type: string
+      enum: [SUBMITTED, REVIEWING, APPROVED, REJECTED]
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: string
+      format: date-time
+
+AppealResponse:
+  allOf:
+    - $ref: ../components/schemas/common.yaml#/BaseSuccessEnvelope
+    - type: object
+      properties:
+        data:
+          $ref: "#/Appeal"

@@ -27,6 +27,18 @@ tags:
     description: Legal and optional consent records.
   - name: DATA_GOVERNANCE
     description: User export and account deletion requests.
+  - name: ENTITLEMENT
+    description: Server-authoritative plans, benefits, and model access.
+  - name: WALLET
+    description: Energy balance and immutable ledger.
+  - name: GENERATION
+    description: Quotes, generation tasks, snapshots, and SSE events.
+  - name: CANDIDATE
+    description: Candidate refinement and explicit user actions.
+  - name: RISK
+    description: Safety blocks and user appeals.
+  - name: ADMIN_RBAC
+    description: Administrator authentication, roles, permissions, and audit access.
 paths:
   /health:
     get:
@@ -79,6 +91,40 @@ paths:
     $ref: ./paths/me.yaml#/dataRequest
   /v1/me/deletion:
     $ref: ./paths/me.yaml#/deletion
+  /v1/entitlements:
+    $ref: ./paths/entitlements.yaml#/entitlements
+  /v1/wallet:
+    $ref: ./paths/wallet.yaml#/wallet
+  /v1/wallet/ledger:
+    $ref: ./paths/wallet.yaml#/ledger
+  /v1/generations/quote:
+    $ref: ./paths/generations.yaml#/quote
+  /v1/generations:
+    $ref: ./paths/generations.yaml#/generations
+  /v1/generations/{generationId}:
+    $ref: ./paths/generations.yaml#/generation
+  /v1/generations/{generationId}/events:
+    $ref: ./paths/generations.yaml#/events
+  /v1/generations/{generationId}/cancel:
+    $ref: ./paths/generations.yaml#/cancel
+  /v1/generations/{generationId}/regenerate:
+    $ref: ./paths/generations.yaml#/regenerate
+  /v1/candidates/{candidateId}/refine:
+    $ref: ./paths/candidates.yaml#/refine
+  /v1/candidates/{candidateId}/actions:
+    $ref: ./paths/candidates.yaml#/actions
+  /v1/risk-events/{riskEventId}/appeals:
+    $ref: ./paths/risk-events.yaml#/appeal
+  /admin/v1/auth/login:
+    $ref: ./admin/auth.yaml#/login
+  /admin/v1/auth/mfa/verify:
+    $ref: ./admin/auth.yaml#/mfaVerify
+  /admin/v1/auth/refresh:
+    $ref: ./admin/auth.yaml#/refresh
+  /admin/v1/auth/logout:
+    $ref: ./admin/auth.yaml#/logout
+  /admin/v1/me:
+    $ref: ./admin/auth.yaml#/me
 components:
   securitySchemes:
     bearerAuth:
@@ -86,3 +132,8 @@ components:
       scheme: bearer
       bearerFormat: JWT
       description: Short-lived access token. Tokens are never accepted in URLs.
+    adminBearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Administrator-only JWT with a distinct audience and MFA assurance.

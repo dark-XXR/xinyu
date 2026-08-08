@@ -1,0 +1,41 @@
+appeal:
+  parameters:
+    - name: riskEventId
+      in: path
+      required: true
+      schema:
+        type: string
+  post:
+    operationId: appealRiskEvent
+    summary: Appeal a safety decision without bypassing it
+    tags: [RISK]
+    parameters:
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/XDeviceId
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+      - $ref: ../components/parameters.yaml#/IdempotencyKey
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/generation.yaml#/AppealRequest
+    responses:
+      "202":
+        description: Appeal submitted for review.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/generation.yaml#/AppealResponse
+      "400":
+        $ref: ../components/responses.yaml#/BadRequest
+      "401":
+        $ref: ../components/responses.yaml#/Unauthorized
+      "404":
+        $ref: ../components/responses.yaml#/NotFound
+      "409":
+        $ref: ../components/responses.yaml#/Conflict
+      "500":
+        $ref: ../components/responses.yaml#/InternalError

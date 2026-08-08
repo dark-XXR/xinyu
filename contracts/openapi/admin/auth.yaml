@@ -1,0 +1,229 @@
+login:
+  post:
+    operationId: loginAdmin
+    summary: Verify administrator credentials
+    description: |
+      Starts an administrator-only authentication flow. Successful credential
+      verification returns an MFA challenge; it never issues a usable access
+      token before MFA verification. The login attempt is isolated from user
+      authentication sessions and tokens.
+    tags: [ADMIN_RBAC]
+    security: []
+    parameters:
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+      - $ref: ../components/parameters.yaml#/IdempotencyKey
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/admin-auth.yaml#/AdminLoginRequest
+    responses:
+      "200":
+        description: Credentials accepted and an MFA challenge created.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/admin-auth.yaml#/AdminLoginResponse
+      "400":
+        $ref: ../components/responses.yaml#/BadRequest
+      "401":
+        description: Credentials are invalid.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/admin-auth.yaml#/AdminAuthErrorResponse
+      "403":
+        description: The administrator account cannot start a session.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/admin-auth.yaml#/AdminAuthErrorResponse
+      "409":
+        $ref: ../components/responses.yaml#/Conflict
+      "429":
+        $ref: ../components/responses.yaml#/RateLimited
+      "500":
+        $ref: ../components/responses.yaml#/InternalError
+
+mfaVerify:
+  post:
+    operationId: verifyAdminMfa
+    summary: Verify an administrator MFA challenge
+    description: |
+      Completes the pending login and issues an administrator access token plus
+      a single-use rotating refresh token. A challenge is bound to the original
+      login attempt and cannot be used for another administrator.
+    tags: [ADMIN_RBAC]
+    security: []
+    parameters:
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+      - $ref: ../components/parameters.yaml#/IdempotencyKey
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/admin-auth.yaml#/AdminMfaVerifyRequest
+    responses:
+      "200":
+        description: MFA verified and an administrator session created.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/admin-auth.yaml#/AdminAuthenticationResponse
+      "400":
+        $ref: ../components/responses.yaml#/BadRequest
+      "401":
+        description: Challenge or verification code is invalid or expired.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/admin-auth.yaml#/AdminAuthErrorResponse
+      "403":
+        description: The administrator account cannot create a session.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/admin-auth.yaml#/AdminAuthErrorResponse
+      "409":
+        $ref: ../components/responses.yaml#/Conflict
+      "429":
+        $ref: ../components/responses.yaml#/RateLimited
+      "500":
+        $ref: ../components/responses.yaml#/InternalError
+
+refresh:
+  post:
+    operationId: refreshAdminAccessToken
+    summary: Rotate an administrator refresh token
+    description: |
+      Atomically revokes the presented refresh token and returns a new token
+      pair in the same administrator session. Reuse of any rotated token revokes
+      the refresh-token family and returns REFRESH_TOKEN_REUSED.
+    tags: [ADMIN_RBAC]
+    security: []
+    parameters:
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+      - $ref: ../components/parameters.yaml#/IdempotencyKey
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/admin-auth.yaml#/AdminRefreshRequest
+    responses:
+      "200":
+        description: Refresh token rotated and a new token pair issued.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/admin-auth.yaml#/AdminTokenResponse
+      "400":
+        $ref: ../components/responses.yaml#/BadRequest
+      "401":
+        description: Refresh token is expired, revoked, invalid, or reused.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/admin-auth.yaml#/AdminAuthErrorResponse
+      "403":
+        description: The administrator account or session is no longer allowed.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/admin-auth.yaml#/AdminAuthErrorResponse
+      "409":
+        $ref: ../components/responses.yaml#/Conflict
+      "429":
+        $ref: ../components/responses.yaml#/RateLimited
+      "500":
+        $ref: ../components/responses.yaml#/InternalError
+
+logout:
+  post:
+    operationId: logoutAdmin
+    summary: Revoke the current administrator session
+    description: |
+      Revokes the current access-token session and its refresh-token family.
+      Repeating the request with the same idempotency key returns the original
+      successful result.
+    tags: [ADMIN_RBAC]
+    security:
+      - adminBearerAuth: []
+    parameters:
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+      - $ref: ../components/parameters.yaml#/IdempotencyKey
+    responses:
+      "200":
+        description: Administrator session revoked.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/admin-auth.yaml#/AdminEmptyResponse
+      "401":
+        description: Administrator access token is missing, expired, or revoked.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/admin-auth.yaml#/AdminAuthErrorResponse
+      "403":
+        $ref: ../components/responses.yaml#/Forbidden
+      "409":
+        $ref: ../components/responses.yaml#/Conflict
+      "429":
+        $ref: ../components/responses.yaml#/RateLimited
+      "500":
+        $ref: ../components/responses.yaml#/InternalError
+
+me:
+  get:
+    operationId: getCurrentAdmin
+    summary: Read the current administrator and RBAC summary
+    description: |
+      Returns the current administrator, effective roles, effective permission
+      codes, MFA state, and session summary. It never returns password hashes,
+      MFA seeds, recovery codes, or authorization-policy internals.
+    tags: [ADMIN_RBAC]
+    security:
+      - adminBearerAuth: []
+    parameters:
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+    responses:
+      "200":
+        description: Current administrator identity and effective access summary.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/admin-auth.yaml#/AdminMeResponse
+      "401":
+        description: Administrator access token is missing, expired, or revoked.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/admin-auth.yaml#/AdminAuthErrorResponse
+      "403":
+        description: Administrator account is disabled or lacks MFA assurance.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/admin-auth.yaml#/AdminAuthErrorResponse
+      "429":
+        $ref: ../components/responses.yaml#/RateLimited
+      "500":
+        $ref: ../components/responses.yaml#/InternalError

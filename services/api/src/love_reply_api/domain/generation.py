@@ -1,0 +1,39 @@
+from enum import StrEnum
+
+
+class GenerationStatus(StrEnum):
+    CREATED = "CREATED"
+    QUOTA_RESERVED = "QUOTA_RESERVED"
+    PARSING = "PARSING"
+    ANALYZING = "ANALYZING"
+    GENERATING = "GENERATING"
+    FILTERING = "FILTERING"
+    SUCCEEDED = "SUCCEEDED"
+    FAILED = "FAILED"
+    CANCELLED = "CANCELLED"
+
+
+class ChargedFrom(StrEnum):
+    SUBSCRIPTION = "SUBSCRIPTION"
+    WALLET = "WALLET"
+    SUBSCRIPTION_THEN_WALLET = "SUBSCRIPTION_THEN_WALLET"
+
+
+class SafetyStatus(StrEnum):
+    PENDING = "PENDING"
+    PASSED = "PASSED"
+    BLOCKED = "BLOCKED"
+    REVIEW_REQUIRED = "REVIEW_REQUIRED"
+
+
+class ReplyStrategy(StrEnum):
+    SAFE = "SAFE"
+    PUSH_PULL = "PUSH_PULL"
+    DIRECT = "DIRECT"
+
+
+TERMINAL_GENERATION_STATUSES = {
+    GenerationStatus.SUCCEEDED,
+    GenerationStatus.FAILED,
+    GenerationStatus.CANCELLED,
+}

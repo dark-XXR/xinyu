@@ -4,7 +4,19 @@ from collections.abc import AsyncIterator
 import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
-from love_reply_api.infrastructure.database import session_factory
+from love_reply_api.infrastructure.database import engine, session_factory
+from love_reply_api.infrastructure.generation_records import (
+    CandidateActionRecord,
+    EntitlementRecord,
+    GenerationEventRecord,
+    GenerationQuoteRecord,
+    GenerationTaskRecord,
+    GenerationUsageRecord,
+    ReplyCandidateRecord,
+    RiskAppealRecord,
+    WalletAccountRecord,
+    WalletLedgerRecord,
+)
 from love_reply_api.infrastructure.identity_records import (
     AuthSessionRecord,
     ConsentRecord,
@@ -38,14 +50,26 @@ class CapturingSmsSender:
 async def clean_identity_tables() -> AsyncIterator[None]:
     async with session_factory() as session:
         await _delete_identity_data(session)
+    await engine.dispose()
     yield
     async with session_factory() as session:
         await _delete_identity_data(session)
+    await engine.dispose()
 
 
 async def _delete_identity_data(session: AsyncSession) -> None:
     for record in (
         IdempotencyRecord,
+        RiskAppealRecord,
+        CandidateActionRecord,
+        GenerationEventRecord,
+        ReplyCandidateRecord,
+        GenerationUsageRecord,
+        WalletLedgerRecord,
+        GenerationTaskRecord,
+        GenerationQuoteRecord,
+        EntitlementRecord,
+        WalletAccountRecord,
         ConsentRecord,
         DataRequestRecord,
         AuthSessionRecord,

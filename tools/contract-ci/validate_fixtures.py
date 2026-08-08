@@ -274,7 +274,7 @@ def validate_manifest(repo: Path, manifest_path: Path, openapi: dict[str, Any]) 
             print(f"ERROR: {error}", file=sys.stderr)
         return 1
     print(
-        f"Validated {len(fixtures)} fixtures across {len(coverage)} identity operations "
+        f"Validated {len(fixtures)} fixtures across {len(coverage)} tagged operations "
         "with complete success/error/request coverage."
     )
     return 0

@@ -108,8 +108,8 @@ items:
   - taskId: CONTRACT-GENERATION-001
     title: Define quote generation candidate SSE and risk appeal operations
     moduleCode: GENERATION
-    owner: unassigned
-    status: planned
+    owner: codex-root
+    status: done
     allowedPaths:
       - contracts/openapi/paths/generations.yaml
       - contracts/openapi/paths/candidates.yaml
@@ -123,7 +123,7 @@ items:
       - generation_state_machine_has_no_undefined_state
       - sse_envelope_and_reconnect_are_specified
       - failure_and_cancel_release_reservation
-    handoffNotes: ""
+    handoffNotes: "P0 quote, generation, SSE, cancel, regenerate, candidate refine/action, and risk appeal contracts are frozen. Target profile remains an optional identifier until the P1 persona module is delivered. Thirty synthetic generation/billing fixtures validate all 12 tagged operations."
 
   - taskId: CONTRACT-HISTORY-001
     title: Define conversations favorites knowledge and share cards
@@ -167,7 +167,7 @@ items:
       - monetary_fields_use_minor_units
       - order_refund_and_webhook_states_are_complete
       - duplicate_webhooks_do_not_duplicate_entitlements
-    handoffNotes: ""
+    handoffNotes: "P0 entitlement, wallet, immutable ledger, quote reservation, settlement, and release contracts are complete. Product, payment order, subscription, refund, and ad reward operations remain P1 and are hidden from the MVP UI."
 
   - taskId: CONTRACT-OPERATIONS-001
     title: Define bootstrap notices inbox support jobs releases and telemetry
@@ -250,8 +250,8 @@ items:
   - taskId: CONTRACT-FIXTURES-001
     title: Build shared success error SSE and webhook fixtures
     moduleCode: APP_CONFIG
-    owner: unassigned
-    status: planned
+    owner: codex-root
+    status: in_progress
     allowedPaths:
       - contracts/examples/**
       - packages/contract-test-fixtures/**
@@ -267,13 +267,13 @@ items:
       - every_operation_has_success_or_expected_error_fixture
       - fixtures_validate_against_openapi_and_event_schemas
       - fixtures_contain_no_real_personal_data
-    handoffNotes: ""
+    handoffNotes: "Identity has 38 fixtures across 16 operations. P0 generation and billing have 30 fixtures across 12 operations, including text/event-stream. Remaining P1 and platform modules still require fixtures."
 
   - taskId: CONTRACT-CODEGEN-001
     title: Configure Android TypeScript and backend contract generation
     moduleCode: APP_CONFIG
-    owner: unassigned
-    status: planned
+    owner: codex-root
+    status: review
     allowedPaths:
       - packages/generated-api/**
       - tools/codegen/**
@@ -287,7 +287,7 @@ items:
       - typescript_client_uses_operation_ids
       - backend_dtos_preserve_lower_camel_wire_fields
       - regeneration_has_no_uncommitted_diff
-    handoffNotes: ""
+    handoffNotes: "OpenAPI Generator 7.24.0 produces an Android-only Kotlin Retrofit/Moshi client and a full TypeScript Fetch client. Both compile; final no-diff regeneration check remains before marking done."
 
   - taskId: CI-CONTRACT-001
     title: Add contract lint breaking change codegen and secret scan gates
@@ -348,3 +348,26 @@ items:
       - provider_operations_match_openapi
       - idempotency_replay_returns_original_response
     handoffNotes: "All acceptance tests pass, including encrypted durable idempotency replay and mismatched-request conflicts. Real SMS credentials remain an external integration input; an unavailable adapter fails explicitly until configured."
+
+  - taskId: BACKEND-GENERATION-001
+    title: Implement entitlement wallet generation candidate SSE and risk appeal flows
+    moduleCode: GENERATION
+    owner: codex-root
+    status: done
+    allowedPaths:
+      - services/api/src/love_reply_api/application/generation.py
+      - services/api/src/love_reply_api/domain/generation.py
+      - services/api/src/love_reply_api/infrastructure/generation_records.py
+      - services/api/src/love_reply_api/transport/http/**
+      - services/api/tests/test_generation_*.py
+      - database/migrations/**
+    dependsOn: [BACKEND-IDENTITY-001, CONTRACT-GENERATION-001]
+    contractVersion: "1.0.0"
+    acceptanceTests:
+      - quote_is_bound_to_request_model_and_entitlement_version
+      - reservation_settles_once_or_releases_on_failure_and_cancel
+      - successful_generation_has_exactly_three_safe_strategies
+      - generation_events_resume_with_opaque_last_event_id
+      - refine_regenerate_actions_and_appeals_are_owned_and_persisted
+      - unconfigured_ai_provider_fails_explicitly_without_fake_output
+    handoffNotes: "All acceptance tests pass against PostgreSQL, including the authenticated HTTP flow from SMS login through quote, generation, SSE, candidate action, refine, regenerate, and risk appeal. The default AI provider fails explicitly until real credentials are configured and always releases reservations on failure."

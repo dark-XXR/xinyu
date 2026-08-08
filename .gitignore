@@ -12,6 +12,7 @@ dist/
 !contracts/openapi/dist/openapi.yaml
 build/
 node_modules/
+packages/generated-api/typescript/package-lock.json
 .gradle/
 .idea/
 local.properties

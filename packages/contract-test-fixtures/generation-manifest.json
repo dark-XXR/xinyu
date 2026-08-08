@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "1.0",
+  "openapi": "contracts/openapi/openapi.yaml",
+  "targetTags": ["ENTITLEMENT", "WALLET", "GENERATION", "CANDIDATE", "RISK"],
+  "fixtureFiles": [
+    "contracts/examples/billing/entitlements.json",
+    "contracts/examples/billing/wallet.json",
+    "contracts/examples/generation/generation.json",
+    "contracts/examples/generation/candidate.json",
+    "contracts/examples/generation/risk.json"
+  ],
+  "coverage": {
+    "requireSuccessResponsePerOperation": true,
+    "requireErrorResponsePerOperation": true,
+    "requireRequestFixtureForRequestBody": true
+  }
+}

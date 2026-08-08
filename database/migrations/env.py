@@ -2,7 +2,10 @@ import asyncio
 from logging.config import fileConfig
 
 from alembic import context
-from love_reply_api.infrastructure import identity_records  # noqa: F401
+from love_reply_api.infrastructure import (
+    generation_records,  # noqa: F401
+    identity_records,  # noqa: F401
+)
 from love_reply_api.infrastructure.database import Base
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection

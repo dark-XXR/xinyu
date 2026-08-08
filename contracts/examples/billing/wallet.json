@@ -1,0 +1,112 @@
+{
+  "module": "WALLET",
+  "fixtures": [
+    {
+      "id": "wallet.getWallet.response.success",
+      "operationId": "getWallet",
+      "kind": "response",
+      "statusCode": "200",
+      "mediaType": "application/json",
+      "value": {
+        "code": "OK",
+        "message": "success",
+        "data": {
+          "energyBalance": 120,
+          "energyReserved": 20,
+          "energyAvailable": 100,
+          "currency": "ENERGY",
+          "resourceVersion": 3,
+          "updatedAt": "2026-08-08T09:05:00Z"
+        },
+        "requestId": "req_fixture_wallet_001",
+        "timestamp": "2026-08-08T09:05:01Z"
+      }
+    },
+    {
+      "id": "wallet.getWallet.response.unauthorized",
+      "operationId": "getWallet",
+      "kind": "response",
+      "statusCode": "401",
+      "mediaType": "application/json",
+      "value": {
+        "code": "UNAUTHORIZED",
+        "message": "Fixture access token is not accepted.",
+        "data": null,
+        "error": {
+          "retryable": false,
+          "retryAfterSeconds": null,
+          "fieldErrors": [],
+          "details": {}
+        },
+        "requestId": "req_fixture_wallet_002",
+        "timestamp": "2026-08-08T09:05:02Z"
+      }
+    },
+    {
+      "id": "wallet.listWalletLedger.response.success",
+      "operationId": "listWalletLedger",
+      "kind": "response",
+      "statusCode": "200",
+      "mediaType": "application/json",
+      "value": {
+        "code": "OK",
+        "message": "success",
+        "data": {
+          "items": [
+            {
+              "ledgerEntryId": "ledger_fixture_001",
+              "entryType": "CREDIT",
+              "generationId": null,
+              "energyDelta": 120,
+              "reservedDelta": 0,
+              "balanceAfter": 120,
+              "reservedAfter": 0,
+              "reasonCode": "FIXTURE_INITIAL_CREDIT",
+              "createdAt": "2026-08-08T09:04:00Z"
+            },
+            {
+              "ledgerEntryId": "ledger_fixture_002",
+              "entryType": "RESERVATION",
+              "generationId": "gen_fixture_001",
+              "energyDelta": 0,
+              "reservedDelta": 20,
+              "balanceAfter": 120,
+              "reservedAfter": 20,
+              "reasonCode": "FIXTURE_GENERATION_RESERVATION",
+              "createdAt": "2026-08-08T09:05:00Z"
+            }
+          ],
+          "nextCursor": null,
+          "hasMore": false
+        },
+        "requestId": "req_fixture_wallet_003",
+        "timestamp": "2026-08-08T09:05:03Z"
+      }
+    },
+    {
+      "id": "wallet.listWalletLedger.response.badRequest",
+      "operationId": "listWalletLedger",
+      "kind": "response",
+      "statusCode": "400",
+      "mediaType": "application/json",
+      "value": {
+        "code": "INVALID_CURSOR",
+        "message": "Fixture cursor is invalid.",
+        "data": null,
+        "error": {
+          "retryable": false,
+          "retryAfterSeconds": null,
+          "fieldErrors": [
+            {
+              "field": "cursor",
+              "reason": "INVALID_FORMAT"
+            }
+          ],
+          "details": {}
+        },
+        "requestId": "req_fixture_wallet_004",
+        "timestamp": "2026-08-08T09:05:04Z"
+      }
+    }
+  ]
+}

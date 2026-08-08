@@ -14,6 +14,10 @@ from love_reply_api.application.errors import ApiError
 from love_reply_api.application.tokens import IssuedTokens, TokenService
 from love_reply_api.config import Settings
 from love_reply_api.domain.identity import AccountStatus
+from love_reply_api.infrastructure.generation_records import (
+    EntitlementRecord,
+    WalletAccountRecord,
+)
 from love_reply_api.infrastructure.identity_records import (
     AuthSessionRecord,
     SmsChallengeRecord,
@@ -154,6 +158,29 @@ class AuthService:
             self._session.add(user)
             await self._session.flush()
             self._session.add(UserProfileRecord(user_id=user.user_id, updated_at=now))
+            self._session.add(
+                EntitlementRecord(
+                    user_id=user.user_id,
+                    plan_code="FREE",
+                    plan_expires_at=None,
+                    text_remaining=self._settings.free_text_quota,
+                    text_reserved=0,
+                    vision_remaining=0,
+                    allowed_model_ids=[self._settings.default_model_id],
+                    allowed_style_ids=self._settings.default_style_ids,
+                    resource_version=1,
+                    updated_at=now,
+                )
+            )
+            self._session.add(
+                WalletAccountRecord(
+                    user_id=user.user_id,
+                    energy_balance=0,
+                    energy_reserved=0,
+                    resource_version=1,
+                    updated_at=now,
+                )
+            )
 
         device = await self._session.scalar(
             select(UserDeviceRecord).where(

@@ -27,6 +27,18 @@ tags:
     description: Legal and optional consent records.
   - name: DATA_GOVERNANCE
     description: User export and account deletion requests.
+  - name: ENTITLEMENT
+    description: Server-authoritative plans, benefits, and model access.
+  - name: WALLET
+    description: Energy balance and immutable ledger.
+  - name: GENERATION
+    description: Quotes, generation tasks, snapshots, and SSE events.
+  - name: CANDIDATE
+    description: Candidate refinement and explicit user actions.
+  - name: RISK
+    description: Safety blocks and user appeals.
+  - name: ADMIN_RBAC
+    description: Administrator authentication, roles, permissions, and audit access.
 paths:
   /health:
     get:
@@ -530,6 +542,658 @@ paths:
           $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalError'
+  /v1/entitlements:
+    get:
+      operationId: getEntitlements
+      summary: Get server-authoritative user entitlements
+      tags:
+        - ENTITLEMENT
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/XDeviceId'
+        - $ref: '#/components/parameters/AcceptLanguage'
+      responses:
+        '200':
+          description: Current entitlement and wallet summary.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntitlementResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /v1/wallet:
+    get:
+      operationId: getWallet
+      summary: Get energy balance and active reservations
+      tags:
+        - WALLET
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/XDeviceId'
+        - $ref: '#/components/parameters/AcceptLanguage'
+      responses:
+        '200':
+          description: Current wallet.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /v1/wallet/ledger:
+    get:
+      operationId: listWalletLedger
+      summary: List immutable wallet entries
+      tags:
+        - WALLET
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/XDeviceId'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+        - name: entryType
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/LedgerEntryType'
+      responses:
+        '200':
+          description: Immutable wallet ledger entries.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletLedgerResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /v1/generations/quote:
+    post:
+      operationId: quoteGeneration
+      summary: Quote energy cost before creating a generation
+      tags:
+        - GENERATION
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/XDeviceId'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenerationQuoteRequest'
+      responses:
+        '200':
+          description: Short-lived quote bound to input, model, and entitlement version.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerationQuoteResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /v1/generations:
+    post:
+      operationId: createGeneration
+      summary: Create a generation and atomically reserve its quote
+      tags:
+        - GENERATION
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/XDeviceId'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateGenerationRequest'
+      responses:
+        '202':
+          description: Task created with status QUOTA_RESERVED.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /v1/generations/{generationId}:
+    parameters:
+      - name: generationId
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: getGeneration
+      summary: Get an owned generation snapshot
+      tags:
+        - GENERATION
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/XDeviceId'
+        - $ref: '#/components/parameters/AcceptLanguage'
+      responses:
+        '200':
+          description: Current or final task snapshot.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerationResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /v1/generations/{generationId}/events:
+    parameters:
+      - name: generationId
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: streamGenerationEvents
+      summary: Stream retained generation events
+      tags:
+        - GENERATION
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/XDeviceId'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/LastEventId'
+      responses:
+        '200':
+          description: SSE stream ordered by monotonically increasing sequence.
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                const: no-cache
+          content:
+            text/event-stream:
+              schema:
+                type: string
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /v1/generations/{generationId}/cancel:
+    parameters:
+      - name: generationId
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      operationId: cancelGeneration
+      summary: Cancel an unfinished task and release unsettled reservation
+      tags:
+        - GENERATION
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/XDeviceId'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Cancelled task snapshot.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerationResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /v1/generations/{generationId}/regenerate:
+    parameters:
+      - name: generationId
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      operationId: regenerateGeneration
+      summary: Create a child generation using a new quote
+      tags:
+        - GENERATION
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/XDeviceId'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegenerateRequest'
+      responses:
+        '202':
+          description: Child generation accepted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /v1/candidates/{candidateId}/refine:
+    parameters:
+      - name: candidateId
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      operationId: refineCandidate
+      summary: Create a refined child generation for one candidate
+      tags:
+        - CANDIDATE
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/XDeviceId'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefineCandidateRequest'
+      responses:
+        '202':
+          description: Refined generation accepted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /v1/candidates/{candidateId}/actions:
+    parameters:
+      - name: candidateId
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      operationId: recordCandidateAction
+      summary: Record an explicit candidate action
+      tags:
+        - CANDIDATE
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/XDeviceId'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CandidateActionRequest'
+      responses:
+        '200':
+          description: Candidate action recorded exactly once.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CandidateActionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /v1/risk-events/{riskEventId}/appeals:
+    parameters:
+      - name: riskEventId
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      operationId: appealRiskEvent
+      summary: Appeal a safety decision without bypassing it
+      tags:
+        - RISK
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/XDeviceId'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppealRequest'
+      responses:
+        '202':
+          description: Appeal submitted for review.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppealResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /admin/v1/auth/login:
+    post:
+      operationId: loginAdmin
+      summary: Verify administrator credentials
+      description: |
+        Starts an administrator-only authentication flow. Successful credential
+        verification returns an MFA challenge; it never issues a usable access
+        token before MFA verification. The login attempt is isolated from user
+        authentication sessions and tokens.
+      tags:
+        - ADMIN_RBAC
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminLoginRequest'
+      responses:
+        '200':
+          description: Credentials accepted and an MFA challenge created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminLoginResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          description: Credentials are invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminAuthErrorResponse'
+        '403':
+          description: The administrator account cannot start a session.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminAuthErrorResponse'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /admin/v1/auth/mfa/verify:
+    post:
+      operationId: verifyAdminMfa
+      summary: Verify an administrator MFA challenge
+      description: |
+        Completes the pending login and issues an administrator access token plus
+        a single-use rotating refresh token. A challenge is bound to the original
+        login attempt and cannot be used for another administrator.
+      tags:
+        - ADMIN_RBAC
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminMfaVerifyRequest'
+      responses:
+        '200':
+          description: MFA verified and an administrator session created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminAuthenticationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          description: Challenge or verification code is invalid or expired.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminAuthErrorResponse'
+        '403':
+          description: The administrator account cannot create a session.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminAuthErrorResponse'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /admin/v1/auth/refresh:
+    post:
+      operationId: refreshAdminAccessToken
+      summary: Rotate an administrator refresh token
+      description: |
+        Atomically revokes the presented refresh token and returns a new token
+        pair in the same administrator session. Reuse of any rotated token revokes
+        the refresh-token family and returns REFRESH_TOKEN_REUSED.
+      tags:
+        - ADMIN_RBAC
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminRefreshRequest'
+      responses:
+        '200':
+          description: Refresh token rotated and a new token pair issued.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminTokenResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          description: Refresh token is expired, revoked, invalid, or reused.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminAuthErrorResponse'
+        '403':
+          description: The administrator account or session is no longer allowed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminAuthErrorResponse'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /admin/v1/auth/logout:
+    post:
+      operationId: logoutAdmin
+      summary: Revoke the current administrator session
+      description: |
+        Revokes the current access-token session and its refresh-token family.
+        Repeating the request with the same idempotency key returns the original
+        successful result.
+      tags:
+        - ADMIN_RBAC
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Administrator session revoked.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminEmptyResponse'
+        '401':
+          description: Administrator access token is missing, expired, or revoked.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminAuthErrorResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /admin/v1/me:
+    get:
+      operationId: getCurrentAdmin
+      summary: Read the current administrator and RBAC summary
+      description: |
+        Returns the current administrator, effective roles, effective permission
+        codes, MFA state, and session summary. It never returns password hashes,
+        MFA seeds, recovery codes, or authorization-policy internals.
+      tags:
+        - ADMIN_RBAC
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+      responses:
+        '200':
+          description: Current administrator identity and effective access summary.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminMeResponse'
+        '401':
+          description: Administrator access token is missing, expired, or revoked.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminAuthErrorResponse'
+        '403':
+          description: Administrator account is disabled or lacks MFA assurance.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminAuthErrorResponse'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
 components:
   securitySchemes:
     bearerAuth:
@@ -537,6 +1201,11 @@ components:
       scheme: bearer
       bearerFormat: JWT
       description: Short-lived access token. Tokens are never accepted in URLs.
+    adminBearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Administrator-only JWT with a distinct audience and MFA assurance.
   parameters:
     XRequestId:
       name: X-Request-Id
@@ -598,6 +1267,33 @@ components:
       schema:
         type: string
         pattern: ^[1-9][0-9]*$
+    Cursor:
+      name: cursor
+      in: query
+      required: false
+      description: Opaque server-issued cursor. Clients must not parse it.
+      schema:
+        type:
+          - string
+          - 'null'
+    Limit:
+      name: limit
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+    LastEventId:
+      name: Last-Event-ID
+      in: header
+      required: false
+      description: Last fully processed SSE event ID used to resume a stream.
+      schema:
+        type: string
+        minLength: 8
+        maxLength: 128
   headers:
     XRequestId:
       description: Final request correlation ID used by support and logs.
@@ -1155,6 +1851,1076 @@ components:
             - PRIVACY_CONCERN
             - EXPERIENCE
             - OTHER
+    BenefitBalances:
+      type: object
+      additionalProperties: false
+      required:
+        - textRemaining
+        - visionRemaining
+        - allowedModelIds
+        - allowedStyleIds
+      properties:
+        textRemaining:
+          type: integer
+          minimum: 0
+        visionRemaining:
+          type: integer
+          minimum: 0
+        allowedModelIds:
+          type: array
+          uniqueItems: true
+          items:
+            type: string
+        allowedStyleIds:
+          type: array
+          uniqueItems: true
+          items:
+            type: string
+    WalletSummary:
+      type: object
+      additionalProperties: false
+      required:
+        - energyBalance
+        - energyReserved
+        - energyAvailable
+      properties:
+        energyBalance:
+          type: integer
+          minimum: 0
+        energyReserved:
+          type: integer
+          minimum: 0
+        energyAvailable:
+          type: integer
+          minimum: 0
+    Entitlement:
+      type: object
+      additionalProperties: false
+      required:
+        - userId
+        - planCode
+        - benefits
+        - wallet
+        - resourceVersion
+        - updatedAt
+      properties:
+        userId:
+          type: string
+        planCode:
+          type: string
+        planExpiresAt:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        benefits:
+          $ref: '#/components/schemas/BenefitBalances'
+        wallet:
+          $ref: '#/components/schemas/WalletSummary'
+        resourceVersion:
+          type: integer
+          minimum: 1
+        updatedAt:
+          type: string
+          format: date-time
+    EntitlementResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/Entitlement'
+    Wallet:
+      type: object
+      additionalProperties: false
+      required:
+        - energyBalance
+        - energyReserved
+        - energyAvailable
+        - currency
+        - resourceVersion
+        - updatedAt
+      properties:
+        energyBalance:
+          type: integer
+          minimum: 0
+        energyReserved:
+          type: integer
+          minimum: 0
+        energyAvailable:
+          type: integer
+          minimum: 0
+        currency:
+          type: string
+          const: ENERGY
+        resourceVersion:
+          type: integer
+          minimum: 1
+        updatedAt:
+          type: string
+          format: date-time
+    WalletResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/Wallet'
+    LedgerEntryType:
+      type: string
+      enum:
+        - CREDIT
+        - RESERVATION
+        - SETTLEMENT
+        - RELEASE
+        - ADJUSTMENT
+        - REFUND
+    WalletLedgerEntry:
+      type: object
+      additionalProperties: false
+      required:
+        - ledgerEntryId
+        - entryType
+        - energyDelta
+        - reservedDelta
+        - balanceAfter
+        - reservedAfter
+        - createdAt
+      properties:
+        ledgerEntryId:
+          type: string
+        entryType:
+          $ref: '#/components/schemas/LedgerEntryType'
+        generationId:
+          type:
+            - string
+            - 'null'
+        energyDelta:
+          type: integer
+        reservedDelta:
+          type: integer
+        balanceAfter:
+          type: integer
+          minimum: 0
+        reservedAfter:
+          type: integer
+          minimum: 0
+        reasonCode:
+          type:
+            - string
+            - 'null'
+        createdAt:
+          type: string
+          format: date-time
+    WalletLedgerData:
+      type: object
+      additionalProperties: false
+      required:
+        - items
+        - nextCursor
+        - hasMore
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/WalletLedgerEntry'
+        nextCursor:
+          type:
+            - string
+            - 'null'
+        hasMore:
+          type: boolean
+    WalletLedgerResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/WalletLedgerData'
+    GenerationInput:
+      type: object
+      additionalProperties: false
+      required:
+        - text
+        - attachmentIds
+      properties:
+        text:
+          type: string
+          minLength: 1
+          maxLength: 12000
+        attachmentIds:
+          type: array
+          maxItems: 10
+          items:
+            type: string
+        confirmedOcrVersion:
+          type:
+            - integer
+            - 'null'
+          minimum: 1
+    RelationshipStage:
+      type: string
+      enum:
+        - MATCHING
+        - DATING
+        - AMBIGUOUS
+        - IN_RELATIONSHIP
+        - CONFLICT
+        - NO_CONTACT
+        - OTHER
+    CommunicationGoal:
+      type: string
+      enum:
+        - START_CONVERSATION
+        - KEEP_CONVERSATION
+        - ACCEPT_INVITATION
+        - DECLINE_POLITELY
+        - INVITE_DATE
+        - APOLOGIZE
+        - SET_BOUNDARY
+        - RESOLVE_CONFLICT
+        - OTHER
+    GenerationContext:
+      type: object
+      additionalProperties: false
+      required:
+        - relationshipStage
+        - communicationGoal
+        - styleIds
+      properties:
+        targetProfileId:
+          type:
+            - string
+            - 'null'
+        relationshipStage:
+          $ref: '#/components/schemas/RelationshipStage'
+        communicationGoal:
+          $ref: '#/components/schemas/CommunicationGoal'
+        styleIds:
+          type: array
+          minItems: 1
+          maxItems: 5
+          uniqueItems: true
+          items:
+            type: string
+        additionalContext:
+          type:
+            - string
+            - 'null'
+          maxLength: 2000
+    GenerationQuoteRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - input
+        - context
+        - saveToHistory
+      properties:
+        input:
+          $ref: '#/components/schemas/GenerationInput'
+        context:
+          $ref: '#/components/schemas/GenerationContext'
+        requestedModelId:
+          type:
+            - string
+            - 'null'
+        saveToHistory:
+          type: boolean
+    ModelQuoteOption:
+      type: object
+      additionalProperties: false
+      required:
+        - modelId
+        - energyAmount
+        - available
+        - recommended
+      properties:
+        modelId:
+          type: string
+        energyAmount:
+          type: integer
+          minimum: 1
+        available:
+          type: boolean
+        recommended:
+          type: boolean
+        unavailableReasonCode:
+          type:
+            - string
+            - 'null'
+    ChargedFrom:
+      type: string
+      enum:
+        - SUBSCRIPTION
+        - WALLET
+        - SUBSCRIPTION_THEN_WALLET
+    GenerationQuote:
+      type: object
+      additionalProperties: false
+      required:
+        - quoteId
+        - modelOptions
+        - selectedModelId
+        - estimatedEnergyAmount
+        - chargedFrom
+        - entitlementVersion
+        - expiresAt
+      properties:
+        quoteId:
+          type: string
+        modelOptions:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/ModelQuoteOption'
+        selectedModelId:
+          type: string
+        estimatedEnergyAmount:
+          type: integer
+          minimum: 1
+        chargedFrom:
+          $ref: '#/components/schemas/ChargedFrom'
+        entitlementVersion:
+          type: integer
+          minimum: 1
+        expiresAt:
+          type: string
+          format: date-time
+    GenerationQuoteResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/GenerationQuote'
+    CreateGenerationRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - clientRequestId
+        - input
+        - context
+        - modelId
+        - saveToHistory
+        - quoteId
+      properties:
+        clientRequestId:
+          type: string
+          minLength: 8
+          maxLength: 128
+        input:
+          $ref: '#/components/schemas/GenerationInput'
+        context:
+          $ref: '#/components/schemas/GenerationContext'
+        modelId:
+          type: string
+        saveToHistory:
+          type: boolean
+        quoteId:
+          type: string
+    GenerationStatus:
+      type: string
+      enum:
+        - CREATED
+        - QUOTA_RESERVED
+        - PARSING
+        - ANALYZING
+        - GENERATING
+        - FILTERING
+        - SUCCEEDED
+        - FAILED
+        - CANCELLED
+    GenerationAnalysis:
+      type: object
+      additionalProperties: false
+      required:
+        - possibleIntent
+        - emotion
+        - uncertaintyNote
+        - riskTips
+      properties:
+        possibleIntent:
+          type: string
+          maxLength: 1000
+        emotion:
+          type: string
+          maxLength: 500
+        uncertaintyNote:
+          type: string
+          maxLength: 500
+        riskTips:
+          type: array
+          maxItems: 10
+          items:
+            type: string
+    ReplyStrategy:
+      type: string
+      enum:
+        - SAFE
+        - PUSH_PULL
+        - DIRECT
+    SafetyStatus:
+      type: string
+      enum:
+        - PENDING
+        - PASSED
+        - BLOCKED
+        - REVIEW_REQUIRED
+    Candidate:
+      type: object
+      additionalProperties: false
+      required:
+        - candidateId
+        - strategy
+        - styleId
+        - text
+        - safetyStatus
+      properties:
+        candidateId:
+          type: string
+        strategy:
+          $ref: '#/components/schemas/ReplyStrategy'
+        styleId:
+          type: string
+        text:
+          type: string
+          maxLength: 4000
+        safetyStatus:
+          $ref: '#/components/schemas/SafetyStatus'
+    GenerationUsage:
+      type: object
+      additionalProperties: false
+      required:
+        - modelId
+        - inputTokens
+        - outputTokens
+        - reservedEnergy
+        - chargedEnergy
+        - chargedFrom
+      properties:
+        modelId:
+          type: string
+        inputTokens:
+          type: integer
+          minimum: 0
+        outputTokens:
+          type: integer
+          minimum: 0
+        reservedEnergy:
+          type: integer
+          minimum: 0
+        chargedEnergy:
+          type: integer
+          minimum: 0
+        chargedFrom:
+          $ref: '#/components/schemas/ChargedFrom'
+    GenerationSnapshot:
+      type: object
+      additionalProperties: false
+      required:
+        - generationId
+        - status
+        - candidates
+        - resourceVersion
+        - createdAt
+        - updatedAt
+      properties:
+        generationId:
+          type: string
+        parentGenerationId:
+          type:
+            - string
+            - 'null'
+        status:
+          $ref: '#/components/schemas/GenerationStatus'
+        analysis:
+          oneOf:
+            - $ref: '#/components/schemas/GenerationAnalysis'
+            - type: 'null'
+        candidates:
+          type: array
+          maxItems: 3
+          items:
+            $ref: '#/components/schemas/Candidate'
+        usage:
+          oneOf:
+            - $ref: '#/components/schemas/GenerationUsage'
+            - type: 'null'
+        failureCode:
+          type:
+            - string
+            - 'null'
+        riskEventId:
+          type:
+            - string
+            - 'null'
+        resourceVersion:
+          type: integer
+          minimum: 1
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      allOf:
+        - if:
+            properties:
+              status:
+                const: SUCCEEDED
+          then:
+            properties:
+              candidates:
+                minItems: 3
+                maxItems: 3
+    GenerationResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/GenerationSnapshot'
+    RegenerateRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - quoteId
+        - clientRequestId
+      properties:
+        quoteId:
+          type: string
+        clientRequestId:
+          type: string
+    RefineCandidateRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - quoteId
+        - clientRequestId
+      properties:
+        quoteId:
+          type: string
+        clientRequestId:
+          type: string
+        instructionCode:
+          type:
+            - string
+            - 'null'
+          enum:
+            - SHORTER
+            - WARMER
+            - FUNNIER
+            - MORE_DIRECT
+            - CUSTOM
+            - null
+        customInstruction:
+          type:
+            - string
+            - 'null'
+          maxLength: 500
+    CandidateActionType:
+      type: string
+      enum:
+        - COPY
+        - FAVORITE
+        - SENT
+        - LIKE
+        - DISLIKE
+        - OUTCOME
+    CandidateActionRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - clientActionId
+        - actionType
+        - occurredAt
+      properties:
+        clientActionId:
+          type: string
+        actionType:
+          $ref: '#/components/schemas/CandidateActionType'
+        occurredAt:
+          type: string
+          format: date-time
+        outcomeCode:
+          type:
+            - string
+            - 'null'
+          enum:
+            - POSITIVE
+            - NEUTRAL
+            - NEGATIVE
+            - UNKNOWN
+            - null
+    CandidateAction:
+      type: object
+      additionalProperties: false
+      required:
+        - actionId
+        - candidateId
+        - actionType
+        - occurredAt
+        - recordedAt
+      properties:
+        actionId:
+          type: string
+        candidateId:
+          type: string
+        actionType:
+          $ref: '#/components/schemas/CandidateActionType'
+        occurredAt:
+          type: string
+          format: date-time
+        recordedAt:
+          type: string
+          format: date-time
+    CandidateActionResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/CandidateAction'
+    AppealRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - reasonCode
+      properties:
+        reasonCode:
+          type: string
+          enum:
+            - FALSE_POSITIVE
+            - CONTEXT_MISUNDERSTOOD
+            - OTHER
+        comment:
+          type:
+            - string
+            - 'null'
+          maxLength: 500
+    Appeal:
+      type: object
+      additionalProperties: false
+      required:
+        - appealId
+        - riskEventId
+        - status
+        - createdAt
+        - updatedAt
+      properties:
+        appealId:
+          type: string
+        riskEventId:
+          type: string
+        status:
+          type: string
+          enum:
+            - SUBMITTED
+            - REVIEWING
+            - APPROVED
+            - REJECTED
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    AppealResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/Appeal'
+    AdminLoginRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - loginName
+        - password
+      properties:
+        loginName:
+          type: string
+          minLength: 3
+          maxLength: 254
+          description: Administrator username or email address.
+        password:
+          type: string
+          format: password
+          minLength: 8
+          maxLength: 1024
+          writeOnly: true
+    AdminMfaMethod:
+      type: string
+      enum:
+        - TOTP
+        - RECOVERY_CODE
+    AdminMfaChallenge:
+      type: object
+      additionalProperties: false
+      required:
+        - challengeId
+        - allowedMethods
+        - expiresAt
+        - attemptsRemaining
+      properties:
+        challengeId:
+          type: string
+          minLength: 8
+          maxLength: 128
+        allowedMethods:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items:
+            $ref: '#/components/schemas/AdminMfaMethod'
+        expiresAt:
+          type: string
+          format: date-time
+        attemptsRemaining:
+          type: integer
+          minimum: 1
+    AdminLoginData:
+      type: object
+      additionalProperties: false
+      required:
+        - mfaRequired
+        - mfaChallenge
+      properties:
+        mfaRequired:
+          type: boolean
+          const: true
+        mfaChallenge:
+          $ref: '#/components/schemas/AdminMfaChallenge'
+    AdminLoginResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/AdminLoginData'
+    AdminAuthErrorCode:
+      type: string
+      enum:
+        - INVALID_ARGUMENT
+        - INVALID_CREDENTIALS
+        - ADMIN_ACCOUNT_SUSPENDED
+        - ADMIN_ACCOUNT_DISABLED
+        - MFA_ENROLLMENT_REQUIRED
+        - MFA_CHALLENGE_EXPIRED
+        - MFA_CODE_INVALID
+        - MFA_ATTEMPTS_EXHAUSTED
+        - TOKEN_EXPIRED
+        - TOKEN_REVOKED
+        - REFRESH_TOKEN_REUSED
+        - SESSION_NOT_FOUND
+        - PERMISSION_DENIED
+        - DUPLICATE_REQUEST
+        - IDEMPOTENCY_KEY_REUSED
+        - RATE_LIMITED
+        - INTERNAL_ERROR
+    AdminAuthErrorResponse:
+      description: |
+        Error envelope for administrator authentication. The error details object
+        must not contain password material, MFA seeds or codes, tokens, role-policy
+        internals, or account existence hints.
+      allOf:
+        - $ref: '#/components/schemas/ErrorResponse'
+        - type: object
+          properties:
+            code:
+              $ref: '#/components/schemas/AdminAuthErrorCode'
+    AdminMfaVerifyRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - challengeId
+        - method
+        - code
+      properties:
+        challengeId:
+          type: string
+          minLength: 8
+          maxLength: 128
+        method:
+          $ref: '#/components/schemas/AdminMfaMethod'
+        code:
+          type: string
+          minLength: 6
+          maxLength: 64
+          writeOnly: true
+    AdminTokenPair:
+      type: object
+      additionalProperties: false
+      required:
+        - tokenType
+        - accessToken
+        - accessTokenExpiresAt
+        - refreshToken
+        - refreshTokenExpiresAt
+      properties:
+        tokenType:
+          type: string
+          const: Bearer
+        accessToken:
+          type: string
+          minLength: 32
+          maxLength: 8192
+        accessTokenExpiresAt:
+          type: string
+          format: date-time
+        refreshToken:
+          type: string
+          minLength: 32
+          maxLength: 4096
+          description: Single-use token. Presenting it rotates and revokes it.
+        refreshTokenExpiresAt:
+          type: string
+          format: date-time
+    AdminAccountStatus:
+      type: string
+      enum:
+        - ACTIVE
+        - SUSPENDED
+        - DISABLED
+    AdminMfaStatus:
+      type: string
+      enum:
+        - ENROLLED
+        - RESET_REQUIRED
+    AdminRoleSummary:
+      type: object
+      additionalProperties: false
+      required:
+        - roleId
+        - roleCode
+        - displayName
+      properties:
+        roleId:
+          type: string
+          minLength: 1
+          maxLength: 128
+        roleCode:
+          type: string
+          pattern: ^[A-Z][A-Z0-9_]*$
+          maxLength: 64
+        displayName:
+          type: string
+          minLength: 1
+          maxLength: 128
+    AdminPermissionCode:
+      type: string
+      enum:
+        - DASHBOARD_READ
+        - REQUEST_LOG_READ
+        - ALERT_RULE_READ
+        - ALERT_RULE_WRITE
+        - USER_READ
+        - USER_STATUS_WRITE
+        - ENTITLEMENT_READ
+        - ENTITLEMENT_ADJUST
+        - LEDGER_READ
+        - MODEL_PROVIDER_READ
+        - MODEL_PROVIDER_WRITE
+        - MODEL_PROVIDER_SECRET_ROTATE
+        - MODEL_PROVIDER_HEALTH_CHECK
+        - MODEL_READ
+        - MODEL_WRITE
+        - MODEL_ROUTE_READ
+        - MODEL_ROUTE_WRITE
+        - PROMPT_READ
+        - PROMPT_WRITE
+        - PROMPT_VALIDATE
+        - PROMPT_PUBLISH
+        - PROMPT_ROLLBACK
+        - EVALUATION_READ
+        - EVALUATION_RUN
+        - RISK_POLICY_READ
+        - RISK_POLICY_WRITE
+        - RISK_POLICY_PUBLISH
+        - RISK_EVENT_READ
+        - APPEAL_READ
+        - APPEAL_DECIDE
+        - RATE_LIMIT_READ
+        - RATE_LIMIT_WRITE
+        - SUPPORT_TICKET_READ
+        - SUPPORT_TICKET_REPLY
+        - SUPPORT_TICKET_DECIDE
+        - SUPPORT_SENSITIVE_CONTENT_READ
+        - CONSENT_METRICS_READ
+        - DATA_REQUEST_READ
+        - DATA_REQUEST_COMPLETE
+        - ROLE_READ
+        - ROLE_WRITE
+        - ADMIN_USER_READ
+        - ADMIN_USER_WRITE
+        - ADMIN_USER_MFA_RESET
+        - AUDIT_LOG_READ
+    AdminIdentitySummary:
+      type: object
+      additionalProperties: false
+      required:
+        - adminId
+        - loginName
+        - displayName
+        - accountStatus
+        - mfaStatus
+        - mfaMethods
+        - roles
+        - permissions
+        - resourceVersion
+        - createdAt
+        - updatedAt
+      properties:
+        adminId:
+          type: string
+          minLength: 1
+          maxLength: 128
+        loginName:
+          type: string
+          minLength: 3
+          maxLength: 254
+        displayName:
+          type: string
+          minLength: 1
+          maxLength: 128
+        accountStatus:
+          $ref: '#/components/schemas/AdminAccountStatus'
+        mfaStatus:
+          $ref: '#/components/schemas/AdminMfaStatus'
+        mfaMethods:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items:
+            $ref: '#/components/schemas/AdminMfaMethod'
+        roles:
+          type: array
+          items:
+            $ref: '#/components/schemas/AdminRoleSummary'
+        permissions:
+          type: array
+          uniqueItems: true
+          items:
+            $ref: '#/components/schemas/AdminPermissionCode'
+        lastLoginAt:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        resourceVersion:
+          type: integer
+          minimum: 1
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    AdminSessionSummary:
+      type: object
+      additionalProperties: false
+      required:
+        - sessionId
+        - mfaVerifiedAt
+        - createdAt
+        - lastSeenAt
+        - expiresAt
+      properties:
+        sessionId:
+          type: string
+          minLength: 8
+          maxLength: 128
+        mfaVerifiedAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        lastSeenAt:
+          type: string
+          format: date-time
+        expiresAt:
+          type: string
+          format: date-time
+    AdminAuthenticationData:
+      type: object
+      additionalProperties: false
+      required:
+        - tokens
+        - admin
+        - session
+      properties:
+        tokens:
+          $ref: '#/components/schemas/AdminTokenPair'
+        admin:
+          $ref: '#/components/schemas/AdminIdentitySummary'
+        session:
+          $ref: '#/components/schemas/AdminSessionSummary'
+    AdminAuthenticationResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/AdminAuthenticationData'
+    AdminRefreshRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - refreshToken
+      properties:
+        refreshToken:
+          type: string
+          minLength: 32
+          maxLength: 4096
+          writeOnly: true
+    AdminTokenData:
+      type: object
+      additionalProperties: false
+      required:
+        - tokens
+        - session
+      properties:
+        tokens:
+          $ref: '#/components/schemas/AdminTokenPair'
+        session:
+          $ref: '#/components/schemas/AdminSessionSummary'
+    AdminTokenResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/AdminTokenData'
+    AdminEmptyData:
+      type: object
+      additionalProperties: false
+    AdminEmptyResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/AdminEmptyData'
+    AdminMeData:
+      type: object
+      additionalProperties: false
+      required:
+        - admin
+        - session
+      properties:
+        admin:
+          $ref: '#/components/schemas/AdminIdentitySummary'
+        session:
+          $ref: '#/components/schemas/AdminSessionSummary'
+    AdminMeResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/AdminMeData'
   examples:
     health-success:
       summary: Healthy service
@@ -1196,6 +2962,24 @@ components:
             $ref: '#/components/schemas/ErrorResponse'
     Unauthorized:
       description: Access token is missing, expired, or revoked.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: The resource does not exist or is not visible to the caller.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Gone:
+      description: The resource or retained stream is no longer available.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Forbidden:
+      description: The authenticated actor lacks permission or required consent.
       content:
         application/json:
           schema:

@@ -1,0 +1,169 @@
+ChargedFrom:
+  type: string
+  enum: [SUBSCRIPTION, WALLET, SUBSCRIPTION_THEN_WALLET]
+
+BenefitBalances:
+  type: object
+  additionalProperties: false
+  required: [textRemaining, visionRemaining, allowedModelIds, allowedStyleIds]
+  properties:
+    textRemaining:
+      type: integer
+      minimum: 0
+    visionRemaining:
+      type: integer
+      minimum: 0
+    allowedModelIds:
+      type: array
+      uniqueItems: true
+      items:
+        type: string
+    allowedStyleIds:
+      type: array
+      uniqueItems: true
+      items:
+        type: string
+
+WalletSummary:
+  type: object
+  additionalProperties: false
+  required: [energyBalance, energyReserved, energyAvailable]
+  properties:
+    energyBalance:
+      type: integer
+      minimum: 0
+    energyReserved:
+      type: integer
+      minimum: 0
+    energyAvailable:
+      type: integer
+      minimum: 0
+
+Entitlement:
+  type: object
+  additionalProperties: false
+  required: [userId, planCode, benefits, wallet, resourceVersion, updatedAt]
+  properties:
+    userId:
+      type: string
+    planCode:
+      type: string
+    planExpiresAt:
+      type: [string, "null"]
+      format: date-time
+    benefits:
+      $ref: "#/BenefitBalances"
+    wallet:
+      $ref: "#/WalletSummary"
+    resourceVersion:
+      type: integer
+      minimum: 1
+    updatedAt:
+      type: string
+      format: date-time
+
+EntitlementResponse:
+  allOf:
+    - $ref: ../components/schemas/common.yaml#/BaseSuccessEnvelope
+    - type: object
+      properties:
+        data:
+          $ref: "#/Entitlement"
+
+Wallet:
+  type: object
+  additionalProperties: false
+  required:
+    - energyBalance
+    - energyReserved
+    - energyAvailable
+    - currency
+    - resourceVersion
+    - updatedAt
+  properties:
+    energyBalance:
+      type: integer
+      minimum: 0
+    energyReserved:
+      type: integer
+      minimum: 0
+    energyAvailable:
+      type: integer
+      minimum: 0
+    currency:
+      type: string
+      const: ENERGY
+    resourceVersion:
+      type: integer
+      minimum: 1
+    updatedAt:
+      type: string
+      format: date-time
+
+WalletResponse:
+  allOf:
+    - $ref: ../components/schemas/common.yaml#/BaseSuccessEnvelope
+    - type: object
+      properties:
+        data:
+          $ref: "#/Wallet"
+
+LedgerEntryType:
+  type: string
+  enum: [CREDIT, RESERVATION, SETTLEMENT, RELEASE, ADJUSTMENT, REFUND]
+
+WalletLedgerEntry:
+  type: object
+  additionalProperties: false
+  required:
+    - ledgerEntryId
+    - entryType
+    - energyDelta
+    - reservedDelta
+    - balanceAfter
+    - reservedAfter
+    - createdAt
+  properties:
+    ledgerEntryId:
+      type: string
+    entryType:
+      $ref: "#/LedgerEntryType"
+    generationId:
+      type: [string, "null"]
+    energyDelta:
+      type: integer
+    reservedDelta:
+      type: integer
+    balanceAfter:
+      type: integer
+      minimum: 0
+    reservedAfter:
+      type: integer
+      minimum: 0
+    reasonCode:
+      type: [string, "null"]
+    createdAt:
+      type: string
+      format: date-time
+
+WalletLedgerData:
+  type: object
+  additionalProperties: false
+  required: [items, nextCursor, hasMore]
+  properties:
+    items:
+      type: array
+      items:
+        $ref: "#/WalletLedgerEntry"
+    nextCursor:
+      type: [string, "null"]
+    hasMore:
+      type: boolean
+
+WalletLedgerResponse:
+  allOf:
+    - $ref: ../components/schemas/common.yaml#/BaseSuccessEnvelope
+    - type: object
+      properties:
+        data:
+          $ref: "#/WalletLedgerData"

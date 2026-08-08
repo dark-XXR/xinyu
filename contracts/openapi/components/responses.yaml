@@ -19,8 +19,22 @@ Forbidden:
       schema:
         $ref: ./schemas/common.yaml#/ErrorResponse
 
+NotFound:
+  description: The resource does not exist or is not visible to the caller.
+  content:
+    application/json:
+      schema:
+        $ref: ./schemas/common.yaml#/ErrorResponse
+
 Conflict:
   description: Idempotency, version, or state-machine conflict.
+  content:
+    application/json:
+      schema:
+        $ref: ./schemas/common.yaml#/ErrorResponse
+
+Gone:
+  description: The resource or retained stream is no longer available.
   content:
     application/json:
       schema:
@@ -42,4 +56,3 @@ InternalError:
     application/json:
       schema:
         $ref: ./schemas/common.yaml#/ErrorResponse
-

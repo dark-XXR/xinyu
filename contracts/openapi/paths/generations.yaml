@@ -1,0 +1,216 @@
+quote:
+  post:
+    operationId: quoteGeneration
+    summary: Quote energy cost before creating a generation
+    tags: [GENERATION]
+    parameters:
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/XDeviceId
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+      - $ref: ../components/parameters.yaml#/IdempotencyKey
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/generation.yaml#/GenerationQuoteRequest
+    responses:
+      "200":
+        description: Short-lived quote bound to input, model, and entitlement version.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/generation.yaml#/GenerationQuoteResponse
+      "400":
+        $ref: ../components/responses.yaml#/BadRequest
+      "401":
+        $ref: ../components/responses.yaml#/Unauthorized
+      "409":
+        $ref: ../components/responses.yaml#/Conflict
+      "429":
+        $ref: ../components/responses.yaml#/RateLimited
+      "500":
+        $ref: ../components/responses.yaml#/InternalError
+generations:
+  post:
+    operationId: createGeneration
+    summary: Create a generation and atomically reserve its quote
+    tags: [GENERATION]
+    parameters:
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/XDeviceId
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+      - $ref: ../components/parameters.yaml#/IdempotencyKey
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/generation.yaml#/CreateGenerationRequest
+    responses:
+      "202":
+        description: Task created with status QUOTA_RESERVED.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/generation.yaml#/GenerationResponse
+      "400":
+        $ref: ../components/responses.yaml#/BadRequest
+      "401":
+        $ref: ../components/responses.yaml#/Unauthorized
+      "409":
+        $ref: ../components/responses.yaml#/Conflict
+      "429":
+        $ref: ../components/responses.yaml#/RateLimited
+      "500":
+        $ref: ../components/responses.yaml#/InternalError
+
+generation:
+  parameters:
+    - name: generationId
+      in: path
+      required: true
+      schema:
+        type: string
+  get:
+    operationId: getGeneration
+    summary: Get an owned generation snapshot
+    tags: [GENERATION]
+    parameters:
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/XDeviceId
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+    responses:
+      "200":
+        description: Current or final task snapshot.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/generation.yaml#/GenerationResponse
+      "401":
+        $ref: ../components/responses.yaml#/Unauthorized
+      "404":
+        $ref: ../components/responses.yaml#/NotFound
+      "500":
+        $ref: ../components/responses.yaml#/InternalError
+
+events:
+  parameters:
+    - name: generationId
+      in: path
+      required: true
+      schema:
+        type: string
+  get:
+    operationId: streamGenerationEvents
+    summary: Stream retained generation events
+    tags: [GENERATION]
+    parameters:
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/XDeviceId
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+      - $ref: ../components/parameters.yaml#/LastEventId
+    responses:
+      "200":
+        description: SSE stream ordered by monotonically increasing sequence.
+        headers:
+          Cache-Control:
+            schema:
+              type: string
+              const: no-cache
+        content:
+          text/event-stream:
+            schema:
+              type: string
+      "401":
+        $ref: ../components/responses.yaml#/Unauthorized
+      "404":
+        $ref: ../components/responses.yaml#/NotFound
+      "410":
+        $ref: ../components/responses.yaml#/Gone
+      "500":
+        $ref: ../components/responses.yaml#/InternalError
+
+cancel:
+  parameters:
+    - name: generationId
+      in: path
+      required: true
+      schema:
+        type: string
+  post:
+    operationId: cancelGeneration
+    summary: Cancel an unfinished task and release unsettled reservation
+    tags: [GENERATION]
+    parameters:
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/XDeviceId
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+      - $ref: ../components/parameters.yaml#/IdempotencyKey
+    responses:
+      "200":
+        description: Cancelled task snapshot.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/generation.yaml#/GenerationResponse
+      "401":
+        $ref: ../components/responses.yaml#/Unauthorized
+      "404":
+        $ref: ../components/responses.yaml#/NotFound
+      "409":
+        $ref: ../components/responses.yaml#/Conflict
+      "500":
+        $ref: ../components/responses.yaml#/InternalError
+
+regenerate:
+  parameters:
+    - name: generationId
+      in: path
+      required: true
+      schema:
+        type: string
+  post:
+    operationId: regenerateGeneration
+    summary: Create a child generation using a new quote
+    tags: [GENERATION]
+    parameters:
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/XDeviceId
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+      - $ref: ../components/parameters.yaml#/IdempotencyKey
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/generation.yaml#/RegenerateRequest
+    responses:
+      "202":
+        description: Child generation accepted.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/generation.yaml#/GenerationResponse
+      "400":
+        $ref: ../components/responses.yaml#/BadRequest
+      "401":
+        $ref: ../components/responses.yaml#/Unauthorized
+      "404":
+        $ref: ../components/responses.yaml#/NotFound
+      "409":
+        $ref: ../components/responses.yaml#/Conflict
+      "500":
+        $ref: ../components/responses.yaml#/InternalError

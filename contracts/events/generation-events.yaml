@@ -1,0 +1,238 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: https://contracts.example.invalid/events/generation-events.yaml
+title: Generation SSE event
+oneOf:
+  - $ref: "#/$defs/TaskAcceptedEvent"
+  - $ref: "#/$defs/TaskStageEvent"
+  - $ref: "#/$defs/AnalysisCompletedEvent"
+  - $ref: "#/$defs/CandidateDeltaEvent"
+  - $ref: "#/$defs/CandidateCompletedEvent"
+  - $ref: "#/$defs/UsageSettledEvent"
+  - $ref: "#/$defs/TaskCompletedEvent"
+  - $ref: "#/$defs/TaskFailedEvent"
+  - $ref: "#/$defs/HeartbeatEvent"
+
+$defs:
+  Candidate:
+    type: object
+    additionalProperties: false
+    required: [candidateId, strategy, styleId, text, safetyStatus]
+    properties:
+      candidateId:
+        type: string
+      strategy:
+        type: string
+        enum: [SAFE, PUSH_PULL, DIRECT]
+      styleId:
+        type: string
+      text:
+        type: string
+      safetyStatus:
+        type: string
+        enum: [PENDING, PASSED, BLOCKED, REVIEW_REQUIRED]
+
+  GenerationUsage:
+    type: object
+    additionalProperties: false
+    required: [modelId, inputTokens, outputTokens, reservedEnergy, chargedEnergy, chargedFrom]
+    properties:
+      modelId:
+        type: string
+      inputTokens:
+        type: integer
+        minimum: 0
+      outputTokens:
+        type: integer
+        minimum: 0
+      reservedEnergy:
+        type: integer
+        minimum: 0
+      chargedEnergy:
+        type: integer
+        minimum: 0
+      chargedFrom:
+        type: string
+        enum: [SUBSCRIPTION, WALLET, SUBSCRIPTION_THEN_WALLET]
+
+  EventBase:
+    type: object
+    required: [schemaVersion, eventId, eventType, occurredAt, generationId, sequence, payload]
+    properties:
+      schemaVersion:
+        type: string
+        const: "1.0"
+      eventId:
+        type: string
+      eventType:
+        type: string
+      occurredAt:
+        type: string
+        format: date-time
+      generationId:
+        type: string
+      sequence:
+        type: integer
+        minimum: 1
+      payload:
+        type: object
+
+  TaskAcceptedEvent:
+    allOf:
+      - $ref: "#/$defs/EventBase"
+      - type: object
+        properties:
+          eventType:
+            const: task.accepted
+          payload:
+            type: object
+            additionalProperties: false
+            required: [generationId, reservedEnergy]
+            properties:
+              generationId:
+                type: string
+              reservedEnergy:
+                type: integer
+                minimum: 1
+    unevaluatedProperties: false
+
+  TaskStageEvent:
+    allOf:
+      - $ref: "#/$defs/EventBase"
+      - type: object
+        properties:
+          eventType:
+            const: task.stage
+          payload:
+            type: object
+            additionalProperties: false
+            required: [stage]
+            properties:
+              stage:
+                type: string
+                enum: [PARSING, ANALYZING, GENERATING, FILTERING]
+    unevaluatedProperties: false
+
+  AnalysisCompletedEvent:
+    allOf:
+      - $ref: "#/$defs/EventBase"
+      - type: object
+        properties:
+          eventType:
+            const: analysis.completed
+          payload:
+            type: object
+            additionalProperties: false
+            required: [possibleIntent, emotion, uncertaintyNote, riskTips]
+            properties:
+              possibleIntent:
+                type: string
+              emotion:
+                type: string
+              uncertaintyNote:
+                type: string
+              riskTips:
+                type: array
+                items:
+                  type: string
+    unevaluatedProperties: false
+
+  CandidateDeltaEvent:
+    allOf:
+      - $ref: "#/$defs/EventBase"
+      - type: object
+        properties:
+          eventType:
+            const: candidate.delta
+          payload:
+            type: object
+            additionalProperties: false
+            required: [candidateId, candidateIndex, delta]
+            properties:
+              candidateId:
+                type: string
+              candidateIndex:
+                type: integer
+                minimum: 0
+                maximum: 2
+              delta:
+                type: string
+    unevaluatedProperties: false
+
+  CandidateCompletedEvent:
+    allOf:
+      - $ref: "#/$defs/EventBase"
+      - type: object
+        properties:
+          eventType:
+            const: candidate.completed
+          payload:
+            type: object
+            additionalProperties: false
+            required: [candidate]
+            properties:
+              candidate:
+                $ref: "#/$defs/Candidate"
+    unevaluatedProperties: false
+
+  UsageSettledEvent:
+    allOf:
+      - $ref: "#/$defs/EventBase"
+      - type: object
+        properties:
+          eventType:
+            const: usage.settled
+          payload:
+            $ref: "#/$defs/GenerationUsage"
+    unevaluatedProperties: false
+
+  TaskCompletedEvent:
+    allOf:
+      - $ref: "#/$defs/EventBase"
+      - type: object
+        properties:
+          eventType:
+            const: task.completed
+          payload:
+            type: object
+            additionalProperties: false
+            required: [resourceVersion]
+            properties:
+              resourceVersion:
+                type: integer
+                minimum: 1
+    unevaluatedProperties: false
+
+  TaskFailedEvent:
+    allOf:
+      - $ref: "#/$defs/EventBase"
+      - type: object
+        properties:
+          eventType:
+            const: task.failed
+          payload:
+            type: object
+            additionalProperties: false
+            required: [failureCode, recoverable]
+            properties:
+              failureCode:
+                type: string
+              recoverable:
+                type: boolean
+    unevaluatedProperties: false
+
+  HeartbeatEvent:
+    allOf:
+      - $ref: "#/$defs/EventBase"
+      - type: object
+        properties:
+          eventType:
+            const: heartbeat
+          payload:
+            type: object
+            additionalProperties: false
+            required: [serverTime]
+            properties:
+              serverTime:
+                type: string
+                format: date-time
+    unevaluatedProperties: false

@@ -1,0 +1,364 @@
+{
+  "module": "GENERATION",
+  "fixtures": [
+    {
+      "id": "generation.quoteGeneration.request.valid",
+      "operationId": "quoteGeneration",
+      "kind": "request",
+      "mediaType": "application/json",
+      "value": {
+        "input": {
+          "text": "Fixture-only inbound conversation text.",
+          "attachmentIds": [],
+          "confirmedOcrVersion": null
+        },
+        "context": {
+          "targetProfileId": null,
+          "relationshipStage": "AMBIGUOUS",
+          "communicationGoal": "KEEP_CONVERSATION",
+          "styleIds": ["style_fixture_warm"],
+          "additionalContext": "Synthetic context for contract validation only."
+        },
+        "requestedModelId": "model_fixture_standard",
+        "saveToHistory": false
+      }
+    },
+    {
+      "id": "generation.quoteGeneration.response.success",
+      "operationId": "quoteGeneration",
+      "kind": "response",
+      "statusCode": "200",
+      "mediaType": "application/json",
+      "value": {
+        "code": "OK",
+        "message": "success",
+        "data": {
+          "quoteId": "quote_fixture_001",
+          "modelOptions": [
+            {
+              "modelId": "model_fixture_standard",
+              "energyAmount": 20,
+              "available": true,
+              "recommended": true,
+              "unavailableReasonCode": null
+            },
+            {
+              "modelId": "model_fixture_premium",
+              "energyAmount": 40,
+              "available": false,
+              "recommended": false,
+              "unavailableReasonCode": "FIXTURE_PLAN_RESTRICTED"
+            }
+          ],
+          "selectedModelId": "model_fixture_standard",
+          "estimatedEnergyAmount": 20,
+          "chargedFrom": "WALLET",
+          "entitlementVersion": 3,
+          "expiresAt": "2026-08-08T09:12:00Z"
+        },
+        "requestId": "req_fixture_generation_001",
+        "timestamp": "2026-08-08T09:10:00Z"
+      }
+    },
+    {
+      "id": "generation.quoteGeneration.response.conflict",
+      "operationId": "quoteGeneration",
+      "kind": "response",
+      "statusCode": "409",
+      "mediaType": "application/json",
+      "value": {
+        "code": "ENTITLEMENT_VERSION_CONFLICT",
+        "message": "Fixture entitlement changed before quoting completed.",
+        "data": null,
+        "error": {
+          "retryable": true,
+          "retryAfterSeconds": 0,
+          "fieldErrors": [],
+          "details": {"currentResourceVersion": 4}
+        },
+        "requestId": "req_fixture_generation_002",
+        "timestamp": "2026-08-08T09:10:01Z"
+      }
+    },
+    {
+      "id": "generation.createGeneration.request.valid",
+      "operationId": "createGeneration",
+      "kind": "request",
+      "mediaType": "application/json",
+      "value": {
+        "clientRequestId": "client_fixture_generation_001",
+        "input": {
+          "text": "Fixture-only inbound conversation text.",
+          "attachmentIds": [],
+          "confirmedOcrVersion": null
+        },
+        "context": {
+          "targetProfileId": null,
+          "relationshipStage": "AMBIGUOUS",
+          "communicationGoal": "KEEP_CONVERSATION",
+          "styleIds": ["style_fixture_warm"],
+          "additionalContext": "Synthetic context for contract validation only."
+        },
+        "modelId": "model_fixture_standard",
+        "saveToHistory": false,
+        "quoteId": "quote_fixture_001"
+      }
+    },
+    {
+      "id": "generation.createGeneration.response.accepted",
+      "operationId": "createGeneration",
+      "kind": "response",
+      "statusCode": "202",
+      "mediaType": "application/json",
+      "value": {
+        "code": "ACCEPTED",
+        "message": "Fixture generation was accepted.",
+        "data": {
+          "generationId": "gen_fixture_001",
+          "parentGenerationId": null,
+          "status": "QUOTA_RESERVED",
+          "analysis": null,
+          "candidates": [],
+          "usage": null,
+          "failureCode": null,
+          "riskEventId": null,
+          "resourceVersion": 1,
+          "createdAt": "2026-08-08T09:10:02Z",
+          "updatedAt": "2026-08-08T09:10:02Z"
+        },
+        "requestId": "req_fixture_generation_003",
+        "timestamp": "2026-08-08T09:10:02Z"
+      }
+    },
+    {
+      "id": "generation.createGeneration.response.quoteConflict",
+      "operationId": "createGeneration",
+      "kind": "response",
+      "statusCode": "409",
+      "mediaType": "application/json",
+      "value": {
+        "code": "QUOTE_INPUT_MISMATCH",
+        "message": "Fixture quote does not match the submitted input.",
+        "data": null,
+        "error": {
+          "retryable": false,
+          "retryAfterSeconds": null,
+          "fieldErrors": [{"field": "quoteId", "reason": "INPUT_MISMATCH"}],
+          "details": {}
+        },
+        "requestId": "req_fixture_generation_004",
+        "timestamp": "2026-08-08T09:10:03Z"
+      }
+    },
+    {
+      "id": "generation.getGeneration.response.success",
+      "operationId": "getGeneration",
+      "kind": "response",
+      "statusCode": "200",
+      "mediaType": "application/json",
+      "value": {
+        "code": "OK",
+        "message": "success",
+        "data": {
+          "generationId": "gen_fixture_001",
+          "parentGenerationId": null,
+          "status": "SUCCEEDED",
+          "analysis": {
+            "possibleIntent": "Synthetic possible intent for fixture validation.",
+            "emotion": "Synthetic neutral emotion.",
+            "uncertaintyNote": "Fixture analysis may not represent a real conversation.",
+            "riskTips": ["Verify context before sending any generated response."]
+          },
+          "candidates": [
+            {
+              "candidateId": "candidate_fixture_safe_001",
+              "strategy": "SAFE",
+              "styleId": "style_fixture_warm",
+              "text": "Synthetic safe reply option.",
+              "safetyStatus": "PASSED"
+            },
+            {
+              "candidateId": "candidate_fixture_push_pull_001",
+              "strategy": "PUSH_PULL",
+              "styleId": "style_fixture_warm",
+              "text": "Synthetic push-pull reply option.",
+              "safetyStatus": "PASSED"
+            },
+            {
+              "candidateId": "candidate_fixture_direct_001",
+              "strategy": "DIRECT",
+              "styleId": "style_fixture_direct",
+              "text": "Synthetic direct reply option.",
+              "safetyStatus": "PASSED"
+            }
+          ],
+          "usage": {
+            "modelId": "model_fixture_standard",
+            "inputTokens": 48,
+            "outputTokens": 96,
+            "reservedEnergy": 20,
+            "chargedEnergy": 18,
+            "chargedFrom": "WALLET"
+          },
+          "failureCode": null,
+          "riskEventId": null,
+          "resourceVersion": 7,
+          "createdAt": "2026-08-08T09:10:02Z",
+          "updatedAt": "2026-08-08T09:10:08Z"
+        },
+        "requestId": "req_fixture_generation_005",
+        "timestamp": "2026-08-08T09:10:08Z"
+      }
+    },
+    {
+      "id": "generation.getGeneration.response.notFound",
+      "operationId": "getGeneration",
+      "kind": "response",
+      "statusCode": "404",
+      "mediaType": "application/json",
+      "value": {
+        "code": "GENERATION_NOT_FOUND",
+        "message": "Fixture generation is not visible to this caller.",
+        "data": null,
+        "error": {
+          "retryable": false,
+          "retryAfterSeconds": null,
+          "fieldErrors": [],
+          "details": {}
+        },
+        "requestId": "req_fixture_generation_006",
+        "timestamp": "2026-08-08T09:10:09Z"
+      }
+    },
+    {
+      "id": "generation.streamGenerationEvents.response.success",
+      "operationId": "streamGenerationEvents",
+      "kind": "response",
+      "statusCode": "200",
+      "mediaType": "text/event-stream",
+      "value": "id: event_fixture_001\nevent: generation.status\ndata: {\"generationId\":\"gen_fixture_001\",\"sequence\":1,\"status\":\"GENERATING\"}\n\nid: event_fixture_002\nevent: generation.completed\ndata: {\"generationId\":\"gen_fixture_001\",\"sequence\":2,\"status\":\"SUCCEEDED\"}\n\n"
+    },
+    {
+      "id": "generation.streamGenerationEvents.response.gone",
+      "operationId": "streamGenerationEvents",
+      "kind": "response",
+      "statusCode": "410",
+      "mediaType": "application/json",
+      "value": {
+        "code": "EVENT_RETENTION_EXPIRED",
+        "message": "Fixture event stream retention has expired.",
+        "data": null,
+        "error": {
+          "retryable": false,
+          "retryAfterSeconds": null,
+          "fieldErrors": [],
+          "details": {"generationId": "gen_fixture_expired_001"}
+        },
+        "requestId": "req_fixture_generation_007",
+        "timestamp": "2026-08-08T09:10:10Z"
+      }
+    },
+    {
+      "id": "generation.cancelGeneration.response.success",
+      "operationId": "cancelGeneration",
+      "kind": "response",
+      "statusCode": "200",
+      "mediaType": "application/json",
+      "value": {
+        "code": "OK",
+        "message": "Fixture generation was cancelled.",
+        "data": {
+          "generationId": "gen_fixture_cancelled_001",
+          "parentGenerationId": null,
+          "status": "CANCELLED",
+          "analysis": null,
+          "candidates": [],
+          "usage": null,
+          "failureCode": null,
+          "riskEventId": null,
+          "resourceVersion": 3,
+          "createdAt": "2026-08-08T09:11:00Z",
+          "updatedAt": "2026-08-08T09:11:02Z"
+        },
+        "requestId": "req_fixture_generation_008",
+        "timestamp": "2026-08-08T09:11:02Z"
+      }
+    },
+    {
+      "id": "generation.cancelGeneration.response.stateConflict",
+      "operationId": "cancelGeneration",
+      "kind": "response",
+      "statusCode": "409",
+      "mediaType": "application/json",
+      "value": {
+        "code": "GENERATION_ALREADY_FINAL",
+        "message": "Fixture generation is already in a final state.",
+        "data": null,
+        "error": {
+          "retryable": false,
+          "retryAfterSeconds": null,
+          "fieldErrors": [],
+          "details": {"status": "SUCCEEDED"}
+        },
+        "requestId": "req_fixture_generation_009",
+        "timestamp": "2026-08-08T09:11:03Z"
+      }
+    },
+    {
+      "id": "generation.regenerateGeneration.request.valid",
+      "operationId": "regenerateGeneration",
+      "kind": "request",
+      "mediaType": "application/json",
+      "value": {
+        "quoteId": "quote_fixture_regenerate_001",
+        "clientRequestId": "client_fixture_regenerate_001"
+      }
+    },
+    {
+      "id": "generation.regenerateGeneration.response.accepted",
+      "operationId": "regenerateGeneration",
+      "kind": "response",
+      "statusCode": "202",
+      "mediaType": "application/json",
+      "value": {
+        "code": "ACCEPTED",
+        "message": "Fixture child generation was accepted.",
+        "data": {
+          "generationId": "gen_fixture_child_001",
+          "parentGenerationId": "gen_fixture_001",
+          "status": "QUOTA_RESERVED",
+          "analysis": null,
+          "candidates": [],
+          "usage": null,
+          "failureCode": null,
+          "riskEventId": null,
+          "resourceVersion": 1,
+          "createdAt": "2026-08-08T09:12:00Z",
+          "updatedAt": "2026-08-08T09:12:00Z"
+        },
+        "requestId": "req_fixture_generation_010",
+        "timestamp": "2026-08-08T09:12:00Z"
+      }
+    },
+    {
+      "id": "generation.regenerateGeneration.response.quoteConflict",
+      "operationId": "regenerateGeneration",
+      "kind": "response",
+      "statusCode": "409",
+      "mediaType": "application/json",
+      "value": {
+        "code": "QUOTE_EXPIRED",
+        "message": "Fixture regeneration quote has expired.",
+        "data": null,
+        "error": {
+          "retryable": true,
+          "retryAfterSeconds": 0,
+          "fieldErrors": [{"field": "quoteId", "reason": "EXPIRED"}],
+          "details": {}
+        },
+        "requestId": "req_fixture_generation_011",
+        "timestamp": "2026-08-08T09:12:01Z"
+      }
+    }
+  ]
+}

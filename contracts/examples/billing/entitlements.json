@@ -1,0 +1,56 @@
+{
+  "module": "ENTITLEMENT",
+  "fixtures": [
+    {
+      "id": "entitlement.getEntitlements.response.success",
+      "operationId": "getEntitlements",
+      "kind": "response",
+      "statusCode": "200",
+      "mediaType": "application/json",
+      "value": {
+        "code": "OK",
+        "message": "success",
+        "data": {
+          "userId": "usr_fixture_entitlement_001",
+          "planCode": "FREE_FIXTURE",
+          "planExpiresAt": null,
+          "benefits": {
+            "textRemaining": 8,
+            "visionRemaining": 0,
+            "allowedModelIds": ["model_fixture_standard"],
+            "allowedStyleIds": ["style_fixture_warm", "style_fixture_direct"]
+          },
+          "wallet": {
+            "energyBalance": 120,
+            "energyReserved": 20,
+            "energyAvailable": 100
+          },
+          "resourceVersion": 3,
+          "updatedAt": "2026-08-08T09:00:00Z"
+        },
+        "requestId": "req_fixture_entitlement_001",
+        "timestamp": "2026-08-08T09:00:01Z"
+      }
+    },
+    {
+      "id": "entitlement.getEntitlements.response.unauthorized",
+      "operationId": "getEntitlements",
+      "kind": "response",
+      "statusCode": "401",
+      "mediaType": "application/json",
+      "value": {
+        "code": "UNAUTHORIZED",
+        "message": "Fixture access token is not accepted.",
+        "data": null,
+        "error": {
+          "retryable": false,
+          "retryAfterSeconds": null,
+          "fieldErrors": [],
+          "details": {}
+        },
+        "requestId": "req_fixture_entitlement_002",
+        "timestamp": "2026-08-08T09:00:02Z"
+      }
+    }
+  ]
+}

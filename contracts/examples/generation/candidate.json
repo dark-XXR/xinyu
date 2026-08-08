@@ -1,0 +1,115 @@
+{
+  "module": "CANDIDATE",
+  "fixtures": [
+    {
+      "id": "candidate.refineCandidate.request.valid",
+      "operationId": "refineCandidate",
+      "kind": "request",
+      "mediaType": "application/json",
+      "value": {
+        "quoteId": "quote_fixture_refine_001",
+        "clientRequestId": "client_fixture_refine_001",
+        "instructionCode": "WARMER",
+        "customInstruction": null
+      }
+    },
+    {
+      "id": "candidate.refineCandidate.response.accepted",
+      "operationId": "refineCandidate",
+      "kind": "response",
+      "statusCode": "202",
+      "mediaType": "application/json",
+      "value": {
+        "code": "ACCEPTED",
+        "message": "Fixture refinement was accepted.",
+        "data": {
+          "generationId": "gen_fixture_refined_001",
+          "parentGenerationId": "gen_fixture_001",
+          "status": "QUOTA_RESERVED",
+          "analysis": null,
+          "candidates": [],
+          "usage": null,
+          "failureCode": null,
+          "riskEventId": null,
+          "resourceVersion": 1,
+          "createdAt": "2026-08-08T09:15:00Z",
+          "updatedAt": "2026-08-08T09:15:00Z"
+        },
+        "requestId": "req_fixture_candidate_001",
+        "timestamp": "2026-08-08T09:15:00Z"
+      }
+    },
+    {
+      "id": "candidate.refineCandidate.response.notFound",
+      "operationId": "refineCandidate",
+      "kind": "response",
+      "statusCode": "404",
+      "mediaType": "application/json",
+      "value": {
+        "code": "CANDIDATE_NOT_FOUND",
+        "message": "Fixture candidate is not visible to this caller.",
+        "data": null,
+        "error": {
+          "retryable": false,
+          "retryAfterSeconds": null,
+          "fieldErrors": [],
+          "details": {}
+        },
+        "requestId": "req_fixture_candidate_002",
+        "timestamp": "2026-08-08T09:15:01Z"
+      }
+    },
+    {
+      "id": "candidate.recordCandidateAction.request.valid",
+      "operationId": "recordCandidateAction",
+      "kind": "request",
+      "mediaType": "application/json",
+      "value": {
+        "clientActionId": "action_client_fixture_001",
+        "actionType": "COPY",
+        "occurredAt": "2026-08-08T09:16:00Z",
+        "outcomeCode": null
+      }
+    },
+    {
+      "id": "candidate.recordCandidateAction.response.success",
+      "operationId": "recordCandidateAction",
+      "kind": "response",
+      "statusCode": "200",
+      "mediaType": "application/json",
+      "value": {
+        "code": "OK",
+        "message": "Fixture candidate action was recorded.",
+        "data": {
+          "actionId": "action_fixture_001",
+          "candidateId": "candidate_fixture_safe_001",
+          "actionType": "COPY",
+          "occurredAt": "2026-08-08T09:16:00Z",
+          "recordedAt": "2026-08-08T09:16:01Z"
+        },
+        "requestId": "req_fixture_candidate_003",
+        "timestamp": "2026-08-08T09:16:01Z"
+      }
+    },
+    {
+      "id": "candidate.recordCandidateAction.response.conflict",
+      "operationId": "recordCandidateAction",
+      "kind": "response",
+      "statusCode": "409",
+      "mediaType": "application/json",
+      "value": {
+        "code": "CLIENT_ACTION_ID_REUSED",
+        "message": "Fixture client action identifier was reused with different content.",
+        "data": null,
+        "error": {
+          "retryable": false,
+          "retryAfterSeconds": null,
+          "fieldErrors": [{"field": "clientActionId", "reason": "REUSED"}],
+          "details": {}
+        },
+        "requestId": "req_fixture_candidate_004",
+        "timestamp": "2026-08-08T09:16:02Z"
+      }
+    }
+  ]
+}

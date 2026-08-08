@@ -1,0 +1,53 @@
+wallet:
+  get:
+    operationId: getWallet
+    summary: Get energy balance and active reservations
+    tags: [WALLET]
+    parameters:
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/XDeviceId
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+    responses:
+      "200":
+        description: Current wallet.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/billing.yaml#/WalletResponse
+      "401":
+        $ref: ../components/responses.yaml#/Unauthorized
+      "500":
+        $ref: ../components/responses.yaml#/InternalError
+ledger:
+  get:
+    operationId: listWalletLedger
+    summary: List immutable wallet entries
+    tags: [WALLET]
+    parameters:
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/XDeviceId
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+      - $ref: ../components/parameters.yaml#/Cursor
+      - $ref: ../components/parameters.yaml#/Limit
+      - name: entryType
+        in: query
+        required: false
+        schema:
+          $ref: ../schemas/billing.yaml#/LedgerEntryType
+    responses:
+      "200":
+        description: Immutable wallet ledger entries.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/billing.yaml#/WalletLedgerResponse
+      "400":
+        $ref: ../components/responses.yaml#/BadRequest
+      "401":
+        $ref: ../components/responses.yaml#/Unauthorized
+      "500":
+        $ref: ../components/responses.yaml#/InternalError

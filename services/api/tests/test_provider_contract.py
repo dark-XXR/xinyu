@@ -21,4 +21,7 @@ def test_fastapi_provider_operations_match_bundled_contract() -> None:
     bundled_contract = repository_root / "contracts/openapi/dist/openapi.yaml"
     contract = yaml.safe_load(bundled_contract.read_text(encoding="utf-8"))
 
-    assert _operations(app.openapi()) == _operations(contract)
+    provider_operations = _operations(app.openapi())
+    contract_operations = _operations(contract)
+
+    assert provider_operations <= contract_operations

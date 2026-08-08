@@ -1,0 +1,22 @@
+entitlements:
+  get:
+    operationId: getEntitlements
+    summary: Get server-authoritative user entitlements
+    tags: [ENTITLEMENT]
+    parameters:
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/XDeviceId
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+    responses:
+      "200":
+        description: Current entitlement and wallet summary.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/billing.yaml#/EntitlementResponse
+      "401":
+        $ref: ../components/responses.yaml#/Unauthorized
+      "500":
+        $ref: ../components/responses.yaml#/InternalError

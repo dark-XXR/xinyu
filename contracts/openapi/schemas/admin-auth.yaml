@@ -1,0 +1,376 @@
+AdminAccountStatus:
+  type: string
+  enum: [ACTIVE, SUSPENDED, DISABLED]
+
+AdminMfaStatus:
+  type: string
+  enum: [ENROLLED, RESET_REQUIRED]
+
+AdminMfaMethod:
+  type: string
+  enum: [TOTP, RECOVERY_CODE]
+
+AdminPermissionCode:
+  type: string
+  enum:
+    - DASHBOARD_READ
+    - REQUEST_LOG_READ
+    - ALERT_RULE_READ
+    - ALERT_RULE_WRITE
+    - USER_READ
+    - USER_STATUS_WRITE
+    - ENTITLEMENT_READ
+    - ENTITLEMENT_ADJUST
+    - LEDGER_READ
+    - MODEL_PROVIDER_READ
+    - MODEL_PROVIDER_WRITE
+    - MODEL_PROVIDER_SECRET_ROTATE
+    - MODEL_PROVIDER_HEALTH_CHECK
+    - MODEL_READ
+    - MODEL_WRITE
+    - MODEL_ROUTE_READ
+    - MODEL_ROUTE_WRITE
+    - PROMPT_READ
+    - PROMPT_WRITE
+    - PROMPT_VALIDATE
+    - PROMPT_PUBLISH
+    - PROMPT_ROLLBACK
+    - EVALUATION_READ
+    - EVALUATION_RUN
+    - RISK_POLICY_READ
+    - RISK_POLICY_WRITE
+    - RISK_POLICY_PUBLISH
+    - RISK_EVENT_READ
+    - APPEAL_READ
+    - APPEAL_DECIDE
+    - RATE_LIMIT_READ
+    - RATE_LIMIT_WRITE
+    - SUPPORT_TICKET_READ
+    - SUPPORT_TICKET_REPLY
+    - SUPPORT_TICKET_DECIDE
+    - SUPPORT_SENSITIVE_CONTENT_READ
+    - CONSENT_METRICS_READ
+    - DATA_REQUEST_READ
+    - DATA_REQUEST_COMPLETE
+    - ROLE_READ
+    - ROLE_WRITE
+    - ADMIN_USER_READ
+    - ADMIN_USER_WRITE
+    - ADMIN_USER_MFA_RESET
+    - AUDIT_LOG_READ
+
+AdminAuthErrorCode:
+  type: string
+  enum:
+    - INVALID_ARGUMENT
+    - INVALID_CREDENTIALS
+    - ADMIN_ACCOUNT_SUSPENDED
+    - ADMIN_ACCOUNT_DISABLED
+    - MFA_ENROLLMENT_REQUIRED
+    - MFA_CHALLENGE_EXPIRED
+    - MFA_CODE_INVALID
+    - MFA_ATTEMPTS_EXHAUSTED
+    - TOKEN_EXPIRED
+    - TOKEN_REVOKED
+    - REFRESH_TOKEN_REUSED
+    - SESSION_NOT_FOUND
+    - PERMISSION_DENIED
+    - DUPLICATE_REQUEST
+    - IDEMPOTENCY_KEY_REUSED
+    - RATE_LIMITED
+    - INTERNAL_ERROR
+
+AdminLoginRequest:
+  type: object
+  additionalProperties: false
+  required: [loginName, password]
+  properties:
+    loginName:
+      type: string
+      minLength: 3
+      maxLength: 254
+      description: Administrator username or email address.
+    password:
+      type: string
+      format: password
+      minLength: 8
+      maxLength: 1024
+      writeOnly: true
+
+AdminMfaChallenge:
+  type: object
+  additionalProperties: false
+  required: [challengeId, allowedMethods, expiresAt, attemptsRemaining]
+  properties:
+    challengeId:
+      type: string
+      minLength: 8
+      maxLength: 128
+    allowedMethods:
+      type: array
+      minItems: 1
+      uniqueItems: true
+      items:
+        $ref: "#/AdminMfaMethod"
+    expiresAt:
+      type: string
+      format: date-time
+    attemptsRemaining:
+      type: integer
+      minimum: 1
+
+AdminLoginData:
+  type: object
+  additionalProperties: false
+  required: [mfaRequired, mfaChallenge]
+  properties:
+    mfaRequired:
+      type: boolean
+      const: true
+    mfaChallenge:
+      $ref: "#/AdminMfaChallenge"
+
+AdminLoginResponse:
+  allOf:
+    - $ref: ../components/schemas/common.yaml#/BaseSuccessEnvelope
+    - type: object
+      properties:
+        data:
+          $ref: "#/AdminLoginData"
+
+AdminMfaVerifyRequest:
+  type: object
+  additionalProperties: false
+  required: [challengeId, method, code]
+  properties:
+    challengeId:
+      type: string
+      minLength: 8
+      maxLength: 128
+    method:
+      $ref: "#/AdminMfaMethod"
+    code:
+      type: string
+      minLength: 6
+      maxLength: 64
+      writeOnly: true
+
+AdminRefreshRequest:
+  type: object
+  additionalProperties: false
+  required: [refreshToken]
+  properties:
+    refreshToken:
+      type: string
+      minLength: 32
+      maxLength: 4096
+      writeOnly: true
+
+AdminRoleSummary:
+  type: object
+  additionalProperties: false
+  required: [roleId, roleCode, displayName]
+  properties:
+    roleId:
+      type: string
+      minLength: 1
+      maxLength: 128
+    roleCode:
+      type: string
+      pattern: ^[A-Z][A-Z0-9_]*$
+      maxLength: 64
+    displayName:
+      type: string
+      minLength: 1
+      maxLength: 128
+
+AdminIdentitySummary:
+  type: object
+  additionalProperties: false
+  required:
+    - adminId
+    - loginName
+    - displayName
+    - accountStatus
+    - mfaStatus
+    - mfaMethods
+    - roles
+    - permissions
+    - resourceVersion
+    - createdAt
+    - updatedAt
+  properties:
+    adminId:
+      type: string
+      minLength: 1
+      maxLength: 128
+    loginName:
+      type: string
+      minLength: 3
+      maxLength: 254
+    displayName:
+      type: string
+      minLength: 1
+      maxLength: 128
+    accountStatus:
+      $ref: "#/AdminAccountStatus"
+    mfaStatus:
+      $ref: "#/AdminMfaStatus"
+    mfaMethods:
+      type: array
+      minItems: 1
+      uniqueItems: true
+      items:
+        $ref: "#/AdminMfaMethod"
+    roles:
+      type: array
+      items:
+        $ref: "#/AdminRoleSummary"
+    permissions:
+      type: array
+      uniqueItems: true
+      items:
+        $ref: "#/AdminPermissionCode"
+    lastLoginAt:
+      type: [string, "null"]
+      format: date-time
+    resourceVersion:
+      type: integer
+      minimum: 1
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: string
+      format: date-time
+
+AdminSessionSummary:
+  type: object
+  additionalProperties: false
+  required: [sessionId, mfaVerifiedAt, createdAt, lastSeenAt, expiresAt]
+  properties:
+    sessionId:
+      type: string
+      minLength: 8
+      maxLength: 128
+    mfaVerifiedAt:
+      type: string
+      format: date-time
+    createdAt:
+      type: string
+      format: date-time
+    lastSeenAt:
+      type: string
+      format: date-time
+    expiresAt:
+      type: string
+      format: date-time
+
+AdminTokenPair:
+  type: object
+  additionalProperties: false
+  required:
+    - tokenType
+    - accessToken
+    - accessTokenExpiresAt
+    - refreshToken
+    - refreshTokenExpiresAt
+  properties:
+    tokenType:
+      type: string
+      const: Bearer
+    accessToken:
+      type: string
+      minLength: 32
+      maxLength: 8192
+    accessTokenExpiresAt:
+      type: string
+      format: date-time
+    refreshToken:
+      type: string
+      minLength: 32
+      maxLength: 4096
+      description: Single-use token. Presenting it rotates and revokes it.
+    refreshTokenExpiresAt:
+      type: string
+      format: date-time
+
+AdminAuthenticationData:
+  type: object
+  additionalProperties: false
+  required: [tokens, admin, session]
+  properties:
+    tokens:
+      $ref: "#/AdminTokenPair"
+    admin:
+      $ref: "#/AdminIdentitySummary"
+    session:
+      $ref: "#/AdminSessionSummary"
+
+AdminAuthenticationResponse:
+  allOf:
+    - $ref: ../components/schemas/common.yaml#/BaseSuccessEnvelope
+    - type: object
+      properties:
+        data:
+          $ref: "#/AdminAuthenticationData"
+
+AdminTokenData:
+  type: object
+  additionalProperties: false
+  required: [tokens, session]
+  properties:
+    tokens:
+      $ref: "#/AdminTokenPair"
+    session:
+      $ref: "#/AdminSessionSummary"
+
+AdminTokenResponse:
+  allOf:
+    - $ref: ../components/schemas/common.yaml#/BaseSuccessEnvelope
+    - type: object
+      properties:
+        data:
+          $ref: "#/AdminTokenData"
+
+AdminMeData:
+  type: object
+  additionalProperties: false
+  required: [admin, session]
+  properties:
+    admin:
+      $ref: "#/AdminIdentitySummary"
+    session:
+      $ref: "#/AdminSessionSummary"
+
+AdminMeResponse:
+  allOf:
+    - $ref: ../components/schemas/common.yaml#/BaseSuccessEnvelope
+    - type: object
+      properties:
+        data:
+          $ref: "#/AdminMeData"
+
+AdminEmptyData:
+  type: object
+  additionalProperties: false
+
+AdminEmptyResponse:
+  allOf:
+    - $ref: ../components/schemas/common.yaml#/BaseSuccessEnvelope
+    - type: object
+      properties:
+        data:
+          $ref: "#/AdminEmptyData"
+
+AdminAuthErrorResponse:
+  description: |
+    Error envelope for administrator authentication. The error details object
+    must not contain password material, MFA seeds or codes, tokens, role-policy
+    internals, or account existence hints.
+  allOf:
+    - $ref: ../components/schemas/common.yaml#/ErrorResponse
+    - type: object
+      properties:
+        code:
+          $ref: "#/AdminAuthErrorCode"

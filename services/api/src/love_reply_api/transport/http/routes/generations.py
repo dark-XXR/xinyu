@@ -1,4 +1,5 @@
 import json
+import logging
 from collections.abc import AsyncIterator
 from typing import Annotated
 
@@ -31,6 +32,7 @@ from love_reply_api.transport.http.generation_schemas import (
 )
 
 router = APIRouter(prefix="/v1/generations")
+logger = logging.getLogger(__name__)
 
 
 def _input_data(body: GenerationInputData) -> dict[str, object]:
@@ -81,6 +83,10 @@ async def _process_generation(
         await service.process(generation_id=generation_id, provider=provider)
     except Exception:
         # GenerationService persists the failure and releases the reservation before re-raising.
+        logger.exception(
+            "generation background processing failed",
+            extra={"generation_id": generation_id},
+        )
         return
 
 

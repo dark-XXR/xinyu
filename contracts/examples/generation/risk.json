@@ -1,0 +1,55 @@
+{
+  "module": "RISK",
+  "fixtures": [
+    {
+      "id": "risk.appealRiskEvent.request.valid",
+      "operationId": "appealRiskEvent",
+      "kind": "request",
+      "mediaType": "application/json",
+      "value": {
+        "reasonCode": "CONTEXT_MISUNDERSTOOD",
+        "comment": "Synthetic appeal comment for contract validation only."
+      }
+    },
+    {
+      "id": "risk.appealRiskEvent.response.accepted",
+      "operationId": "appealRiskEvent",
+      "kind": "response",
+      "statusCode": "202",
+      "mediaType": "application/json",
+      "value": {
+        "code": "ACCEPTED",
+        "message": "Fixture appeal was submitted.",
+        "data": {
+          "appealId": "appeal_fixture_001",
+          "riskEventId": "risk_fixture_001",
+          "status": "SUBMITTED",
+          "createdAt": "2026-08-08T09:20:00Z",
+          "updatedAt": "2026-08-08T09:20:00Z"
+        },
+        "requestId": "req_fixture_risk_001",
+        "timestamp": "2026-08-08T09:20:00Z"
+      }
+    },
+    {
+      "id": "risk.appealRiskEvent.response.conflict",
+      "operationId": "appealRiskEvent",
+      "kind": "response",
+      "statusCode": "409",
+      "mediaType": "application/json",
+      "value": {
+        "code": "APPEAL_ALREADY_EXISTS",
+        "message": "A fixture appeal already exists for this risk event.",
+        "data": null,
+        "error": {
+          "retryable": false,
+          "retryAfterSeconds": null,
+          "fieldErrors": [],
+          "details": {"appealId": "appeal_fixture_001"}
+        },
+        "requestId": "req_fixture_risk_002",
+        "timestamp": "2026-08-08T09:20:01Z"
+      }
+    }
+  ]
+}
