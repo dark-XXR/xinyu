@@ -224,16 +224,11 @@ async def regenerate_generation(
     idempotency_key: Annotated[str, Header(alias="Idempotency-Key")],
 ) -> GenerationResponse:
     del idempotency_key
-    parent = await service.get_task(user_id=auth.user_id, generation_id=generation_id)
-    task = await service.create(
+    task = await service.regenerate(
         user_id=auth.user_id,
+        parent_generation_id=generation_id,
         quote_id=body.quote_id,
         client_request_id=body.client_request_id,
-        input_data=parent.input_data,
-        context_data=parent.context_data,
-        model_id=parent.model_id,
-        save_to_history=parent.save_to_history,
-        parent_generation_id=parent.generation_id,
     )
     background_tasks.add_task(
         _process_generation,

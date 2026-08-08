@@ -12,6 +12,7 @@ from love_reply_api.transport.http.errors import api_error_handler, validation_e
 from love_reply_api.transport.http.idempotency import IdempotencyMiddleware
 from love_reply_api.transport.http.routes.auth import router as auth_router
 from love_reply_api.transport.http.routes.billing import router as billing_router
+from love_reply_api.transport.http.routes.candidates import router as candidate_router
 from love_reply_api.transport.http.routes.generations import router as generation_router
 from love_reply_api.transport.http.routes.me import router as me_router
 
@@ -32,6 +33,7 @@ app.include_router(auth_router)
 app.include_router(me_router)
 app.include_router(billing_router)
 app.include_router(generation_router)
+app.include_router(candidate_router)
 app.add_middleware(IdempotencyMiddleware)
 
 

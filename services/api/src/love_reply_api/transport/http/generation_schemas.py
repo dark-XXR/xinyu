@@ -84,6 +84,41 @@ class RegenerateRequest(ApiModel):
     client_request_id: str
 
 
+class RefineCandidateRequest(ApiModel):
+    quote_id: str
+    client_request_id: str
+    instruction_code: Literal["SHORTER", "WARMER", "FUNNIER", "MORE_DIRECT", "CUSTOM"] | None = None
+    custom_instruction: str | None = Field(default=None, max_length=500)
+
+
+class CandidateActionRequest(ApiModel):
+    client_action_id: str
+    action_type: Literal["COPY", "FAVORITE", "SENT", "LIKE", "DISLIKE", "OUTCOME"]
+    occurred_at: datetime
+    outcome_code: Literal["POSITIVE", "NEUTRAL", "NEGATIVE", "UNKNOWN"] | None = None
+
+
+class CandidateActionData(ApiModel):
+    action_id: str
+    candidate_id: str
+    action_type: Literal["COPY", "FAVORITE", "SENT", "LIKE", "DISLIKE", "OUTCOME"]
+    occurred_at: datetime
+    recorded_at: datetime
+
+
+class AppealRequest(ApiModel):
+    reason_code: Literal["FALSE_POSITIVE", "CONTEXT_MISUNDERSTOOD", "OTHER"]
+    comment: str | None = Field(default=None, max_length=500)
+
+
+class AppealData(ApiModel):
+    appeal_id: str
+    risk_event_id: str
+    status: Literal["SUBMITTED", "REVIEWING", "APPROVED", "REJECTED"]
+    created_at: datetime
+    updated_at: datetime
+
+
 class CandidateData(ApiModel):
     candidate_id: str
     strategy: Literal["SAFE", "PUSH_PULL", "DIRECT"]
@@ -134,3 +169,5 @@ class GenerationSnapshotData(ApiModel):
 
 GenerationQuoteResponse = SuccessEnvelope[GenerationQuoteData]
 GenerationResponse = SuccessEnvelope[GenerationSnapshotData]
+CandidateActionResponse = SuccessEnvelope[CandidateActionData]
+AppealResponse = SuccessEnvelope[AppealData]
