@@ -1,0 +1,121 @@
+LogicalModel:
+  type: object
+  additionalProperties: false
+  required: [modelId, displayName, enabled]
+  properties:
+    modelId:
+      type: string
+      pattern: ^[a-z][a-z0-9_]{1,63}$
+    displayName:
+      type: string
+      minLength: 1
+      maxLength: 64
+    description:
+      type: [string, "null"]
+      maxLength: 200
+    enabled:
+      type: boolean
+
+ReplyStyle:
+  type: object
+  additionalProperties: false
+  required: [styleId, displayName, enabled]
+  properties:
+    styleId:
+      type: string
+      pattern: ^[a-z][a-z0-9_]{1,63}$
+    displayName:
+      type: string
+      minLength: 1
+      maxLength: 64
+    enabled:
+      type: boolean
+
+GenerationPolicy:
+  type: object
+  additionalProperties: false
+  required: [defaultModelId, quoteTtlSeconds]
+  properties:
+    defaultModelId:
+      type: string
+    quoteTtlSeconds:
+      type: integer
+      minimum: 30
+      maximum: 1800
+
+FreeEntitlementTemplate:
+  type: object
+  additionalProperties: false
+  required: [planCode, textQuota, visionQuota, allowedModelIds, allowedStyleIds]
+  properties:
+    planCode:
+      type: string
+      minLength: 1
+      maxLength: 64
+    textQuota:
+      type: integer
+      minimum: 0
+    visionQuota:
+      type: integer
+      minimum: 0
+    allowedModelIds:
+      type: array
+      minItems: 1
+      uniqueItems: true
+      items:
+        type: string
+    allowedStyleIds:
+      type: array
+      minItems: 1
+      uniqueItems: true
+      items:
+        type: string
+
+FeatureFlags:
+  type: object
+  additionalProperties:
+    type: boolean
+  description: Published feature availability keyed by stable feature code.
+
+AppBootstrap:
+  type: object
+  additionalProperties: false
+  required:
+    - configVersion
+    - publishedAt
+    - models
+    - styles
+    - generationPolicy
+    - freeEntitlement
+    - featureFlags
+  properties:
+    configVersion:
+      type: integer
+      minimum: 1
+    publishedAt:
+      type: string
+      format: date-time
+    models:
+      type: array
+      minItems: 1
+      items:
+        $ref: "#/LogicalModel"
+    styles:
+      type: array
+      minItems: 1
+      items:
+        $ref: "#/ReplyStyle"
+    generationPolicy:
+      $ref: "#/GenerationPolicy"
+    freeEntitlement:
+      $ref: "#/FreeEntitlementTemplate"
+    featureFlags:
+      $ref: "#/FeatureFlags"
+
+AppBootstrapResponse:
+  allOf:
+    - $ref: ../components/schemas/common.yaml#/BaseSuccessEnvelope
+    - type: object
+      properties:
+        data:
+          $ref: "#/AppBootstrap"

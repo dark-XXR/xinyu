@@ -11,6 +11,7 @@ from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from love_reply_api.application.errors import ApiError
+from love_reply_api.application.runtime_config import RuntimeConfigService
 from love_reply_api.application.tokens import IssuedTokens, TokenService
 from love_reply_api.config import Settings
 from love_reply_api.domain.identity import AccountStatus
@@ -145,6 +146,8 @@ class AuthService:
             select(UserRecord).where(UserRecord.phone_e164 == challenge.phone_e164)
         )
         if user is None:
+            runtime_config = await RuntimeConfigService(self._session).get_published()
+            free_entitlement = runtime_config.free_entitlement
             user = UserRecord(
                 user_id=f"usr_{uuid4().hex}",
                 phone_e164=challenge.phone_e164,
@@ -161,13 +164,13 @@ class AuthService:
             self._session.add(
                 EntitlementRecord(
                     user_id=user.user_id,
-                    plan_code="FREE",
+                    plan_code=free_entitlement.plan_code,
                     plan_expires_at=None,
-                    text_remaining=self._settings.free_text_quota,
+                    text_remaining=free_entitlement.text_quota,
                     text_reserved=0,
-                    vision_remaining=0,
-                    allowed_model_ids=[self._settings.default_model_id],
-                    allowed_style_ids=self._settings.default_style_ids,
+                    vision_remaining=free_entitlement.vision_quota,
+                    allowed_model_ids=free_entitlement.allowed_model_ids,
+                    allowed_style_ids=free_entitlement.allowed_style_ids,
                     resource_version=1,
                     updated_at=now,
                 )

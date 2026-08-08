@@ -1,0 +1,114 @@
+from datetime import datetime
+
+from pydantic import BaseModel, ConfigDict, Field, model_validator
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from love_reply_api.application.errors import ApiError
+from love_reply_api.infrastructure.runtime_config_records import RuntimeConfigVersionRecord
+
+
+class LogicalModelConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    model_id: str
+    display_name: str
+    description: str | None = None
+    enabled: bool
+
+
+class ReplyStyleConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    style_id: str
+    display_name: str
+    enabled: bool
+
+
+class GenerationPolicyConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    default_model_id: str
+    quote_ttl_seconds: int = Field(ge=30, le=1800)
+
+
+class FreeEntitlementConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    plan_code: str
+    text_quota: int = Field(ge=0)
+    vision_quota: int = Field(ge=0)
+    allowed_model_ids: list[str] = Field(min_length=1)
+    allowed_style_ids: list[str] = Field(min_length=1)
+
+
+class PublishedRuntimeConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    config_version: int = Field(ge=1)
+    published_at: datetime
+    models: list[LogicalModelConfig] = Field(min_length=1)
+    styles: list[ReplyStyleConfig] = Field(min_length=1)
+    generation_policy: GenerationPolicyConfig
+    free_entitlement: FreeEntitlementConfig
+    feature_flags: dict[str, bool]
+
+    @model_validator(mode="after")
+    def validate_references(self) -> "PublishedRuntimeConfig":
+        enabled_models = {item.model_id for item in self.models if item.enabled}
+        enabled_styles = {item.style_id for item in self.styles if item.enabled}
+        if self.generation_policy.default_model_id not in enabled_models:
+            raise ValueError("default model must reference an enabled logical model")
+        if not set(self.free_entitlement.allowed_model_ids) <= enabled_models:
+            raise ValueError("free entitlement contains an unavailable logical model")
+        if not set(self.free_entitlement.allowed_style_ids) <= enabled_styles:
+            raise ValueError("free entitlement contains an unavailable reply style")
+        if len(self.free_entitlement.allowed_model_ids) != len(
+            set(self.free_entitlement.allowed_model_ids)
+        ):
+            raise ValueError("free entitlement model identifiers must be unique")
+        if len(self.free_entitlement.allowed_style_ids) != len(
+            set(self.free_entitlement.allowed_style_ids)
+        ):
+            raise ValueError("free entitlement style identifiers must be unique")
+        return self
+
+
+class RuntimeConfigService:
+    def __init__(self, session: AsyncSession) -> None:
+        self._session = session
+
+    async def get_published(self) -> PublishedRuntimeConfig:
+        record = await self._session.scalar(
+            select(RuntimeConfigVersionRecord)
+            .where(
+                RuntimeConfigVersionRecord.status == "PUBLISHED",
+                RuntimeConfigVersionRecord.published_at.is_not(None),
+            )
+            .order_by(RuntimeConfigVersionRecord.version.desc())
+            .limit(1)
+        )
+        if record is None or record.published_at is None:
+            raise ApiError(
+                status_code=503,
+                code="APP_CONFIG_UNAVAILABLE",
+                message="No published application configuration is available.",
+                retryable=True,
+            )
+        try:
+            return PublishedRuntimeConfig(
+                config_version=record.version,
+                published_at=record.published_at,
+                models=record.models,
+                styles=record.styles,
+                generation_policy=record.generation_policy,
+                free_entitlement=record.free_entitlement,
+                feature_flags=record.feature_flags,
+            )
+        except ValueError as exc:
+            raise ApiError(
+                status_code=503,
+                code="APP_CONFIG_INVALID",
+                message="The published application configuration is invalid.",
+                retryable=False,
+            ) from exc

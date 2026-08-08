@@ -66,6 +66,39 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '500':
           $ref: '#/components/responses/InternalError'
+  /v1/app/bootstrap:
+    get:
+      operationId: getAppBootstrap
+      summary: Read the published application configuration
+      description: |
+        Returns the server-authoritative model and style catalog, generation
+        policy, free entitlement template, and feature switches. Clients must
+        not infer quotas, prices, or availability from local constants.
+      tags:
+        - APP_CONFIG
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/XDeviceId'
+        - $ref: '#/components/parameters/AcceptLanguage'
+      responses:
+        '200':
+          description: Current published application configuration.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppBootstrapResponse'
+              examples:
+                published:
+                  $ref: '#/components/examples/bootstrap-success'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
   /v1/auth/sms/send:
     post:
       operationId: sendSmsChallenge
@@ -1518,6 +1551,136 @@ components:
           $ref: '#/components/schemas/RequestId'
         timestamp:
           $ref: '#/components/schemas/Timestamp'
+    LogicalModel:
+      type: object
+      additionalProperties: false
+      required:
+        - modelId
+        - displayName
+        - enabled
+      properties:
+        modelId:
+          type: string
+          pattern: ^[a-z][a-z0-9_]{1,63}$
+        displayName:
+          type: string
+          minLength: 1
+          maxLength: 64
+        description:
+          type:
+            - string
+            - 'null'
+          maxLength: 200
+        enabled:
+          type: boolean
+    ReplyStyle:
+      type: object
+      additionalProperties: false
+      required:
+        - styleId
+        - displayName
+        - enabled
+      properties:
+        styleId:
+          type: string
+          pattern: ^[a-z][a-z0-9_]{1,63}$
+        displayName:
+          type: string
+          minLength: 1
+          maxLength: 64
+        enabled:
+          type: boolean
+    GenerationPolicy:
+      type: object
+      additionalProperties: false
+      required:
+        - defaultModelId
+        - quoteTtlSeconds
+      properties:
+        defaultModelId:
+          type: string
+        quoteTtlSeconds:
+          type: integer
+          minimum: 30
+          maximum: 1800
+    FreeEntitlementTemplate:
+      type: object
+      additionalProperties: false
+      required:
+        - planCode
+        - textQuota
+        - visionQuota
+        - allowedModelIds
+        - allowedStyleIds
+      properties:
+        planCode:
+          type: string
+          minLength: 1
+          maxLength: 64
+        textQuota:
+          type: integer
+          minimum: 0
+        visionQuota:
+          type: integer
+          minimum: 0
+        allowedModelIds:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items:
+            type: string
+        allowedStyleIds:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items:
+            type: string
+    FeatureFlags:
+      type: object
+      additionalProperties:
+        type: boolean
+      description: Published feature availability keyed by stable feature code.
+    AppBootstrap:
+      type: object
+      additionalProperties: false
+      required:
+        - configVersion
+        - publishedAt
+        - models
+        - styles
+        - generationPolicy
+        - freeEntitlement
+        - featureFlags
+      properties:
+        configVersion:
+          type: integer
+          minimum: 1
+        publishedAt:
+          type: string
+          format: date-time
+        models:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/LogicalModel'
+        styles:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/ReplyStyle'
+        generationPolicy:
+          $ref: '#/components/schemas/GenerationPolicy'
+        freeEntitlement:
+          $ref: '#/components/schemas/FreeEntitlementTemplate'
+        featureFlags:
+          $ref: '#/components/schemas/FeatureFlags'
+    AppBootstrapResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/AppBootstrap'
     SmsPurpose:
       type: string
       enum:
@@ -3165,6 +3328,47 @@ components:
           version: 1.0.0
         requestId: req_01JTESTREQUEST0001
         timestamp: '2026-08-07T22:00:00Z'
+    bootstrap-success:
+      summary: Published Android bootstrap configuration
+      value:
+        code: OK
+        message: success
+        data:
+          configVersion: 1
+          publishedAt: '2026-08-08T16:00:00Z'
+          models:
+            - modelId: model_standard
+              displayName: Standard
+              description: Balanced response generation.
+              enabled: true
+          styles:
+            - styleId: warm
+              displayName: Warm
+              enabled: true
+            - styleId: humorous
+              displayName: Humorous
+              enabled: true
+            - styleId: direct
+              displayName: Direct
+              enabled: true
+          generationPolicy:
+            defaultModelId: model_standard
+            quoteTtlSeconds: 300
+          freeEntitlement:
+            planCode: FREE
+            textQuota: 3
+            visionQuota: 0
+            allowedModelIds:
+              - model_standard
+            allowedStyleIds:
+              - warm
+              - humorous
+              - direct
+          featureFlags:
+            screenshotInput: false
+            subscriptions: false
+        requestId: req_01JAPPBOOTSTRAP0001
+        timestamp: '2026-08-08T16:00:01Z'
   responses:
     BadRequest:
       description: Request syntax or fields are invalid.
@@ -3174,6 +3378,15 @@ components:
             $ref: '#/components/schemas/ErrorResponse'
     InternalError:
       description: Unexpected internal failure with no sensitive implementation detail.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ServiceUnavailable:
+      description: A required external provider or dependency is temporarily unavailable.
+      headers:
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
       content:
         application/json:
           schema:
@@ -3195,15 +3408,6 @@ components:
             $ref: '#/components/schemas/ErrorResponse'
     Unauthorized:
       description: Access token is missing, expired, or revoked.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-    ServiceUnavailable:
-      description: A required external provider or dependency is temporarily unavailable.
-      headers:
-        Retry-After:
-          $ref: '#/components/headers/RetryAfter'
       content:
         application/json:
           schema:

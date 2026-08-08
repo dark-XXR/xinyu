@@ -8,6 +8,17 @@ data class SmsChallenge(
     val resendAfterSeconds: Int,
 )
 
+data class AppBootstrap(
+    val configVersion: Int,
+    val styles: List<ReplyStyleOption>,
+    val defaultStyleIds: Set<String>,
+)
+
+data class ReplyStyleOption(
+    val id: String,
+    val label: String,
+)
+
 data class EntitlementSummary(
     val textRemaining: Int,
     val energyAvailable: Int,
@@ -19,7 +30,7 @@ data class ComposerDraft(
     val message: String = "",
     val relationshipStage: RelationshipStage = RelationshipStage.DATING,
     val communicationGoal: CommunicationGoal = CommunicationGoal.KEEP_CONVERSATION,
-    val styleIds: Set<String> = setOf("warm"),
+    val styleIds: Set<String> = emptySet(),
     val additionalContext: String = "",
 )
 

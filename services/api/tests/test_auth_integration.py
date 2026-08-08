@@ -83,6 +83,29 @@ async def _delete_identity_data(session: AsyncSession) -> None:
 
 
 @pytest.mark.asyncio
+async def test_app_bootstrap_returns_published_runtime_configuration() -> None:
+    headers = {
+        "X-Request-Id": "req-bootstrap-integration",
+        "X-Client-Version": "1.0.0",
+        "X-Platform": "ANDROID",
+        "X-Device-Id": "device-bootstrap-test",
+        "Accept-Language": "zh-CN",
+    }
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        response = await client.get("/v1/app/bootstrap", headers=headers)
+
+    assert response.status_code == 200
+    data = response.json()["data"]
+    assert data["configVersion"] >= 1
+    assert data["generationPolicy"]["defaultModelId"] in {
+        item["modelId"] for item in data["models"] if item["enabled"]
+    }
+    assert set(data["freeEntitlement"]["allowedStyleIds"]) <= {
+        item["styleId"] for item in data["styles"] if item["enabled"]
+    }
+
+
+@pytest.mark.asyncio
 async def test_sms_login_refresh_rotation_and_logout() -> None:
     sms_sender = CapturingSmsSender()
     app.state.sms_sender = sms_sender

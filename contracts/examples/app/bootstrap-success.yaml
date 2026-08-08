@@ -1,0 +1,36 @@
+summary: Published Android bootstrap configuration
+value:
+  code: OK
+  message: success
+  data:
+    configVersion: 1
+    publishedAt: "2026-08-08T16:00:00Z"
+    models:
+      - modelId: model_standard
+        displayName: Standard
+        description: Balanced response generation.
+        enabled: true
+    styles:
+      - styleId: warm
+        displayName: Warm
+        enabled: true
+      - styleId: humorous
+        displayName: Humorous
+        enabled: true
+      - styleId: direct
+        displayName: Direct
+        enabled: true
+    generationPolicy:
+      defaultModelId: model_standard
+      quoteTtlSeconds: 300
+    freeEntitlement:
+      planCode: FREE
+      textQuota: 3
+      visionQuota: 0
+      allowedModelIds: [model_standard]
+      allowedStyleIds: [warm, humorous, direct]
+    featureFlags:
+      screenshotInput: false
+      subscriptions: false
+  requestId: req_01JAPPBOOTSTRAP0001
+  timestamp: "2026-08-08T16:00:01Z"

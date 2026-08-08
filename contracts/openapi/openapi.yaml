@@ -65,6 +65,8 @@ paths:
           $ref: ./components/responses.yaml#/BadRequest
         "500":
           $ref: ./components/responses.yaml#/InternalError
+  /v1/app/bootstrap:
+    $ref: ./paths/app.yaml#/bootstrap
   /v1/auth/sms/send:
     $ref: ./paths/auth.yaml#/smsSend
   /v1/auth/sms/login:

@@ -1,0 +1,32 @@
+bootstrap:
+  get:
+    operationId: getAppBootstrap
+    summary: Read the published application configuration
+    description: |
+      Returns the server-authoritative model and style catalog, generation
+      policy, free entitlement template, and feature switches. Clients must
+      not infer quotas, prices, or availability from local constants.
+    tags: [APP_CONFIG]
+    security: []
+    parameters:
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/XDeviceId
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+    responses:
+      "200":
+        description: Current published application configuration.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/operations.yaml#/AppBootstrapResponse
+            examples:
+              published:
+                $ref: ../../examples/app/bootstrap-success.yaml
+      "400":
+        $ref: ../components/responses.yaml#/BadRequest
+      "503":
+        $ref: ../components/responses.yaml#/ServiceUnavailable
+      "500":
+        $ref: ../components/responses.yaml#/InternalError

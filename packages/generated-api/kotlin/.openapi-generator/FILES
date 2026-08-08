@@ -53,6 +53,8 @@ src/main/kotlin/com/love_reply/generated/model/AdminSessionSummary.kt
 src/main/kotlin/com/love_reply/generated/model/AdminTokenData.kt
 src/main/kotlin/com/love_reply/generated/model/AdminTokenPair.kt
 src/main/kotlin/com/love_reply/generated/model/AdminTokenResponse.kt
+src/main/kotlin/com/love_reply/generated/model/AppBootstrap.kt
+src/main/kotlin/com/love_reply/generated/model/AppBootstrapResponse.kt
 src/main/kotlin/com/love_reply/generated/model/Appeal.kt
 src/main/kotlin/com/love_reply/generated/model/AppealRequest.kt
 src/main/kotlin/com/love_reply/generated/model/AppealResponse.kt
@@ -97,9 +99,11 @@ src/main/kotlin/com/love_reply/generated/model/EntitlementResponse.kt
 src/main/kotlin/com/love_reply/generated/model/ErrorDetail.kt
 src/main/kotlin/com/love_reply/generated/model/ErrorResponse.kt
 src/main/kotlin/com/love_reply/generated/model/FieldError.kt
+src/main/kotlin/com/love_reply/generated/model/FreeEntitlementTemplate.kt
 src/main/kotlin/com/love_reply/generated/model/GenerationAnalysis.kt
 src/main/kotlin/com/love_reply/generated/model/GenerationContext.kt
 src/main/kotlin/com/love_reply/generated/model/GenerationInput.kt
+src/main/kotlin/com/love_reply/generated/model/GenerationPolicy.kt
 src/main/kotlin/com/love_reply/generated/model/GenerationQuote.kt
 src/main/kotlin/com/love_reply/generated/model/GenerationQuoteRequest.kt
 src/main/kotlin/com/love_reply/generated/model/GenerationQuoteResponse.kt
@@ -112,6 +116,7 @@ src/main/kotlin/com/love_reply/generated/model/GenerationUsage.kt
 src/main/kotlin/com/love_reply/generated/model/HealthData.kt
 src/main/kotlin/com/love_reply/generated/model/HealthSuccessResponse.kt
 src/main/kotlin/com/love_reply/generated/model/LedgerEntryType.kt
+src/main/kotlin/com/love_reply/generated/model/LogicalModel.kt
 src/main/kotlin/com/love_reply/generated/model/LoginData.kt
 src/main/kotlin/com/love_reply/generated/model/LoginResponse.kt
 src/main/kotlin/com/love_reply/generated/model/ModelQuoteOption.kt
@@ -121,6 +126,7 @@ src/main/kotlin/com/love_reply/generated/model/RefreshRequest.kt
 src/main/kotlin/com/love_reply/generated/model/RegenerateRequest.kt
 src/main/kotlin/com/love_reply/generated/model/RelationshipStage.kt
 src/main/kotlin/com/love_reply/generated/model/ReplyStrategy.kt
+src/main/kotlin/com/love_reply/generated/model/ReplyStyle.kt
 src/main/kotlin/com/love_reply/generated/model/SafetyStatus.kt
 src/main/kotlin/com/love_reply/generated/model/SmsChallenge.kt
 src/main/kotlin/com/love_reply/generated/model/SmsChallengeResponse.kt

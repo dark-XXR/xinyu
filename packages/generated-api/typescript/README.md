@@ -65,6 +65,7 @@ All URIs are relative to *http://localhost:8000*
 *ADMINRBACApi* | [**logoutAdmin**](docs/ADMINRBACApi.md#logoutadmin) | **POST** /admin/v1/auth/logout | Revoke the current administrator session
 *ADMINRBACApi* | [**refreshAdminAccessToken**](docs/ADMINRBACApi.md#refreshadminaccesstoken) | **POST** /admin/v1/auth/refresh | Rotate an administrator refresh token
 *ADMINRBACApi* | [**verifyAdminMfa**](docs/ADMINRBACApi.md#verifyadminmfa) | **POST** /admin/v1/auth/mfa/verify | Verify an administrator MFA challenge
+*APPCONFIGApi* | [**getAppBootstrap**](docs/APPCONFIGApi.md#getappbootstrap) | **GET** /v1/app/bootstrap | Read the published application configuration
 *APPCONFIGApi* | [**getHealth**](docs/APPCONFIGApi.md#gethealth) | **GET** /health | Read service health
 *AUTHApi* | [**getAuthChannels**](docs/AUTHApi.md#getauthchannels) | **GET** /v1/auth/channels | Read the public authentication channel policy
 *AUTHApi* | [**loginWithEmail**](docs/AUTHApi.md#loginwithemail) | **POST** /v1/auth/email/login | Login or register with a verified email challenge
@@ -125,6 +126,8 @@ All URIs are relative to *http://localhost:8000*
 - [AdminTokenData](docs/AdminTokenData.md)
 - [AdminTokenPair](docs/AdminTokenPair.md)
 - [AdminTokenResponse](docs/AdminTokenResponse.md)
+- [AppBootstrap](docs/AppBootstrap.md)
+- [AppBootstrapResponse](docs/AppBootstrapResponse.md)
 - [Appeal](docs/Appeal.md)
 - [AppealRequest](docs/AppealRequest.md)
 - [AppealResponse](docs/AppealResponse.md)
@@ -169,9 +172,11 @@ All URIs are relative to *http://localhost:8000*
 - [ErrorDetail](docs/ErrorDetail.md)
 - [ErrorResponse](docs/ErrorResponse.md)
 - [FieldError](docs/FieldError.md)
+- [FreeEntitlementTemplate](docs/FreeEntitlementTemplate.md)
 - [GenerationAnalysis](docs/GenerationAnalysis.md)
 - [GenerationContext](docs/GenerationContext.md)
 - [GenerationInput](docs/GenerationInput.md)
+- [GenerationPolicy](docs/GenerationPolicy.md)
 - [GenerationQuote](docs/GenerationQuote.md)
 - [GenerationQuoteRequest](docs/GenerationQuoteRequest.md)
 - [GenerationQuoteResponse](docs/GenerationQuoteResponse.md)
@@ -184,6 +189,7 @@ All URIs are relative to *http://localhost:8000*
 - [HealthData](docs/HealthData.md)
 - [HealthSuccessResponse](docs/HealthSuccessResponse.md)
 - [LedgerEntryType](docs/LedgerEntryType.md)
+- [LogicalModel](docs/LogicalModel.md)
 - [LoginData](docs/LoginData.md)
 - [LoginResponse](docs/LoginResponse.md)
 - [ModelQuoteOption](docs/ModelQuoteOption.md)
@@ -193,6 +199,7 @@ All URIs are relative to *http://localhost:8000*
 - [RegenerateRequest](docs/RegenerateRequest.md)
 - [RelationshipStage](docs/RelationshipStage.md)
 - [ReplyStrategy](docs/ReplyStrategy.md)
+- [ReplyStyle](docs/ReplyStyle.md)
 - [SafetyStatus](docs/SafetyStatus.md)
 - [SmsChallenge](docs/SmsChallenge.md)
 - [SmsChallengeResponse](docs/SmsChallengeResponse.md)

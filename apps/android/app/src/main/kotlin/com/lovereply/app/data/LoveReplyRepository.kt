@@ -1,6 +1,7 @@
 package com.lovereply.app.data
 
 import com.love_reply.generated.api.AUTHApi
+import com.love_reply.generated.api.APPCONFIGApi
 import com.love_reply.generated.api.ENTITLEMENTApi
 import com.love_reply.generated.api.GENERATIONApi
 import com.love_reply.generated.infrastructure.ApiClient
@@ -18,6 +19,7 @@ import com.love_reply.generated.model.SmsLoginRequest
 import com.love_reply.generated.model.SmsPurpose
 import com.love_reply.generated.model.SmsSendRequest
 import com.lovereply.app.domain.ApiFailure
+import com.lovereply.app.domain.AppBootstrap
 import com.lovereply.app.domain.ComposerDraft
 import com.lovereply.app.domain.EntitlementSummary
 import com.lovereply.app.domain.GenerationPhase
@@ -25,6 +27,7 @@ import com.lovereply.app.domain.GenerationQuoteSummary
 import com.lovereply.app.domain.GenerationResult
 import com.lovereply.app.domain.ReplyAnalysis
 import com.lovereply.app.domain.ReplyCandidate
+import com.lovereply.app.domain.ReplyStyleOption
 import com.lovereply.app.domain.SmsChallenge
 import java.io.IOException
 import java.util.UUID
@@ -34,6 +37,7 @@ import retrofit2.Response
 
 interface LoveReplyRepository {
     fun hasSession(): Boolean
+    suspend fun getBootstrap(): AppBootstrap? = null
     suspend fun sendSms(countryCode: String, phoneNumber: String): SmsChallenge
     suspend fun login(challengeId: String, code: String)
     suspend fun getEntitlements(): EntitlementSummary
@@ -52,6 +56,25 @@ class NetworkLoveReplyRepository(
     private val errorAdapter = Serializer.moshiBuilder.build().adapter(ApiErrorEnvelope::class.java)
 
     override fun hasSession(): Boolean = sessionStore.read() != null
+
+    override suspend fun getBootstrap(): AppBootstrap {
+        val api = anonymousClient().createService(APPCONFIGApi::class.java)
+        val response = networkCall {
+            api.getAppBootstrap(
+                xClientVersion = CLIENT_VERSION,
+                xPlatform = APPCONFIGApi.XPlatformGetAppBootstrap.ANDROID,
+                xDeviceId = deviceIdStore.value,
+            )
+        }
+        val bootstrap = response.data
+        return AppBootstrap(
+            configVersion = bootstrap.configVersion,
+            styles = bootstrap.styles.filter { it.enabled }.map {
+                ReplyStyleOption(id = it.styleId, label = it.displayName)
+            },
+            defaultStyleIds = bootstrap.freeEntitlement.allowedStyleIds,
+        )
+    }
 
     override suspend fun sendSms(countryCode: String, phoneNumber: String): SmsChallenge {
         val api = anonymousClient().createService(AUTHApi::class.java)

@@ -14,6 +14,11 @@
 
 import * as runtime from '../runtime';
 import {
+    type AppBootstrapResponse,
+    AppBootstrapResponseFromJSON,
+    AppBootstrapResponseToJSON,
+} from '../models/AppBootstrapResponse';
+import {
     type ErrorResponse,
     ErrorResponseFromJSON,
     ErrorResponseToJSON,
@@ -23,6 +28,14 @@ import {
     HealthSuccessResponseFromJSON,
     HealthSuccessResponseToJSON,
 } from '../models/HealthSuccessResponse';
+
+export interface GetAppBootstrapRequest {
+    xClientVersion: string;
+    xPlatform: GetAppBootstrapXPlatformEnum;
+    xDeviceId: string;
+    acceptLanguage: string;
+    xRequestId?: string;
+}
 
 export interface GetHealthRequest {
     xRequestId?: string;
@@ -35,6 +48,38 @@ export interface GetHealthRequest {
  * @interface APPCONFIGApiInterface
  */
 export interface APPCONFIGApiInterface {
+    /**
+     * Creates request options for getAppBootstrap without sending the request
+     * @param {string} xClientVersion Semantic application version used for compatibility enforcement.
+     * @param {'ANDROID' | 'ADMIN_WEB'} xPlatform
+     * @param {string} xDeviceId Opaque installation ID. It is not an authentication credential.
+     * @param {string} acceptLanguage
+     * @param {string} [xRequestId] Client correlation ID. The server returns the final accepted value.
+     * @throws {RequiredError}
+     * @memberof APPCONFIGApiInterface
+     */
+    getAppBootstrapRequestOpts(requestParameters: GetAppBootstrapRequest): Promise<runtime.RequestOpts>;
+
+    /**
+     * Returns the server-authoritative model and style catalog, generation policy, free entitlement template, and feature switches. Clients must not infer quotas, prices, or availability from local constants.
+     * @summary Read the published application configuration
+     * @param {string} xClientVersion Semantic application version used for compatibility enforcement.
+     * @param {'ANDROID' | 'ADMIN_WEB'} xPlatform
+     * @param {string} xDeviceId Opaque installation ID. It is not an authentication credential.
+     * @param {string} acceptLanguage
+     * @param {string} [xRequestId] Client correlation ID. The server returns the final accepted value.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof APPCONFIGApiInterface
+     */
+    getAppBootstrapRaw(requestParameters: GetAppBootstrapRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AppBootstrapResponse>>;
+
+    /**
+     * Returns the server-authoritative model and style catalog, generation policy, free entitlement template, and feature switches. Clients must not infer quotas, prices, or availability from local constants.
+     * Read the published application configuration
+     */
+    getAppBootstrap(requestParameters: GetAppBootstrapRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AppBootstrapResponse>;
+
     /**
      * Creates request options for getHealth without sending the request
      * @param {string} [xRequestId] Client correlation ID. The server returns the final accepted value.
@@ -64,6 +109,93 @@ export interface APPCONFIGApiInterface {
  *
  */
 export class APPCONFIGApi extends runtime.BaseAPI implements APPCONFIGApiInterface {
+
+    /**
+     * Creates request options for getAppBootstrap without sending the request
+     */
+    async getAppBootstrapRequestOpts(requestParameters: GetAppBootstrapRequest): Promise<runtime.RequestOpts> {
+        if (requestParameters['xClientVersion'] == null) {
+            throw new runtime.RequiredError(
+                'xClientVersion',
+                'Required parameter "xClientVersion" was null or undefined when calling getAppBootstrap().'
+            );
+        }
+
+        if (requestParameters['xPlatform'] == null) {
+            throw new runtime.RequiredError(
+                'xPlatform',
+                'Required parameter "xPlatform" was null or undefined when calling getAppBootstrap().'
+            );
+        }
+
+        if (requestParameters['xDeviceId'] == null) {
+            throw new runtime.RequiredError(
+                'xDeviceId',
+                'Required parameter "xDeviceId" was null or undefined when calling getAppBootstrap().'
+            );
+        }
+
+        if (requestParameters['acceptLanguage'] == null) {
+            throw new runtime.RequiredError(
+                'acceptLanguage',
+                'Required parameter "acceptLanguage" was null or undefined when calling getAppBootstrap().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (requestParameters['xRequestId'] != null) {
+            headerParameters['X-Request-Id'] = String(requestParameters['xRequestId']);
+        }
+
+        if (requestParameters['xClientVersion'] != null) {
+            headerParameters['X-Client-Version'] = String(requestParameters['xClientVersion']);
+        }
+
+        if (requestParameters['xPlatform'] != null) {
+            headerParameters['X-Platform'] = String(requestParameters['xPlatform']);
+        }
+
+        if (requestParameters['xDeviceId'] != null) {
+            headerParameters['X-Device-Id'] = String(requestParameters['xDeviceId']);
+        }
+
+        if (requestParameters['acceptLanguage'] != null) {
+            headerParameters['Accept-Language'] = String(requestParameters['acceptLanguage']);
+        }
+
+
+        let urlPath = `/v1/app/bootstrap`;
+
+        return {
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        };
+    }
+
+    /**
+     * Returns the server-authoritative model and style catalog, generation policy, free entitlement template, and feature switches. Clients must not infer quotas, prices, or availability from local constants.
+     * Read the published application configuration
+     */
+    async getAppBootstrapRaw(requestParameters: GetAppBootstrapRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AppBootstrapResponse>> {
+        const requestOptions = await this.getAppBootstrapRequestOpts(requestParameters);
+        const response = await this.request(requestOptions, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => AppBootstrapResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Returns the server-authoritative model and style catalog, generation policy, free entitlement template, and feature switches. Clients must not infer quotas, prices, or availability from local constants.
+     * Read the published application configuration
+     */
+    async getAppBootstrap(requestParameters: GetAppBootstrapRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AppBootstrapResponse> {
+        const response = await this.getAppBootstrapRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
 
     /**
      * Creates request options for getHealth without sending the request
@@ -107,3 +239,12 @@ export class APPCONFIGApi extends runtime.BaseAPI implements APPCONFIGApiInterfa
     }
 
 }
+
+/**
+ * @export
+ */
+export const GetAppBootstrapXPlatformEnum = {
+    Android: 'ANDROID',
+    AdminWeb: 'ADMIN_WEB'
+} as const;
+export type GetAppBootstrapXPlatformEnum = typeof GetAppBootstrapXPlatformEnum[keyof typeof GetAppBootstrapXPlatformEnum];

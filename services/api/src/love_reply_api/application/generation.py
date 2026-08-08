@@ -9,6 +9,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from love_reply_api.application.errors import ApiError
+from love_reply_api.application.runtime_config import RuntimeConfigService
 from love_reply_api.config import Settings
 from love_reply_api.domain.generation import (
     TERMINAL_GENERATION_STATUSES,
@@ -147,7 +148,8 @@ class GenerationService:
         requested_model_id: str | None,
     ) -> QuoteResult:
         entitlement, wallet = await self.get_entitlement(user_id)
-        model_id = requested_model_id or self._settings.default_model_id
+        runtime_config = await RuntimeConfigService(self._session).get_published()
+        model_id = requested_model_id or runtime_config.generation_policy.default_model_id
         if model_id not in entitlement.allowed_model_ids:
             raise ApiError(
                 status_code=409,
@@ -190,7 +192,8 @@ class GenerationService:
             estimated_energy=estimated_energy,
             charged_from=charged_from.value,
             entitlement_version=entitlement.resource_version,
-            expires_at=now + timedelta(seconds=self._settings.quote_ttl_seconds),
+            expires_at=now
+            + timedelta(seconds=runtime_config.generation_policy.quote_ttl_seconds),
             consumed_at=None,
             created_at=now,
         )

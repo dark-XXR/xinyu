@@ -40,6 +40,8 @@ src/models/AdminSessionSummary.ts
 src/models/AdminTokenData.ts
 src/models/AdminTokenPair.ts
 src/models/AdminTokenResponse.ts
+src/models/AppBootstrap.ts
+src/models/AppBootstrapResponse.ts
 src/models/Appeal.ts
 src/models/AppealRequest.ts
 src/models/AppealResponse.ts
@@ -84,9 +86,11 @@ src/models/EntitlementResponse.ts
 src/models/ErrorDetail.ts
 src/models/ErrorResponse.ts
 src/models/FieldError.ts
+src/models/FreeEntitlementTemplate.ts
 src/models/GenerationAnalysis.ts
 src/models/GenerationContext.ts
 src/models/GenerationInput.ts
+src/models/GenerationPolicy.ts
 src/models/GenerationQuote.ts
 src/models/GenerationQuoteRequest.ts
 src/models/GenerationQuoteResponse.ts
@@ -99,6 +103,7 @@ src/models/GenerationUsage.ts
 src/models/HealthData.ts
 src/models/HealthSuccessResponse.ts
 src/models/LedgerEntryType.ts
+src/models/LogicalModel.ts
 src/models/LoginData.ts
 src/models/LoginResponse.ts
 src/models/ModelQuoteOption.ts
@@ -108,6 +113,7 @@ src/models/RefreshRequest.ts
 src/models/RegenerateRequest.ts
 src/models/RelationshipStage.ts
 src/models/ReplyStrategy.ts
+src/models/ReplyStyle.ts
 src/models/SafetyStatus.ts
 src/models/SmsChallenge.ts
 src/models/SmsChallengeResponse.ts

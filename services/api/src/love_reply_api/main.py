@@ -10,6 +10,7 @@ from love_reply_api.config import get_settings
 from love_reply_api.schemas import HealthData, SuccessEnvelope
 from love_reply_api.transport.http.errors import api_error_handler, validation_error_handler
 from love_reply_api.transport.http.idempotency import IdempotencyMiddleware
+from love_reply_api.transport.http.routes.app import router as app_router
 from love_reply_api.transport.http.routes.auth import router as auth_router
 from love_reply_api.transport.http.routes.billing import router as billing_router
 from love_reply_api.transport.http.routes.candidates import router as candidate_router
@@ -29,6 +30,7 @@ app.state.sms_sender = UnavailableSmsSender()
 app.state.ai_provider = UnavailableAiProvider()
 app.add_exception_handler(ApiError, api_error_handler)  # type: ignore[arg-type]
 app.add_exception_handler(RequestValidationError, validation_error_handler)  # type: ignore[arg-type]
+app.include_router(app_router)
 app.include_router(auth_router)
 app.include_router(me_router)
 app.include_router(billing_router)

@@ -7,6 +7,7 @@ import com.love_reply.generated.model.CommunicationGoal
 import com.love_reply.generated.model.RelationshipStage
 import com.lovereply.app.data.LoveReplyRepository
 import com.lovereply.app.domain.ApiFailure
+import com.lovereply.app.domain.AppBootstrap
 import com.lovereply.app.domain.ComposerDraft
 import com.lovereply.app.domain.EntitlementSummary
 import com.lovereply.app.domain.GenerationPhase
@@ -36,6 +37,7 @@ data class LoginUiState(
 data class MainUiState(
     val screen: AppScreen = AppScreen.LOGIN,
     val login: LoginUiState = LoginUiState(),
+    val bootstrap: AppBootstrap? = null,
     val draft: ComposerDraft = ComposerDraft(),
     val entitlement: EntitlementSummary? = null,
     val quote: GenerationQuoteSummary? = null,
@@ -58,6 +60,7 @@ class MainViewModel(
     private var pollingJob: Job? = null
 
     init {
+        loadBootstrap()
         if (repository.hasSession()) refreshEntitlements()
     }
 
@@ -253,7 +256,20 @@ class MainViewModel(
         viewModelScope.launch {
             try {
                 val entitlement = repository.getEntitlements()
-                mutableState.value = state.value.copy(entitlement = entitlement)
+                val allowedStyles = entitlement.allowedStyleIds
+                val selectedStyles = state.value.draft.styleIds.intersect(allowedStyles)
+                val firstAllowedStyle = state.value.bootstrap?.styles
+                    ?.firstOrNull { it.id in allowedStyles }
+                    ?.id
+                    ?: allowedStyles.firstOrNull()
+                mutableState.value = state.value.copy(
+                    entitlement = entitlement,
+                    draft = state.value.draft.copy(
+                        styleIds = selectedStyles.ifEmpty {
+                            firstAllowedStyle?.let(::setOf).orEmpty()
+                        },
+                    ),
+                )
             } catch (error: ApiFailure) {
                 if (error.code in SESSION_ERROR_CODES) {
                     repository.clearSession()
@@ -263,6 +279,22 @@ class MainViewModel(
                         errorCode = error.code,
                     )
                 }
+            }
+        }
+    }
+
+    private fun loadBootstrap() {
+        viewModelScope.launch {
+            try {
+                val bootstrap = repository.getBootstrap() ?: return@launch
+                mutableState.value = state.value.copy(
+                    bootstrap = bootstrap,
+                    draft = state.value.draft.copy(
+                        styleIds = state.value.draft.styleIds.ifEmpty { bootstrap.defaultStyleIds }
+                    ),
+                )
+            } catch (_: ApiFailure) {
+                // Login remains usable while the public bootstrap endpoint recovers.
             }
         }
     }

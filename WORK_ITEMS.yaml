@@ -210,8 +210,8 @@ items:
   - taskId: CONTRACT-OPERATIONS-001
     title: Define bootstrap notices inbox support jobs releases and telemetry
     moduleCode: APP_CONFIG
-    owner: unassigned
-    status: planned
+    owner: codex-root
+    status: in_progress
     allowedPaths:
       - contracts/openapi/paths/app.yaml
       - contracts/openapi/paths/notices.yaml
@@ -226,7 +226,7 @@ items:
       - bootstrap_has_offline_fallback_version_fields
       - support_ticket_permissions_are_defined
       - telemetry_schema_rejects_sensitive_free_text
-    handoffNotes: ""
+    handoffNotes: "App bootstrap is being defined first so Android models, styles, feature availability, and free entitlement presentation are server-authoritative. Notices, inbox, support, jobs, releases, and telemetry remain planned."
 
   - taskId: CONTRACT-ADMIN-AI-001
     title: Define configurable model gateway prompt evaluation and risk admin operations
@@ -541,3 +541,39 @@ items:
       - channel_switch_preserves_non_secret_input
       - email_and_sms_login_share_session_refresh_behavior
     handoffNotes: "The current Android P0 screen remains SMS-first until the additive email contract and backend are complete."
+
+  - taskId: BACKEND-RUNTIME-CONFIG-001
+    title: Implement published runtime configuration and remove business defaults from code
+    moduleCode: APP_CONFIG
+    owner: codex-root
+    status: in_progress
+    allowedPaths:
+      - services/api/src/love_reply_api/application/**
+      - services/api/src/love_reply_api/infrastructure/**
+      - services/api/src/love_reply_api/transport/http/**
+      - services/api/tests/**
+      - database/migrations/**
+    dependsOn: [CONTRACT-OPERATIONS-001, BACKEND-FOUNDATION-001]
+    contractVersion: "1.0.0"
+    acceptanceTests:
+      - missing_published_config_fails_closed
+      - free_entitlement_is_created_from_published_config
+      - generation_model_style_and_quote_ttl_are_server_configured
+      - bootstrap_returns_only_published_non_secret_values
+    handoffNotes: "Removes free quota, default model, style, and quote TTL business values from environment settings and Android assumptions. Initial values are editable database seed data, not runtime code defaults."
+
+  - taskId: FRONTEND-ANDROID-REDESIGN-001
+    title: Redesign the Android experience in Antigravity after bootstrap integration
+    moduleCode: APP_CONFIG
+    owner: codex-root
+    status: planned
+    allowedPaths:
+      - apps/android/**
+    dependsOn: [BACKEND-RUNTIME-CONFIG-001, FRONTEND-ANDROID-AUTH-002]
+    contractVersion: "1.0.0"
+    acceptanceTests:
+      - visual_direction_is_reworked_not_reskinned
+      - models_styles_and_feature_controls_come_from_bootstrap
+      - login_composer_quote_result_and_failure_states_pass_visual_review
+      - compact_and_default_android_viewports_have_no_overlap_or_clipping
+    handoffNotes: "The existing Compose UI is functional P0 only and is not accepted as the final visual direction. Antigravity must be used for the redesign once its control bridge is functional; emulator screenshots remain the acceptance evidence."

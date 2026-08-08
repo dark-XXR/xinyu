@@ -26,11 +26,7 @@ class Settings(BaseSettings):
     sms_challenge_ttl_seconds: int = 300
     idempotency_ttl_seconds: int = 86_400
     idempotency_max_response_bytes: int = 1_048_576
-    free_text_quota: int = 3
-    quote_ttl_seconds: int = 300
     generation_event_ttl_seconds: int = 86_400
-    default_model_id: str = "model_standard"
-    default_style_ids: list[str] = ["warm", "humorous", "direct"]
 
     def assert_deployable(self) -> None:
         if self.app_env == "production" and self.jwt_signing_key.get_secret_value().startswith(

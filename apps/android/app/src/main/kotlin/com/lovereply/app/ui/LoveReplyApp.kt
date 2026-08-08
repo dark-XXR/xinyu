@@ -70,6 +70,7 @@ import com.lovereply.app.domain.GenerationPhase
 import com.lovereply.app.domain.GenerationQuoteSummary
 import com.lovereply.app.domain.GenerationResult
 import com.lovereply.app.domain.ReplyCandidate
+import com.lovereply.app.domain.ReplyStyleOption
 
 private data class LabeledValue<T>(val value: T, val label: String)
 
@@ -93,13 +94,6 @@ private val goalOptions = listOf(
     LabeledValue(CommunicationGoal.SET_BOUNDARY, "表达边界"),
     LabeledValue(CommunicationGoal.RESOLVE_CONFLICT, "缓和矛盾"),
     LabeledValue(CommunicationGoal.OTHER, "其他"),
-)
-
-private val styleOptions = listOf(
-    "warm" to "温柔",
-    "humorous" to "幽默",
-    "steady" to "稳重",
-    "concise" to "简洁",
 )
 
 @Composable
@@ -375,11 +369,17 @@ private fun ComposerScreen(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
-                    styleOptions.forEach { (id, label) ->
+                    (state.bootstrap?.styles
+                        ?.filter { option ->
+                            state.entitlement?.allowedStyleIds?.contains(option.id) != false
+                        }
+                        ?: state.entitlement?.allowedStyleIds.orEmpty().map { ReplyStyleOption(it, it) })
+                        .forEach { option ->
+                        val id = option.id
                         FilterChip(
                             selected = id in state.draft.styleIds,
                             onClick = { onStyleToggle(id) },
-                            label = { Text(label) },
+                            label = { Text(option.label) },
                             leadingIcon = if (id in state.draft.styleIds) {
                                 {
                                     Icon(
@@ -798,7 +798,7 @@ private fun String.toStrategyLabel(): String = when (this) {
     else -> this
 }
 
-private fun String.toStyleLabel(): String = styleOptions.firstOrNull { it.first == this }?.second ?: this
+private fun String.toStyleLabel(): String = this
 
 private fun String.toReadableStatus(): String = when (this) {
     "SUCCEEDED" -> "已生成并通过安全检查"
