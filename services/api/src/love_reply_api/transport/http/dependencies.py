@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from love_reply_api.application.auth import AuthService, SmsSender
 from love_reply_api.application.errors import ApiError
+from love_reply_api.application.generation import AiProvider, GenerationService
 from love_reply_api.application.identity import IdentityService
 from love_reply_api.application.tokens import TokenService
 from love_reply_api.config import Settings, get_settings
@@ -68,6 +69,17 @@ def get_identity_service(
     session: Annotated[AsyncSession, Depends(get_session)],
 ) -> IdentityService:
     return IdentityService(session)
+
+
+def get_generation_service(
+    session: Annotated[AsyncSession, Depends(get_session)],
+    settings: Annotated[Settings, Depends(get_settings)],
+) -> GenerationService:
+    return GenerationService(session=session, settings=settings)
+
+
+def get_ai_provider(request: Request) -> AiProvider:
+    return cast(AiProvider, request.app.state.ai_provider)
 
 
 async def get_auth_context(
