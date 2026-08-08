@@ -376,7 +376,7 @@ items:
     title: Build Android Compose login and text generation flow in Antigravity IDE
     moduleCode: APP_CONFIG
     owner: codex-root
-    status: blocked
+    status: in_progress
     allowedPaths:
       - apps/android/**
     dependsOn: [CONTRACT-CODEGEN-001, BACKEND-GENERATION-001]
@@ -388,4 +388,4 @@ items:
       - failed_generation_shows_retry_without_losing_entitlement
       - p1_features_are_hidden_by_feature_flags
       - compose_ui_tests_pass_on_emulator
-    handoffNotes: "Antigravity IDE is installed, launched, and opens the D:\\ai code workspace, but it requires administrator integrity. The computer-use helper runs at a lower integrity level and Windows rejects capture/input with 0x80070005. Resume after launching Codex desktop as Administrator; no Android UI files have been created."
+    handoffNotes: "Compose P0 implementation is complete: generated Kotlin API integration, encrypted token persistence and refresh, SMS login, entitlements, quote/create/poll, analysis, SAFE/PUSH_PULL/DIRECT result cards, and failure retry without clearing the draft. Three ViewModel tests, three Android 35 Compose tests, Debug APK assembly, and a real local API SMS login/quote/fail-closed generation flow pass. Login and composer screenshots show no overlap at 1080x2400. Codex computer-use was reconfigured by the user; restart Codex and perform the final Antigravity visual review before marking done."
