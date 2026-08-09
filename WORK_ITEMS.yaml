@@ -493,7 +493,7 @@ items:
     title: Implement encrypted configurable provider registry health checks and rollout
     moduleCode: APP_CONFIG
     owner: codex-root
-    status: in_progress
+    status: done
     allowedPaths:
       - services/api/src/love_reply_api/application/**
       - services/api/src/love_reply_api/domain/**
@@ -514,7 +514,7 @@ items:
     title: Implement products subscriptions Epay orders callbacks refunds and reconciliation
     moduleCode: ORDER
     owner: codex-root
-    status: planned
+    status: in_progress
     allowedPaths:
       - services/api/src/love_reply_api/application/**
       - services/api/src/love_reply_api/domain/**
@@ -529,7 +529,7 @@ items:
       - redirect_never_grants_entitlement
       - duplicate_or_conflicting_callbacks_do_not_double_settle
       - catalog_versions_preserve_completed_order_facts
-    handoffNotes: ""
+    handoffNotes: "In progress. Versioned product records, immutable order snapshots, payment attempts, unique provider events, subscriptions, refunds, and a reversible migration are implemented. All public product/order/payment-sync/subscription/refund operations plus the Epay webhook are routed. Verified callbacks and provider queries settle atomically with entitlement or energy grants; identical callbacks ACK without double grants and conflicting facts fail closed. Refund requests currently enter review. Product administration publication, automatic provider refund execution, entitlement recovery, and scheduled reconciliation remain."
 
   - taskId: FRONTEND-ADMIN-CONSOLE-001
     title: Build provider AI commerce subscription and audit administration console

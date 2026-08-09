@@ -6589,6 +6589,7 @@ components:
         - notifyUrl
         - returnUrl
         - callbackTimeWindowSeconds
+        - checkoutTtlSeconds
         - timeoutMs
       properties:
         adapterType:
@@ -6646,6 +6647,10 @@ components:
         callbackTimeWindowSeconds:
           type: integer
           minimum: 60
+          maximum: 86400
+        checkoutTtlSeconds:
+          type: integer
+          minimum: 300
           maximum: 86400
         timeoutMs:
           type: integer

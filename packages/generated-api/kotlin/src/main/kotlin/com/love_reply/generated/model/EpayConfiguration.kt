@@ -42,6 +42,7 @@ import com.squareup.moshi.JsonClass
  * @param notifyUrl Server callback URL configured for the selected provider publication.
  * @param returnUrl Browser return URL for user navigation only; it never settles an order.
  * @param callbackTimeWindowSeconds
+ * @param checkoutTtlSeconds
  * @param timeoutMs
  * @param applicationId
  */
@@ -86,6 +87,9 @@ data class EpayConfiguration (
 
     @Json(name = "callbackTimeWindowSeconds")
     val callbackTimeWindowSeconds: kotlin.Int,
+
+    @Json(name = "checkoutTtlSeconds")
+    val checkoutTtlSeconds: kotlin.Int,
 
     @Json(name = "timeoutMs")
     val timeoutMs: kotlin.Int,

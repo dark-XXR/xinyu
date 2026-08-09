@@ -102,6 +102,12 @@ export interface EpayConfiguration {
      * @type {number}
      * @memberof EpayConfiguration
      */
+    checkoutTtlSeconds: number;
+    /**
+     *
+     * @type {number}
+     * @memberof EpayConfiguration
+     */
     timeoutMs: number;
 }
 
@@ -152,6 +158,7 @@ export function instanceOfEpayConfiguration(value: object): value is EpayConfigu
     if (!('notifyUrl' in value) || value['notifyUrl'] === undefined) return false;
     if (!('returnUrl' in value) || value['returnUrl'] === undefined) return false;
     if (!('callbackTimeWindowSeconds' in value) || value['callbackTimeWindowSeconds'] === undefined) return false;
+    if (!('checkoutTtlSeconds' in value) || value['checkoutTtlSeconds'] === undefined) return false;
     if (!('timeoutMs' in value) || value['timeoutMs'] === undefined) return false;
     return true;
 }
@@ -179,6 +186,7 @@ export function EpayConfigurationFromJSONTyped(json: any, ignoreDiscriminator: b
         'notifyUrl': json['notifyUrl'],
         'returnUrl': json['returnUrl'],
         'callbackTimeWindowSeconds': json['callbackTimeWindowSeconds'],
+        'checkoutTtlSeconds': json['checkoutTtlSeconds'],
         'timeoutMs': json['timeoutMs'],
     };
 }
@@ -207,6 +215,7 @@ export function EpayConfigurationToJSONTyped(value?: EpayConfiguration | null, i
         'notifyUrl': value['notifyUrl'],
         'returnUrl': value['returnUrl'],
         'callbackTimeWindowSeconds': value['callbackTimeWindowSeconds'],
+        'checkoutTtlSeconds': value['checkoutTtlSeconds'],
         'timeoutMs': value['timeoutMs'],
     };
 }

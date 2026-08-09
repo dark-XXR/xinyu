@@ -16,12 +16,15 @@ from love_reply_api.application.admin_auth import AdminAuthService
 from love_reply_api.application.ai_admin import AiGatewayAdminService
 from love_reply_api.application.ai_gateway import AiHttpTransport, RegistryAiProvider
 from love_reply_api.application.auth import AuthService, EmailSender, SmsSender
+from love_reply_api.application.commerce import CommerceService
 from love_reply_api.application.delivery_adapters import EmailApiTransport, SmsApiTransport
 from love_reply_api.application.errors import ApiError
 from love_reply_api.application.generation import AiProvider, GenerationService
 from love_reply_api.application.identity import IdentityService
+from love_reply_api.application.payment_adapters import EpayTransport
 from love_reply_api.application.provider_runtime import (
     RegistryEmailSender,
+    RegistryPaymentGateway,
     RegistrySmsSender,
     SmtpTransport,
 )
@@ -220,6 +223,19 @@ def get_generation_service(
     settings: Annotated[Settings, Depends(get_settings)],
 ) -> GenerationService:
     return GenerationService(session=session, settings=settings)
+
+
+def get_commerce_service(
+    request: Request,
+    session: Annotated[AsyncSession, Depends(get_session)],
+    settings: Annotated[Settings, Depends(get_settings)],
+) -> CommerceService:
+    gateway = RegistryPaymentGateway(
+        session=session,
+        settings=settings,
+        epay_transport=cast(EpayTransport, request.app.state.epay_transport),
+    )
+    return CommerceService(session=session, gateway=gateway)
 
 
 def get_ai_provider(

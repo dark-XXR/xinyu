@@ -4,10 +4,10 @@ Last updated: 2026-08-09
 
 ## Current checkpoint
 
-- Active task: `BACKEND-PROVIDER-REGISTRY-001`
+- Active task: `BACKEND-COMMERCE-001`
 - State: `in_progress`
 - Contract version: `1.0.0`
-- Current phase: external provider runtimes are complete; commerce persistence is next
+- Current phase: commerce order settlement is complete; administration and refund recovery are next
 
 ## Completed
 
@@ -62,6 +62,10 @@ Last updated: 2026-08-09
   constant-time callback verification, and synthetic query health checks. CNY amounts are converted
   from integer minor units, unsupported currencies fail closed, and browser return values never
   represent settlement proof.
+- Commerce persistence now covers product versions, immutable order facts, payment attempts, unique
+  provider events, subscriptions, and refund requests. All contracted public commerce routes and the
+  Epay webhook are registered. Callback/query settlement locks the order and entitlement accounts in
+  one transaction; identical callbacks ACK without duplicate grants while conflicting callbacks fail.
 - A Chinese file/page catalog and code-comment guide now map Android screens, UI parameters,
   backend routes, business services, data tables, contracts, and planned administration pages for
   non-developer maintenance.
@@ -107,7 +111,7 @@ Android Lint, and Debug APK assembly all passed.
 Identity contract validation now covers 46 fixtures across 19 tagged operations. Generated
 Kotlin and TypeScript clients both compile with the new email/channel models and operations.
 
-Backend verification now covers 50 PostgreSQL integration and transport tests. The email/auth,
+Backend verification now covers 51 PostgreSQL integration and transport tests. The email/auth,
 administrator authentication, provider-registry, and AI-gateway migrations passed
 upgrade, downgrade, and re-upgrade; Ruff, strict MyPy, TypeScript, Android unit tests, Android Lint,
 and Debug APK assembly also pass.
@@ -139,9 +143,8 @@ browser/emulator output rather than IDE automation.
 
 ## Next exact actions
 
-1. Implement versioned product catalog and immutable order snapshots.
-2. Persist payment attempts and idempotent Epay callback/query settlement.
-3. Implement subscription grants, refunds, entitlement recovery, and reconciliation.
-4. Complete referral reward runtime behavior.
-5. Build the administration console through Antigravity CLI only.
-6. Redesign the Android UI through Antigravity CLI and verify it on emulator viewports.
+1. Add administrator product/price publication and rollback APIs.
+2. Implement automatic provider refunds, entitlement recovery, and scheduled reconciliation.
+3. Complete referral reward runtime behavior.
+4. Build the administration console through Antigravity CLI only.
+5. Redesign the Android UI through Antigravity CLI and verify it on emulator viewports.

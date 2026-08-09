@@ -126,6 +126,7 @@ class EpayConfiguration(StrictApiModel):
     notify_url: AnyHttpUrl
     return_url: AnyHttpUrl
     callback_time_window_seconds: int = Field(ge=60, le=86_400)
+    checkout_ttl_seconds: int = Field(ge=300, le=86_400)
     timeout_ms: int = Field(ge=1000, le=60_000)
 
     @field_validator("gateway_base_url")

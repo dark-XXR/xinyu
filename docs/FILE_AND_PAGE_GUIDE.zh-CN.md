@@ -61,7 +61,8 @@
 | B10 | AI 真实模型调用 | `services/api/src/love_reply_api/application/ai_gateway.py` | OpenAI、Anthropic、Gemini 和兼容协议调用与故障转移 |
 | B11 | 回复生成接口 | `services/api/src/love_reply_api/transport/http/routes/generations.py` | 报价确认后的生成、查询和取消接口 |
 | B12 | 回复生成业务规则 | `services/api/src/love_reply_api/application/generation.py` | 次数预留、模型调用、失败释放和结果保存 |
-| B13 | 套餐、次数与订单接口 | `services/api/src/love_reply_api/transport/http/routes/billing.py` | 当前账单与权益接口；完整易支付仍待开发 |
+| B13 | 套餐、订单、订阅和退款接口 | `services/api/src/love_reply_api/transport/http/routes/billing.py` | 商品目录、订单、支付同步、回调、订阅取消和退款申请 |
+| B13.1 | 商业结算业务服务 | `services/api/src/love_reply_api/application/commerce.py` | 订单快照、幂等结算、权益发放、订阅和退款规则 |
 | B14 | 运行时业务配置 | `services/api/src/love_reply_api/application/runtime_config.py` | 免费额度、模型、风格、开关和认证渠道配置读取 |
 | B15 | 通用依赖注入 | `services/api/src/love_reply_api/transport/http/dependencies.py` | 为接口装配数据库、认证和供应商运行时 |
 | B16 | 数据库连接 | `services/api/src/love_reply_api/infrastructure/database.py` | 数据库引擎和每次请求的事务会话 |
@@ -75,6 +76,7 @@
 | D03 | AI 配置和调用记录表 | `services/api/src/love_reply_api/infrastructure/ai_gateway_records.py` | 模型、路由、提示词、评测、风控和调用记录 |
 | D04 | 生成、权益和钱包表 | `services/api/src/love_reply_api/infrastructure/generation_records.py` | 回复生成任务、次数、钱包和权益 |
 | D05 | 数据库升级文件目录 | `database/migrations/versions/` | 按版本升级数据库；已有文件不可随意改写 |
+| D06 | 商品、订单、支付和退款表 | `services/api/src/love_reply_api/infrastructure/commerce_records.py` | 商品版本、订单快照、支付事件、订阅和退款 |
 
 ## 契约与配置
 

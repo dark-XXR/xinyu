@@ -107,9 +107,10 @@ class PublishedProviderResolver:
         provider_id: str,
         routing_key: str,
         adapter_types: set[str],
+        kind: str = "AI",
         now: datetime | None = None,
     ) -> ResolvedProvider | None:
-        candidates = await self._candidates(kind="AI", now=now or datetime.now(UTC))
+        candidates = await self._candidates(kind=kind, now=now or datetime.now(UTC))
         for provider, version in candidates:
             if provider.provider_id != provider_id:
                 continue
@@ -398,6 +399,24 @@ class RegistryPaymentGateway:
                 status_code=503,
                 code="PAYMENT_PROVIDER_UNAVAILABLE",
                 message="Payment provider is temporarily unavailable.",
+                retryable=True,
+            )
+        return provider
+
+    async def resolve_by_id(
+        self, *, provider_id: str, routing_key: str
+    ) -> ResolvedProvider:
+        provider = await self._resolver.resolve_by_id(
+            provider_id=provider_id,
+            routing_key=routing_key,
+            adapter_types={"EPAY_COMPAT"},
+            kind="PAYMENT",
+        )
+        if provider is None:
+            raise ApiError(
+                status_code=503,
+                code="PAYMENT_PROVIDER_UNAVAILABLE",
+                message="Published payment provider is unavailable.",
                 retryable=True,
             )
         return provider
