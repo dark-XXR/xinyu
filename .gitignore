@@ -19,3 +19,5 @@ local.properties
 *.iml
 *.log
 .DS_Store
+output/playwright/
+packages/generated-api/kotlin/bin/

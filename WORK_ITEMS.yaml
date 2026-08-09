@@ -535,7 +535,7 @@ items:
     title: Build provider AI commerce subscription and audit administration console
     moduleCode: ADMIN_RBAC
     owner: codex-root
-    status: planned
+    status: in_progress
     allowedPaths:
       - apps/admin-web/**
     dependsOn: [BACKEND-PROVIDER-REGISTRY-001, BACKEND-COMMERCE-001, BACKEND-AUTH-CHANNELS-001]
@@ -545,7 +545,7 @@ items:
       - secret_values_are_never_rendered_after_submission
       - product_price_and_benefit_versions_require_confirmation
       - payment_and_provider_actions_have_audit_readback
-    handoffNotes: "The admin web directory is currently empty; this is the first implementation task for the operator UI requested by the product owner."
+    handoffNotes: "In progress. The Antigravity CLI-built React console now provides a responsive dashboard plus provider, product/version, order, and refund operations. Provider search/filter, redacted credential rotation, health checks, publish/rollback confirmation, product history rollback, and the refund approval/execution flow passed desktop and 390px browser acceptance. AI mapping/route/prompt/evaluation/risk administration, provider disable, and dedicated audit readback remain before this task can be marked complete."
 
   - taskId: FRONTEND-ANDROID-AUTH-002
     title: Upgrade Android to email-first authentication with explicit SMS fallback

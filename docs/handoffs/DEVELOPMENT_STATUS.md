@@ -5,9 +5,9 @@ Last updated: 2026-08-09
 ## Current checkpoint
 
 - Active task: `FRONTEND-ADMIN-CONSOLE-001`
-- State: `planned`
+- State: `in_progress`
 - Contract version: `1.0.0`
-- Current phase: all planned backend work is complete; administration UI is next
+- Current phase: administration console milestone 1 is accepted; AI and audit administration are next
 
 ## Completed
 
@@ -110,6 +110,18 @@ Last updated: 2026-08-09
   screenshots plus automated viewport tests remain the visual acceptance path.
 - Login, composer, quote, success, and failure states were exported and inspected at `1080x2400`
   and a compact `360x640dp` equivalent; no clipping, overlap, or unsafe-inset issues remain.
+- The administration console now runs as a React, TypeScript, Vite, React Router, and TanStack Query
+  application created and edited through headless Antigravity CLI. Its repository layer switches
+  between typed mock data and the generated administrator HTTP client without placing prices,
+  quotas, benefit amounts, provider credentials, or resource versions in page components.
+- Administration routes `/`, `/providers`, `/commerce/products`, and `/commerce/orders` now cover
+  operational metrics, provider drafts and filters, write-only credential rotation, provider health
+  checks, provider publication/rollback, versioned products and benefits, immutable order readback,
+  refund review, and refund execution. Destructive and publication actions require confirmation.
+- The first administration UI milestone passed strict TypeScript, oxlint, production build, and real
+  browser acceptance at `1440x900` and `390x844`. Mobile data tables become labeled card rows,
+  all checked pages have zero horizontal overflow, menus and dialogs close with Escape, and the
+  checked browser console has zero warnings or errors.
 
 ## Verification commands
 
@@ -121,6 +133,11 @@ cd apps/android
 
 Last results: 5 unit tests, 6 default-size device UI tests, 6 compact-size UI tests,
 Android Lint, and Debug APK assembly all passed.
+
+Administration web results: TypeScript project references, oxlint (0 warnings/errors), and Vite
+production build pass. The production bundle is 270.21 kB JavaScript (80.59 kB gzip) and 6.63 kB
+CSS (1.88 kB gzip). Playwright accepted all four routes at desktop size and the three tabular routes
+at 390px with `scrollWidth === innerWidth`.
 
 Identity contract validation now covers 46 fixtures across 19 tagged operations. Generated
 Kotlin and TypeScript clients both compile with the new email/channel models and operations.
@@ -143,9 +160,10 @@ TypeScript build, generated Kotlin build, Android unit tests, Android Lint, and 
 ## UI acceptance
 
 The P0 Android flow acceptance criteria are complete, but the product owner has rejected the
-current visual direction as final UI. A full redesign remains tracked after backend provider and
-commerce work. It will be implemented through Antigravity CLI only and verified from actual
-browser/emulator output rather than IDE automation.
+current visual direction as final UI. A full redesign remains tracked after the administration
+console. The administration UI milestone uses a restrained neutral/coral operational design and
+has been accepted from actual browser output. All frontend implementation continues through
+Antigravity CLI only; the IDE is not launched or controlled.
 
 ## Accepted provider and commerce direction
 
@@ -159,7 +177,9 @@ browser/emulator output rather than IDE automation.
 
 ## Next exact actions
 
-1. Build the administration console through Antigravity CLI only, starting with providers and commerce.
-2. Add contract fixtures for the new administrator commerce operations.
+1. Continue the administration console through Antigravity CLI with AI model mappings, routes,
+   prompts, evaluations, risk policies, publication, and rollback.
+2. Add provider disable and dedicated provider/payment audit readback to finish the administration
+   console acceptance criteria.
 3. Redesign the Android UI through Antigravity CLI and verify it on emulator viewports.
 4. Add invite sharing, progress and reward history to the redesigned Android experience.

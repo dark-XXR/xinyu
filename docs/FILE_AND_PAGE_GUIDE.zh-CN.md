@@ -35,13 +35,21 @@
 
 | 编号 | 功能或页面 | 主要文件与位置 | 当前状态 |
 | --- | --- | --- | --- |
-| W01 | 管理后台工程 | `apps/admin-web/` | 尚未创建；后续只通过 Antigravity CLI 开发 |
-| W02 | 供应商配置页面 | 计划位于 `apps/admin-web/src/pages/providers/` | 待开发：AI、邮件、短信、易支付配置和密钥轮换 |
-| W03 | AI 模型与路由页面 | 计划位于 `apps/admin-web/src/pages/ai/` | 待开发：模型映射、提示词、评测、风控、发布和回滚 |
-| W04 | 套餐与价格页面 | 计划位于 `apps/admin-web/src/pages/commerce/` | 待开发：套餐价格、次数和权益版本配置 |
-| W05 | 邀请推广页面 | 计划位于 `apps/admin-web/src/pages/referrals/` | 待开发：活动、门槛、奖励和回滚配置 |
-
-管理后台创建后，应在本表补充真实文件路径，不能只保留计划路径。
+| W01 | 管理后台工程与运行说明 | `apps/admin-web/package.json`、`apps/admin-web/README.zh-CN.md` | 已创建：安装、启动、类型检查、代码检查和生产构建命令 |
+| W02 | 页面入口和路由表 | `apps/admin-web/src/main.tsx`、`apps/admin-web/src/App.tsx` | 已完成：初始化数据查询并注册 4 个管理页面路由 |
+| W03 | 全局导航和移动菜单 | `apps/admin-web/src/components/Layout.tsx` | 已完成：桌面侧栏、移动端菜单、当前页面高亮和 Escape 关闭 |
+| W04 | 管理工作台页面 `/` | `apps/admin-web/src/pages/Dashboard.tsx` | 已完成：系统状态、待办指标、已发布商品、最近活动和快捷入口 |
+| W05 | 供应商配置页面 `/providers` | `apps/admin-web/src/pages/Providers.tsx` | 已完成首批：AI、邮件、短信、易支付草稿，筛选、健康检查、密钥轮换、发布和回滚；禁用仍待开发 |
+| W06 | 套餐与价格页面 `/commerce/products` | `apps/admin-web/src/pages/commerce/Products.tsx` | 已完成：价格、次数、权益、销售渠道和版本均由后台数据维护，支持发布与真实历史版本回滚 |
+| W07 | 订单与退款页面 `/commerce/orders` | `apps/admin-web/src/pages/commerce/Orders.tsx` | 已完成：订单搜索、支付尝试、商品快照、退款审批和退款执行 |
+| W08 | 前端数据接口切换层 | `apps/admin-web/src/api/repository.ts` | 已完成首批：统一 Mock/HTTP 调用；HTTP 使用自动生成客户端，密钥只写不读 |
+| W09 | 自动生成模型的引用入口 | `apps/admin-web/src/api/models.ts` | 已完成：集中导出页面使用的接口类型和枚举；不要在此写业务值 |
+| W10 | 全局 UI 参数 | `apps/admin-web/src/styles/design-system.css` | 已完成首批：颜色、字号、间距、表格、抽屉、对话框和 390px 卡片布局 |
+| W11 | 通用按钮、输入和状态标签 | `apps/admin-web/src/components/ui/Button.tsx`、`Input.tsx`、`Badge.tsx` | 已完成：修改按钮外观、输入框和状态颜色时使用这些文件 |
+| W12 | 通用卡片、抽屉和确认框 | `apps/admin-web/src/components/ui/Card.tsx`、`Drawer.tsx`、`Dialog.tsx` | 已完成：焦点约束、Escape 关闭和关闭后恢复焦点 |
+| W13 | AI 模型与路由页面 | 计划位于 `apps/admin-web/src/pages/ai/` | 待开发：模型映射、提示词、评测、风控、发布和回滚 |
+| W14 | 后台审计查询页面 | 计划位于 `apps/admin-web/src/pages/audit/` | 待开发：供应商与支付操作的独立审计回读 |
+| W15 | 邀请推广页面 | 计划位于 `apps/admin-web/src/pages/referrals/` | 待开发：活动、门槛、奖励和回滚配置 |
 
 ## 后端接口与业务文件
 
