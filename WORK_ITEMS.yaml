@@ -406,6 +406,27 @@ items:
       - idempotency_replay_returns_original_response
     handoffNotes: "All acceptance tests pass, including encrypted durable idempotency replay and mismatched-request conflicts. Real SMS credentials remain an external integration input; an unavailable adapter fails explicitly until configured."
 
+  - taskId: BACKEND-ADMIN-AUTH-001
+    title: Implement isolated administrator authentication MFA sessions and permission context
+    moduleCode: ADMIN_RBAC
+    owner: codex-root
+    status: done
+    allowedPaths:
+      - services/api/src/love_reply_api/application/**
+      - services/api/src/love_reply_api/infrastructure/**
+      - services/api/src/love_reply_api/transport/http/**
+      - services/api/tests/**
+      - database/migrations/**
+    dependsOn: [BACKEND-FOUNDATION-001, CONTRACT-IDENTITY-001]
+    contractVersion: "1.0.0"
+    acceptanceTests:
+      - bootstrap_administrator_requires_deployment_secrets
+      - passwords_use_argon2id_and_totp_secrets_are_encrypted
+      - administrator_tokens_are_isolated_from_user_tokens
+      - refresh_token_reuse_revokes_the_complete_token_family
+      - permission_context_requires_active_mfa_verified_session
+    handoffNotes: "Complete. The first administrator is created only from deployment bootstrap values. Argon2id passwords, encrypted TOTP seeds, replay-resistant MFA counters, database-published security timing, distinct admin JWTs, rotating refresh families, current-admin readback, and family logout are implemented. Sixteen PostgreSQL integration tests pass across the backend."
+
   - taskId: BACKEND-GENERATION-001
     title: Implement entitlement wallet generation candidate SSE and risk appeal flows
     moduleCode: GENERATION
@@ -472,7 +493,7 @@ items:
     title: Implement encrypted configurable provider registry health checks and rollout
     moduleCode: APP_CONFIG
     owner: codex-root
-    status: planned
+    status: ready
     allowedPaths:
       - services/api/src/love_reply_api/application/**
       - services/api/src/love_reply_api/domain/**
@@ -480,7 +501,7 @@ items:
       - services/api/src/love_reply_api/transport/http/**
       - services/api/tests/**
       - database/migrations/**
-    dependsOn: [CONTRACT-ADMIN-PROVIDERS-001, CONTRACT-ADMIN-AI-001]
+    dependsOn: [CONTRACT-ADMIN-PROVIDERS-001, BACKEND-ADMIN-AUTH-001]
     contractVersion: "1.0.0"
     acceptanceTests:
       - provider_secrets_are_encrypted_and_never_read_back

@@ -4,8 +4,8 @@ Last updated: 2026-08-09
 
 ## Current checkpoint
 
-- Active task: `BACKEND-AUTH-CHANNELS-001`
-- State: `in_progress`
+- Active task: `BACKEND-PROVIDER-REGISTRY-001`
+- State: `ready`
 - Contract version: `1.0.0`
 - Current phase: email-first authentication persistence and policy enforcement are complete; encrypted provider adapters are next
 
@@ -18,6 +18,10 @@ Last updated: 2026-08-09
 - Email OTP is now implemented end to end through an injected delivery adapter. The database stores
   only HMAC challenge digests, supports email-only users, enforces published TTL, resend, attempt,
   enable/disable policies, and reuses SMS token rotation, device, wallet, and entitlement behavior.
+- Administrator authentication is now isolated from ordinary user authentication. Deployment-time
+  bootstrap values create the first owner; passwords use Argon2id, TOTP seeds are encrypted, MFA
+  counters reject replay, admin JWT signing is distinct, and reused refresh tokens revoke the whole
+  administrator token family. Active MFA-backed sessions expose permission context for provider APIs.
 - Published runtime configuration now owns free benefits, logical models, reply styles, feature
   switches, and quote lifetime. Android reads its style catalog from server bootstrap and
   intersects it with the authenticated entitlement.
@@ -63,7 +67,8 @@ Android Lint, and Debug APK assembly all passed.
 Identity contract validation now covers 46 fixtures across 19 tagged operations. Generated
 Kotlin and TypeScript clients both compile with the new email/channel models and operations.
 
-Backend verification now covers 13 PostgreSQL integration tests. The email/auth migration passed
+Backend verification now covers 16 PostgreSQL integration tests. The email/auth and administrator
+authentication migrations passed
 upgrade, downgrade, and re-upgrade; Ruff, strict MyPy, TypeScript, Android unit tests, Android Lint,
 and Debug APK assembly also pass.
 
@@ -94,7 +99,8 @@ not being represented as a completed interactive Antigravity design workflow.
 
 ## Next exact actions
 
-1. Implement the encrypted provider registry and connect the SMTP/API email delivery adapter.
-2. Change Android to email-first login and expose SMS only when the channel policy allows it.
-3. Implement AI routes, Epay, catalog versioning, advertising rewards, and referral persistence.
-4. Build the administration console, then perform the full Antigravity Android UI redesign.
+1. Implement the encrypted provider registry behind administrator permission checks.
+2. Connect SMTP/API email delivery and health checks to the active provider version.
+3. Change Android to email-first login and expose SMS only when the channel policy allows it.
+4. Implement AI routes, Epay, catalog versioning, advertising rewards, and referral persistence.
+5. Build the administration console, then perform the full Antigravity Android UI redesign.

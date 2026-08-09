@@ -21,6 +21,16 @@ class Settings(BaseSettings):
     redis_url: str = "redis://localhost:6379/0"
     jwt_signing_key: SecretStr = SecretStr("local-development-key-replace-before-deployment")
     jwt_issuer: str = "love-reply-api"
+    admin_jwt_signing_key: SecretStr = SecretStr(
+        "local-admin-signing-key-replace-before-deployment"
+    )
+    data_encryption_key: SecretStr = SecretStr(
+        "local-data-encryption-key-replace-before-deployment"
+    )
+    admin_bootstrap_login_name: str | None = None
+    admin_bootstrap_password: SecretStr | None = None
+    admin_bootstrap_totp_secret: SecretStr | None = None
+    admin_bootstrap_display_name: str = "Platform Owner"
     access_token_ttl_seconds: int = 900
     refresh_token_ttl_seconds: int = 2_592_000
     idempotency_ttl_seconds: int = 86_400
@@ -32,6 +42,16 @@ class Settings(BaseSettings):
             "local-development"
         ):
             raise ValueError("JWT_SIGNING_KEY must be configured for production")
+        admin_signing_key = self.admin_jwt_signing_key.get_secret_value()
+        if self.app_env == "production" and admin_signing_key.startswith("local-admin"):
+            raise ValueError("ADMIN_JWT_SIGNING_KEY must be configured for production")
+        if self.app_env == "production" and len(admin_signing_key) < 32:
+            raise ValueError("ADMIN_JWT_SIGNING_KEY must be at least 32 characters")
+        data_encryption_key = self.data_encryption_key.get_secret_value()
+        if self.app_env == "production" and data_encryption_key.startswith("local-data"):
+            raise ValueError("DATA_ENCRYPTION_KEY must be configured for production")
+        if self.app_env == "production" and len(data_encryption_key) < 32:
+            raise ValueError("DATA_ENCRYPTION_KEY must be at least 32 characters")
 
 
 @lru_cache

@@ -6,12 +6,14 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from love_reply_api.application.admin_auth import AdminAuthService
 from love_reply_api.application.auth import AuthService, EmailSender, SmsSender
 from love_reply_api.application.errors import ApiError
 from love_reply_api.application.generation import AiProvider, GenerationService
 from love_reply_api.application.identity import IdentityService
 from love_reply_api.application.tokens import TokenService
 from love_reply_api.config import Settings, get_settings
+from love_reply_api.infrastructure.admin_records import AdminSessionRecord, AdminUserRecord
 from love_reply_api.infrastructure.database import get_session
 from love_reply_api.infrastructure.identity_records import AuthSessionRecord
 
@@ -33,6 +35,19 @@ class ClientContext:
     accept_language: str
 
 
+@dataclass(frozen=True, slots=True)
+class AdminClientContext:
+    client_version: str
+    platform: str
+    accept_language: str
+
+
+@dataclass(frozen=True, slots=True)
+class AdminContext:
+    admin: AdminUserRecord
+    session: AdminSessionRecord
+
+
 def get_client_context(
     x_client_version: Annotated[str, Header(alias="X-Client-Version")],
     x_platform: Annotated[str, Header(alias="X-Platform")],
@@ -49,6 +64,24 @@ def get_client_context(
         client_version=x_client_version,
         platform=x_platform,
         device_id=x_device_id,
+        accept_language=accept_language,
+    )
+
+
+def get_admin_client_context(
+    x_client_version: Annotated[str, Header(alias="X-Client-Version")],
+    x_platform: Annotated[str, Header(alias="X-Platform")],
+    accept_language: Annotated[str, Header(alias="Accept-Language")],
+) -> AdminClientContext:
+    if x_platform != "ADMIN_WEB":
+        raise ApiError(
+            status_code=400,
+            code="INVALID_PLATFORM",
+            message="Administrator endpoints require X-Platform ADMIN_WEB.",
+        )
+    return AdminClientContext(
+        client_version=x_client_version,
+        platform=x_platform,
         accept_language=accept_language,
     )
 
@@ -73,6 +106,31 @@ def get_auth_service(
         sms_sender=sms_sender,
         email_sender=email_sender,
     )
+
+
+def get_admin_auth_service(
+    session: Annotated[AsyncSession, Depends(get_session)],
+    settings: Annotated[Settings, Depends(get_settings)],
+) -> AdminAuthService:
+    return AdminAuthService(session=session, settings=settings)
+
+
+async def get_admin_context(
+    client: Annotated[AdminClientContext, Depends(get_admin_client_context)],
+    credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer)],
+    service: Annotated[AdminAuthService, Depends(get_admin_auth_service)],
+) -> AdminContext:
+    del client
+    if credentials is None or credentials.scheme.lower() != "bearer":
+        raise ApiError(
+            status_code=401,
+            code="TOKEN_EXPIRED",
+            message="Administrator bearer token is required.",
+        )
+    admin, session = await service.authenticate_access(
+        access_token=credentials.credentials
+    )
+    return AdminContext(admin=admin, session=session)
 
 
 def get_identity_service(

@@ -9,6 +9,7 @@ description = "Contract-first backend for the High-EQ Love Reply Assistant"
 requires-python = ">=3.11"
 dependencies = [
   "alembic>=1.16,<2",
+  "argon2-cffi>=25.1,<26",
   "asyncpg>=0.30,<1",
   "email-validator>=2.2,<3",
   "fastapi>=0.116,<1",
