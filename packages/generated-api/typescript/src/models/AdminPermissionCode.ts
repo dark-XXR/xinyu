@@ -68,7 +68,13 @@ export const AdminPermissionCode = {
     ProviderSecretRotate: 'PROVIDER_SECRET_ROTATE',
     ProviderHealthCheck: 'PROVIDER_HEALTH_CHECK',
     ProviderPublish: 'PROVIDER_PUBLISH',
-    ProviderRollback: 'PROVIDER_ROLLBACK'
+    ProviderRollback: 'PROVIDER_ROLLBACK',
+    ReferralCampaignRead: 'REFERRAL_CAMPAIGN_READ',
+    ReferralCampaignWrite: 'REFERRAL_CAMPAIGN_WRITE',
+    ReferralCampaignPublish: 'REFERRAL_CAMPAIGN_PUBLISH',
+    ReferralCampaignRollback: 'REFERRAL_CAMPAIGN_ROLLBACK',
+    ReferralCaseRead: 'REFERRAL_CASE_READ',
+    ReferralCaseDecide: 'REFERRAL_CASE_DECIDE'
 } as const;
 export type AdminPermissionCode = typeof AdminPermissionCode[keyof typeof AdminPermissionCode];
 

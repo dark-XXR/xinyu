@@ -1,0 +1,104 @@
+{
+  "fixtures": [
+    {
+      "id": "referral-program-success", "operationId": "getReferralProgram", "kind": "response", "statusCode": 200,
+      "value": {"code": "OK", "message": "success", "data": {"campaignId": "rcp_fixture_0001", "campaignVersion": 2, "displayName": "Invite friends", "description": "Synthetic single-level referral campaign.", "inviteCode": "AB12CD34", "inviteUrl": "https://example.test/invite/AB12CD34", "rewardRules": [{"milestoneCode": "FIRST_GENERATION", "beneficiary": "INVITER", "rewardUnit": "ENERGY", "rewardAmount": 1000, "coolingOffHours": 24}], "qualifiedInviteCount": 2, "pendingInviteCount": 1, "totalRewards": {"ENERGY": 2000}}, "requestId": "req_referral_program_01", "timestamp": "2026-08-09T01:00:00Z"}
+    },
+    {
+      "id": "referral-program-error", "operationId": "getReferralProgram", "kind": "response", "statusCode": 404,
+      "value": {"code": "REFERRAL_CAMPAIGN_UNAVAILABLE", "message": "no referral campaign is available", "data": null, "error": {"retryable": false, "fieldErrors": [], "details": {}}, "requestId": "req_referral_program_02", "timestamp": "2026-08-09T01:00:01Z"}
+    },
+    {
+      "id": "referral-bind-request", "operationId": "bindReferralInvite", "kind": "request",
+      "value": {"inviteCode": "AB12CD34"}
+    },
+    {
+      "id": "referral-bind-success", "operationId": "bindReferralInvite", "kind": "response", "statusCode": 201,
+      "value": {"code": "OK", "message": "success", "data": {"referralId": "ref_fixture_0001", "campaignId": "rcp_fixture_0001", "campaignVersion": 2, "inviteeDisplayHint": "new user 7F3A", "status": "PENDING_QUALIFICATION", "completedMilestones": ["ACCOUNT_VERIFIED"], "rejectionReasonCode": null, "boundAt": "2026-08-09T01:01:00Z", "qualifiedAt": null, "resourceVersion": 1, "updatedAt": "2026-08-09T01:01:00Z"}, "requestId": "req_referral_bind_01", "timestamp": "2026-08-09T01:01:00Z"}
+    },
+    {
+      "id": "referral-bind-error", "operationId": "bindReferralInvite", "kind": "response", "statusCode": 409,
+      "value": {"code": "REFERRAL_BINDING_CONFLICT", "message": "account is already bound or cannot use this code", "data": null, "error": {"retryable": false, "fieldErrors": [], "details": {}}, "requestId": "req_referral_bind_02", "timestamp": "2026-08-09T01:01:01Z"}
+    },
+    {
+      "id": "referral-invites-success", "operationId": "listReferralInvites", "kind": "response", "statusCode": 200,
+      "value": {"code": "OK", "message": "success", "data": {"items": [], "nextCursor": null, "hasMore": false}, "requestId": "req_referral_invites_01", "timestamp": "2026-08-09T01:02:00Z"}
+    },
+    {
+      "id": "referral-invites-error", "operationId": "listReferralInvites", "kind": "response", "statusCode": 401,
+      "value": {"code": "AUTH_TOKEN_MISSING", "message": "authentication is required", "data": null, "error": {"retryable": false, "fieldErrors": [], "details": {}}, "requestId": "req_referral_invites_02", "timestamp": "2026-08-09T01:02:01Z"}
+    },
+    {
+      "id": "referral-rewards-success", "operationId": "listReferralRewards", "kind": "response", "statusCode": 200,
+      "value": {"code": "OK", "message": "success", "data": {"items": [{"referralRewardId": "rrw_fixture_0001", "referralId": "ref_fixture_0001", "beneficiary": "INVITER", "milestoneCode": "FIRST_GENERATION", "rewardUnit": "ENERGY", "rewardAmount": 1000, "status": "GRANTED", "walletLedgerEntryId": "led_referral_fixture", "entitlementEventId": null, "availableAt": "2026-08-10T01:03:00Z", "createdAt": "2026-08-09T01:03:00Z", "updatedAt": "2026-08-10T01:03:00Z"}], "nextCursor": null, "hasMore": false}, "requestId": "req_referral_rewards_01", "timestamp": "2026-08-10T01:03:00Z"}
+    },
+    {
+      "id": "referral-rewards-error", "operationId": "listReferralRewards", "kind": "response", "statusCode": 401,
+      "value": {"code": "AUTH_TOKEN_MISSING", "message": "authentication is required", "data": null, "error": {"retryable": false, "fieldErrors": [], "details": {}}, "requestId": "req_referral_rewards_02", "timestamp": "2026-08-10T01:03:01Z"}
+    },
+    {
+      "id": "admin-referral-list-success", "operationId": "listAdminReferralCampaigns", "kind": "response", "statusCode": 200,
+      "value": {"code": "OK", "message": "success", "data": {"items": [], "nextCursor": null, "hasMore": false}, "requestId": "req_admin_referral_list_01", "timestamp": "2026-08-09T02:00:00Z"}
+    },
+    {
+      "id": "admin-referral-list-error", "operationId": "listAdminReferralCampaigns", "kind": "response", "statusCode": 403,
+      "value": {"code": "PERMISSION_DENIED", "message": "permission denied", "data": null, "error": {"retryable": false, "fieldErrors": [], "details": {}}, "requestId": "req_admin_referral_list_02", "timestamp": "2026-08-09T02:00:01Z"}
+    },
+    {
+      "id": "admin-referral-create-request", "operationId": "createAdminReferralCampaign", "kind": "request",
+      "value": {"campaignCode": "INVITE_LAUNCH", "displayName": "Invite launch", "description": "Synthetic single-level referral campaign.", "region": "CN", "salesChannels": ["ANDROID"], "bindingWindowHours": 168, "maxQualifiedInvitesPerInviter": 100, "rewardRules": [{"milestoneCode": "FIRST_GENERATION", "beneficiary": "INVITER", "rewardUnit": "ENERGY", "rewardAmount": 1000, "coolingOffHours": 24}, {"milestoneCode": "FIRST_GENERATION", "beneficiary": "INVITEE", "rewardUnit": "TEXT_QUOTA", "rewardAmount": 3, "coolingOffHours": 0}], "antiAbusePolicy": {"blockSelfReferral": true, "blockSameDevice": true, "blockSamePaymentIdentity": true, "requireVerifiedPrimaryChannel": true, "riskReviewScore": 60}}
+    },
+    {
+      "id": "admin-referral-create-success", "operationId": "createAdminReferralCampaign", "kind": "response", "statusCode": 201,
+      "value": {"code": "OK", "message": "success", "data": {"campaignId": "rcp_fixture_0001", "version": 1, "campaignCode": "INVITE_LAUNCH", "displayName": "Invite launch", "description": "Synthetic single-level referral campaign.", "status": "DRAFT", "region": "CN", "salesChannels": ["ANDROID"], "bindingWindowHours": 168, "maxQualifiedInvitesPerInviter": 100, "rewardRules": [{"milestoneCode": "FIRST_GENERATION", "beneficiary": "INVITER", "rewardUnit": "ENERGY", "rewardAmount": 1000, "coolingOffHours": 24}], "antiAbusePolicy": {"blockSelfReferral": true, "blockSameDevice": true, "blockSamePaymentIdentity": true, "requireVerifiedPrimaryChannel": true, "riskReviewScore": 60}, "rolloutPercentage": 0, "effectiveAt": "2026-08-09T02:01:00Z", "expiresAt": null, "resourceVersion": 1, "createdAt": "2026-08-09T02:01:00Z", "updatedAt": "2026-08-09T02:01:00Z"}, "requestId": "req_admin_referral_create_01", "timestamp": "2026-08-09T02:01:00Z"}
+    },
+    {
+      "id": "admin-referral-create-error", "operationId": "createAdminReferralCampaign", "kind": "response", "statusCode": 400,
+      "value": {"code": "REFERRAL_RULE_INVALID", "message": "referral rule is invalid", "data": null, "error": {"retryable": false, "fieldErrors": [], "details": {}}, "requestId": "req_admin_referral_create_02", "timestamp": "2026-08-09T02:01:01Z"}
+    },
+    {
+      "id": "admin-referral-get-success", "operationId": "getAdminReferralCampaign", "kind": "response", "statusCode": 200,
+      "value": {"code": "OK", "message": "success", "data": {"campaignId": "rcp_fixture_0001", "version": 1, "campaignCode": "INVITE_LAUNCH", "displayName": "Invite launch", "description": "Synthetic single-level referral campaign.", "status": "READY", "region": "CN", "salesChannels": ["ANDROID"], "bindingWindowHours": 168, "maxQualifiedInvitesPerInviter": 100, "rewardRules": [{"milestoneCode": "FIRST_GENERATION", "beneficiary": "INVITER", "rewardUnit": "ENERGY", "rewardAmount": 1000, "coolingOffHours": 24}], "antiAbusePolicy": {"blockSelfReferral": true, "blockSameDevice": true, "blockSamePaymentIdentity": true, "requireVerifiedPrimaryChannel": true, "riskReviewScore": 60}, "rolloutPercentage": 0, "effectiveAt": "2026-08-09T02:01:00Z", "expiresAt": null, "resourceVersion": 2, "createdAt": "2026-08-09T02:01:00Z", "updatedAt": "2026-08-09T02:02:00Z"}, "requestId": "req_admin_referral_get_01", "timestamp": "2026-08-09T02:02:00Z"}
+    },
+    {
+      "id": "admin-referral-get-error", "operationId": "getAdminReferralCampaign", "kind": "response", "statusCode": 404,
+      "value": {"code": "REFERRAL_CAMPAIGN_NOT_FOUND", "message": "campaign was not found", "data": null, "error": {"retryable": false, "fieldErrors": [], "details": {}}, "requestId": "req_admin_referral_get_02", "timestamp": "2026-08-09T02:02:01Z"}
+    },
+    {
+      "id": "admin-referral-update-request", "operationId": "updateAdminReferralCampaign", "kind": "request",
+      "value": {"campaignCode": "INVITE_LAUNCH", "displayName": "Invite launch", "description": "Updated synthetic referral campaign.", "region": "CN", "salesChannels": ["ANDROID"], "bindingWindowHours": 240, "maxQualifiedInvitesPerInviter": 120, "rewardRules": [{"milestoneCode": "FIRST_GENERATION", "beneficiary": "INVITER", "rewardUnit": "ENERGY", "rewardAmount": 1200, "coolingOffHours": 24}], "antiAbusePolicy": {"blockSelfReferral": true, "blockSameDevice": true, "blockSamePaymentIdentity": true, "requireVerifiedPrimaryChannel": true, "riskReviewScore": 65}}
+    },
+    {
+      "id": "admin-referral-update-success", "operationId": "updateAdminReferralCampaign", "kind": "response", "statusCode": 200,
+      "value": {"code": "OK", "message": "success", "data": {"campaignId": "rcp_fixture_0001", "version": 2, "campaignCode": "INVITE_LAUNCH", "displayName": "Invite launch", "description": "Updated synthetic referral campaign.", "status": "DRAFT", "region": "CN", "salesChannels": ["ANDROID"], "bindingWindowHours": 240, "maxQualifiedInvitesPerInviter": 120, "rewardRules": [{"milestoneCode": "FIRST_GENERATION", "beneficiary": "INVITER", "rewardUnit": "ENERGY", "rewardAmount": 1200, "coolingOffHours": 24}], "antiAbusePolicy": {"blockSelfReferral": true, "blockSameDevice": true, "blockSamePaymentIdentity": true, "requireVerifiedPrimaryChannel": true, "riskReviewScore": 65}, "rolloutPercentage": 0, "effectiveAt": "2026-08-09T02:03:00Z", "expiresAt": null, "resourceVersion": 3, "createdAt": "2026-08-09T02:01:00Z", "updatedAt": "2026-08-09T02:03:00Z"}, "requestId": "req_admin_referral_update_01", "timestamp": "2026-08-09T02:03:00Z"}
+    },
+    {
+      "id": "admin-referral-update-error", "operationId": "updateAdminReferralCampaign", "kind": "response", "statusCode": 409,
+      "value": {"code": "RESOURCE_VERSION_CONFLICT", "message": "campaign version changed", "data": null, "error": {"retryable": false, "fieldErrors": [], "details": {}}, "requestId": "req_admin_referral_update_02", "timestamp": "2026-08-09T02:03:01Z"}
+    },
+    {
+      "id": "admin-referral-publish-request", "operationId": "publishAdminReferralCampaign", "kind": "request",
+      "value": {"rolloutPercentage": 10, "effectiveAt": "2026-08-10T00:00:00Z", "expiresAt": "2026-09-10T00:00:00Z", "auditReason": "Start controlled invitation campaign rollout"}
+    },
+    {
+      "id": "admin-referral-publish-success", "operationId": "publishAdminReferralCampaign", "kind": "response", "statusCode": 200,
+      "value": {"code": "OK", "message": "success", "data": {"campaignId": "rcp_fixture_0001", "version": 2, "campaignCode": "INVITE_LAUNCH", "displayName": "Invite launch", "description": "Updated synthetic referral campaign.", "status": "ACTIVE", "region": "CN", "salesChannels": ["ANDROID"], "bindingWindowHours": 240, "maxQualifiedInvitesPerInviter": 120, "rewardRules": [{"milestoneCode": "FIRST_GENERATION", "beneficiary": "INVITER", "rewardUnit": "ENERGY", "rewardAmount": 1200, "coolingOffHours": 24}], "antiAbusePolicy": {"blockSelfReferral": true, "blockSameDevice": true, "blockSamePaymentIdentity": true, "requireVerifiedPrimaryChannel": true, "riskReviewScore": 65}, "rolloutPercentage": 10, "effectiveAt": "2026-08-10T00:00:00Z", "expiresAt": "2026-09-10T00:00:00Z", "resourceVersion": 4, "createdAt": "2026-08-09T02:01:00Z", "updatedAt": "2026-08-09T02:04:00Z"}, "requestId": "req_admin_referral_publish_01", "timestamp": "2026-08-09T02:04:00Z"}
+    },
+    {
+      "id": "admin-referral-publish-error", "operationId": "publishAdminReferralCampaign", "kind": "response", "statusCode": 409,
+      "value": {"code": "REFERRAL_CAMPAIGN_NOT_READY", "message": "campaign is not ready to publish", "data": null, "error": {"retryable": false, "fieldErrors": [], "details": {}}, "requestId": "req_admin_referral_publish_02", "timestamp": "2026-08-09T02:04:01Z"}
+    },
+    {
+      "id": "admin-referral-rollback-request", "operationId": "rollbackAdminReferralCampaign", "kind": "request",
+      "value": {"targetVersion": 1, "auditReason": "Restore prior campaign rules for new bindings"}
+    },
+    {
+      "id": "admin-referral-rollback-success", "operationId": "rollbackAdminReferralCampaign", "kind": "response", "statusCode": 200,
+      "value": {"code": "OK", "message": "success", "data": {"campaignId": "rcp_fixture_0001", "version": 1, "campaignCode": "INVITE_LAUNCH", "displayName": "Invite launch", "description": "Synthetic single-level referral campaign.", "status": "ACTIVE", "region": "CN", "salesChannels": ["ANDROID"], "bindingWindowHours": 168, "maxQualifiedInvitesPerInviter": 100, "rewardRules": [{"milestoneCode": "FIRST_GENERATION", "beneficiary": "INVITER", "rewardUnit": "ENERGY", "rewardAmount": 1000, "coolingOffHours": 24}], "antiAbusePolicy": {"blockSelfReferral": true, "blockSameDevice": true, "blockSamePaymentIdentity": true, "requireVerifiedPrimaryChannel": true, "riskReviewScore": 60}, "rolloutPercentage": 100, "effectiveAt": "2026-08-09T02:05:00Z", "expiresAt": null, "resourceVersion": 5, "createdAt": "2026-08-09T02:01:00Z", "updatedAt": "2026-08-09T02:05:00Z"}, "requestId": "req_admin_referral_rollback_01", "timestamp": "2026-08-09T02:05:00Z"}
+    },
+    {
+      "id": "admin-referral-rollback-error", "operationId": "rollbackAdminReferralCampaign", "kind": "response", "statusCode": 409,
+      "value": {"code": "ROLLBACK_TARGET_INVALID", "message": "target version was not previously published", "data": null, "error": {"retryable": false, "fieldErrors": [], "details": {}}, "requestId": "req_admin_referral_rollback_02", "timestamp": "2026-08-09T02:05:01Z"}
+    }
+  ]
+}

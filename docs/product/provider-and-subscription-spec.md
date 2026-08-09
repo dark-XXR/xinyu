@@ -187,7 +187,26 @@ or both. Failed or cancelled generations release every unsettled reservation.
 - Final price, tax, renewal, refund, and consumer notice text require legal and
   payment-channel review before production publication.
 
-## 6. Administration pages
+## 6. Referral promotion
+
+Referral promotion is single-level only. The application shares an opaque code
+or HTTPS deep link and never requires contact-list upload. A campaign version
+defines region, channel, binding window, qualification milestones, reward unit,
+reward amount, cooling-off period, per-inviter limit, and anti-abuse policy.
+
+An invitee binds once after authentication. Self-referrals, reused devices,
+shared payment identities, automation, and other configured risk signals may be
+rejected or held for manual review. Rewards are granted only after a configured
+milestone and cooling-off period. Every grant and reversal is idempotent and
+linked to an immutable wallet, entitlement, or campaign ledger entry. Existing
+bindings retain their campaign version when a later version is published or
+rolled back.
+
+Counts, reward amounts, milestones, campaign dates, and eligibility rules are
+administrator-published data. The Android client does not contain referral
+reward constants and cannot mark an invite as qualified.
+
+## 7. Administration pages
 
 The minimum configuration console includes:
 
@@ -199,6 +218,8 @@ The minimum configuration console includes:
 6. Product catalog, price versions, benefit grants, regions, and publication.
 7. Subscription, order, refund, entitlement, and wallet audit views.
 8. Configuration versions, approvals, gray rollout, rollback, and audit log.
+9. Referral campaigns, milestone rules, reward budgets, risk review, reversals,
+   publication, and rollback.
 
 High-risk changes require an audit reason and a second confirmation. Production
 secret rotation, payment activation, and product publication require a distinct

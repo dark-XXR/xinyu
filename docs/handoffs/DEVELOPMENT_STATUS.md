@@ -4,10 +4,10 @@ Last updated: 2026-08-08
 
 ## Current checkpoint
 
-- Active task: `CONTRACT-BILLING-001`
+- Active task: `BACKEND-AUTH-CHANNELS-001`
 - State: `in_progress`
 - Contract version: `1.0.0`
-- Current phase: runtime configuration and provider contracts complete; commerce and real adapters are next
+- Current phase: user-facing contracts through commerce, ad reward, and referral are complete; real adapters and persistence are next
 
 ## Completed
 
@@ -25,6 +25,12 @@ Last updated: 2026-08-08
   provider-query reconciliation, subscription cancellation, refunds, entitlement recovery, and
   signed Epay-compatible callbacks are now defined. Twenty-seven commerce fixtures validate
   11 operations; browser returns cannot grant benefits.
+- Advertising reward sessions and signed server callbacks complete the billing contract. The
+  client cannot claim completion, and identical callback replays cannot grant twice.
+- Single-level referral campaigns now cover personal codes and links, authenticated immutable
+  binding, masked invite progress, milestone and risk qualification, cooling-off, reward and
+  reversal ledgers, plus administrator publication and rollback. Twenty-five fixtures validate
+  10 operations; reward amounts and limits are not client constants.
 - Android Compose project with an app module and a read-only generated API module.
 - Encrypted access/refresh token persistence, atomic refresh retry, and installation ID.
 - SMS login, server-authoritative entitlement display, composer draft, relationship/goal/style
@@ -81,7 +87,7 @@ not being represented as a completed interactive Antigravity design workflow.
 
 ## Next exact actions
 
-1. Finish ad reward and administrator finance contracts, then freeze the billing contract.
-2. Implement email auth, encrypted provider registry, AI routes, Epay, and catalog versioning.
+1. Implement email-first authentication and the encrypted provider registry.
+2. Implement AI routes, Epay, catalog versioning, advertising rewards, and referral persistence.
 3. Build the administration console for provider, model, payment, product, and audit operations.
 4. Change Android to email-first login, then perform the full Antigravity UI redesign.

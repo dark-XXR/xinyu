@@ -1,0 +1,224 @@
+campaigns:
+  get:
+    operationId: listAdminReferralCampaigns
+    summary: List referral campaign versions
+    tags: [ADMIN_REFERRAL]
+    security:
+      - adminBearerAuth: []
+    parameters:
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+      - $ref: ../components/parameters.yaml#/Cursor
+      - $ref: ../components/parameters.yaml#/Limit
+    responses:
+      "200":
+        description: Versioned referral campaigns.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/referrals.yaml#/ReferralCampaignListResponse
+      "401":
+        $ref: ../components/responses.yaml#/Unauthorized
+      "403":
+        $ref: ../components/responses.yaml#/Forbidden
+      "500":
+        $ref: ../components/responses.yaml#/InternalError
+  post:
+    operationId: createAdminReferralCampaign
+    summary: Create a referral campaign draft
+    tags: [ADMIN_REFERRAL]
+    security:
+      - adminBearerAuth: []
+    parameters:
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+      - $ref: ../components/parameters.yaml#/IdempotencyKey
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/referrals.yaml#/ReferralCampaignWriteRequest
+    responses:
+      "201":
+        description: Referral campaign draft created.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/referrals.yaml#/ReferralCampaignResponse
+      "400":
+        $ref: ../components/responses.yaml#/BadRequest
+      "401":
+        $ref: ../components/responses.yaml#/Unauthorized
+      "403":
+        $ref: ../components/responses.yaml#/Forbidden
+      "409":
+        $ref: ../components/responses.yaml#/Conflict
+      "500":
+        $ref: ../components/responses.yaml#/InternalError
+
+campaign:
+  get:
+    operationId: getAdminReferralCampaign
+    summary: Read one referral campaign version
+    tags: [ADMIN_REFERRAL]
+    security:
+      - adminBearerAuth: []
+    parameters:
+      - $ref: "#/components/campaignId"
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+    responses:
+      "200":
+        description: Referral campaign version.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/referrals.yaml#/ReferralCampaignResponse
+      "401":
+        $ref: ../components/responses.yaml#/Unauthorized
+      "403":
+        $ref: ../components/responses.yaml#/Forbidden
+      "404":
+        $ref: ../components/responses.yaml#/NotFound
+      "500":
+        $ref: ../components/responses.yaml#/InternalError
+  patch:
+    operationId: updateAdminReferralCampaign
+    summary: Replace a referral campaign draft configuration
+    tags: [ADMIN_REFERRAL]
+    security:
+      - adminBearerAuth: []
+    parameters:
+      - $ref: "#/components/campaignId"
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+      - $ref: ../components/parameters.yaml#/IdempotencyKey
+      - $ref: ../components/parameters.yaml#/IfMatch
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/referrals.yaml#/ReferralCampaignWriteRequest
+    responses:
+      "200":
+        description: Draft updated and version advanced.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/referrals.yaml#/ReferralCampaignResponse
+      "400":
+        $ref: ../components/responses.yaml#/BadRequest
+      "401":
+        $ref: ../components/responses.yaml#/Unauthorized
+      "403":
+        $ref: ../components/responses.yaml#/Forbidden
+      "404":
+        $ref: ../components/responses.yaml#/NotFound
+      "409":
+        $ref: ../components/responses.yaml#/Conflict
+      "500":
+        $ref: ../components/responses.yaml#/InternalError
+
+publish:
+  post:
+    operationId: publishAdminReferralCampaign
+    summary: Publish a referral campaign with bounded rollout
+    description: Publication freezes reward and anti-abuse rules for existing bindings.
+    tags: [ADMIN_REFERRAL]
+    security:
+      - adminBearerAuth: []
+    parameters:
+      - $ref: "#/components/campaignId"
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+      - $ref: ../components/parameters.yaml#/IdempotencyKey
+      - $ref: ../components/parameters.yaml#/IfMatch
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/referrals.yaml#/PublishReferralCampaignRequest
+    responses:
+      "200":
+        description: Campaign publication scheduled or activated.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/referrals.yaml#/ReferralCampaignResponse
+      "400":
+        $ref: ../components/responses.yaml#/BadRequest
+      "401":
+        $ref: ../components/responses.yaml#/Unauthorized
+      "403":
+        $ref: ../components/responses.yaml#/Forbidden
+      "404":
+        $ref: ../components/responses.yaml#/NotFound
+      "409":
+        $ref: ../components/responses.yaml#/Conflict
+      "500":
+        $ref: ../components/responses.yaml#/InternalError
+
+rollback:
+  post:
+    operationId: rollbackAdminReferralCampaign
+    summary: Restore a previously published campaign version for new bindings
+    description: Existing referrals retain the campaign version bound at creation.
+    tags: [ADMIN_REFERRAL]
+    security:
+      - adminBearerAuth: []
+    parameters:
+      - $ref: "#/components/campaignId"
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+      - $ref: ../components/parameters.yaml#/IdempotencyKey
+      - $ref: ../components/parameters.yaml#/IfMatch
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/referrals.yaml#/RollbackReferralCampaignRequest
+    responses:
+      "200":
+        description: Previous version activated for future referral bindings.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/referrals.yaml#/ReferralCampaignResponse
+      "400":
+        $ref: ../components/responses.yaml#/BadRequest
+      "401":
+        $ref: ../components/responses.yaml#/Unauthorized
+      "403":
+        $ref: ../components/responses.yaml#/Forbidden
+      "404":
+        $ref: ../components/responses.yaml#/NotFound
+      "409":
+        $ref: ../components/responses.yaml#/Conflict
+      "500":
+        $ref: ../components/responses.yaml#/InternalError
+
+components:
+  campaignId:
+    name: campaignId
+    in: path
+    required: true
+    schema:
+      type: string
+      minLength: 8
+      maxLength: 128

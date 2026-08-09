@@ -184,7 +184,7 @@ items:
     title: Define entitlement wallet product order subscription refund and ad reward
     moduleCode: ORDER
     owner: codex-root
-    status: in_progress
+    status: done
     allowedPaths:
       - contracts/openapi/paths/entitlements.yaml
       - contracts/openapi/paths/wallet.yaml
@@ -205,7 +205,7 @@ items:
       - duplicate_webhooks_do_not_duplicate_entitlements
       - epay_callbacks_verify_signature_merchant_order_and_amount
       - product_versions_bind_price_benefits_region_and_channel
-    handoffNotes: "P0 entitlement, wallet, immutable ledger, quote reservation, settlement, and release are complete. P1 now includes a server-published versioned product catalog, immutable order snapshots, payment attempts, provider-query reconciliation, prepaid or mandate-backed subscriptions, refund and entitlement-recovery state, and an EPAY_COMPAT callback that never trusts browser redirects. Twenty-seven commerce fixtures validate 11 operations. Ad reward operations remain before this task can be marked done."
+    handoffNotes: "Complete. P0 entitlement, wallet, quote reservation, settlement, and release remain stable. P1 includes a server-published versioned catalog, immutable order snapshots, payment attempts, provider-query reconciliation, prepaid or mandate-backed subscriptions, refund and entitlement recovery, EPAY_COMPAT callbacks, and server-verified advertising rewards. Thirty-five commerce fixtures validate 14 operations; browser redirects and client ad completion never grant benefits."
 
   - taskId: CONTRACT-OPERATIONS-001
     title: Define bootstrap notices inbox support jobs releases and telemetry
@@ -324,7 +324,7 @@ items:
       - every_operation_has_success_or_expected_error_fixture
       - fixtures_validate_against_openapi_and_event_schemas
       - fixtures_contain_no_real_personal_data
-    handoffNotes: "Identity has 46 fixtures across 19 operations. P0 generation and billing have 30 fixtures across 12 operations, including text/event-stream. Admin providers have 22 fixtures across 8 operations. Commerce has 27 fixtures across 11 operations. Remaining ad reward, AI administration, business administration, and platform modules still require fixtures."
+    handoffNotes: "Identity has 46 fixtures across 19 operations. P0 generation and billing have 30 fixtures across 12 operations, including text/event-stream. Admin providers have 22 fixtures across 8 operations. Commerce and ad rewards have 35 fixtures across 14 operations. Referral has 25 fixtures across 10 user and administrator operations. Remaining AI administration, business administration, and platform modules still require fixtures."
 
   - taskId: CONTRACT-CODEGEN-001
     title: Configure Android TypeScript and backend contract generation
@@ -577,3 +577,62 @@ items:
       - login_composer_quote_result_and_failure_states_pass_visual_review
       - compact_and_default_android_viewports_have_no_overlap_or_clipping
     handoffNotes: "The existing Compose UI is functional P0 only and is not accepted as the final visual direction. Antigravity must be used for the redesign once its control bridge is functional; emulator screenshots remain the acceptance evidence."
+
+  - taskId: CONTRACT-REFERRAL-001
+    title: Define configurable single-level referral campaigns binding milestones and rewards
+    moduleCode: REFERRAL
+    owner: codex-root
+    status: done
+    allowedPaths:
+      - contracts/openapi/paths/referrals.yaml
+      - contracts/openapi/admin/referrals.yaml
+      - contracts/openapi/schemas/referrals.yaml
+      - contracts/examples/referrals/**
+      - docs/product/provider-and-subscription-spec.md
+    dependsOn: [CONTRACT-COMMON-001, CONTRACT-IDENTITY-001, CONTRACT-BILLING-001]
+    contractVersion: "1.0.0"
+    acceptanceTests:
+      - reward_counts_amounts_milestones_and_dates_are_admin_configured
+      - referral_binding_is_single_level_immutable_and_rejects_self_referral
+      - qualification_and_reward_grant_are_server_authoritative_and_idempotent
+      - invitee_identity_is_masked_and_contact_upload_is_not_required
+      - published_campaign_versions_preserve_existing_referral_facts
+    handoffNotes: "Complete with 10 user and administrator operations and 25 validated fixtures. The design uses one-level codes and HTTPS deep links, authenticated immutable binding, masked invitee hints, milestone plus risk qualification, cooling-off, idempotent grant/reversal ledgers, and versioned publication/rollback that preserves existing referral facts."
+
+  - taskId: BACKEND-REFERRAL-001
+    title: Implement referral campaigns invite binding qualification risk and rewards
+    moduleCode: REFERRAL
+    owner: codex-root
+    status: planned
+    allowedPaths:
+      - services/api/src/love_reply_api/application/**
+      - services/api/src/love_reply_api/domain/**
+      - services/api/src/love_reply_api/infrastructure/**
+      - services/api/src/love_reply_api/transport/http/**
+      - services/api/tests/**
+      - database/migrations/**
+    dependsOn: [CONTRACT-REFERRAL-001, BACKEND-IDENTITY-001, BACKEND-COMMERCE-001]
+    contractVersion: "1.0.0"
+    acceptanceTests:
+      - concurrent_or_replayed_bind_requests_create_one_referral
+      - self_same_device_and_shared_payment_risk_rules_are_enforced
+      - milestone_replays_grant_each_reward_exactly_once
+      - rejected_or_reversed_rewards_have_immutable_audit_entries
+      - campaign_rollout_and_rollback_do_not_reprice_existing_referrals
+    handoffNotes: ""
+
+  - taskId: FRONTEND-ANDROID-REFERRAL-001
+    title: Build invite sharing progress and reward history experience
+    moduleCode: REFERRAL
+    owner: codex-root
+    status: planned
+    allowedPaths:
+      - apps/android/**
+    dependsOn: [BACKEND-REFERRAL-001, FRONTEND-ANDROID-REDESIGN-001]
+    contractVersion: "1.0.0"
+    acceptanceTests:
+      - invite_link_uses_android_share_sheet_without_contact_upload
+      - deep_link_code_is_bound_only_after_authentication
+      - progress_and_rewards_are_server_authoritative
+      - rejected_pending_and_reversed_states_are_explained_without_exposing_risk_rules
+    handoffNotes: "Included in the full Android redesign rather than appended to the rejected P0 visual direction."

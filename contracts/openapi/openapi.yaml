@@ -41,6 +41,12 @@ tags:
     description: Refund requests and entitlement recovery.
   - name: PAYMENT_WEBHOOK
     description: Provider callbacks verified before payment settlement.
+  - name: AD_REWARD
+    description: Server-verified advertising reward sessions.
+  - name: AD_WEBHOOK
+    description: Signed advertising provider completion callbacks.
+  - name: REFERRAL
+    description: Single-level invitation binding, qualification, and rewards.
   - name: GENERATION
     description: Quotes, generation tasks, snapshots, and SSE events.
   - name: CANDIDATE
@@ -51,6 +57,8 @@ tags:
     description: Administrator authentication, roles, permissions, and audit access.
   - name: ADMIN_PROVIDER
     description: Versioned AI, email, SMS, and payment provider administration.
+  - name: ADMIN_REFERRAL
+    description: Versioned referral campaign administration and rollout.
 paths:
   /health:
     get:
@@ -139,6 +147,20 @@ paths:
     $ref: ./paths/refunds.yaml#/refund
   /webhooks/v1/payments/epay/{providerId}:
     $ref: ../webhooks/payment-providers.yaml#/epayCallback
+  /v1/ad-rewards/sessions:
+    $ref: ./paths/ad-rewards.yaml#/sessions
+  /v1/ad-rewards/sessions/{rewardSessionId}:
+    $ref: ./paths/ad-rewards.yaml#/session
+  /webhooks/v1/ads/{providerId}:
+    $ref: ../webhooks/ad-providers.yaml#/rewardCallback
+  /v1/referrals/program:
+    $ref: ./paths/referrals.yaml#/program
+  /v1/referrals/bind:
+    $ref: ./paths/referrals.yaml#/bind
+  /v1/referrals/invites:
+    $ref: ./paths/referrals.yaml#/invites
+  /v1/referrals/rewards:
+    $ref: ./paths/referrals.yaml#/rewards
   /v1/generations/quote:
     $ref: ./paths/generations.yaml#/quote
   /v1/generations:
@@ -179,6 +201,14 @@ paths:
     $ref: ./admin/providers.yaml#/publish
   /admin/v1/providers/{providerId}/rollback:
     $ref: ./admin/providers.yaml#/rollback
+  /admin/v1/referral-campaigns:
+    $ref: ./admin/referrals.yaml#/campaigns
+  /admin/v1/referral-campaigns/{campaignId}:
+    $ref: ./admin/referrals.yaml#/campaign
+  /admin/v1/referral-campaigns/{campaignId}/publish:
+    $ref: ./admin/referrals.yaml#/publish
+  /admin/v1/referral-campaigns/{campaignId}/rollback:
+    $ref: ./admin/referrals.yaml#/rollback
 components:
   securitySchemes:
     bearerAuth:

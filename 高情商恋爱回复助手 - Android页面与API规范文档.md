@@ -399,6 +399,10 @@ data: {"schemaVersion":"1.0","eventId":"18","eventType":"candidate.completed","o
 | `POST /subscriptions/{subscriptionId}/cancel-renewal` | 关闭续订 | 不提前删除已付权益 |
 | `POST /ad-rewards/sessions` | 创建广告奖励会话 | 返回短期 session ID |
 | `GET /ad-rewards/sessions/{sessionId}` | 查询奖励 | 奖励只由服务端验证回调后发放 |
+| `GET /referrals/program` | 邀请活动与个人链接 | 奖励规则、次数和有效期均由服务端活动版本返回 |
+| `POST /referrals/bind` | 登录后绑定邀请码 | 单层且不可改绑，拒绝自邀并进入风控校验 |
+| `GET /referrals/invites` | 邀请进度 | 仅返回被邀请人的不可逆脱敏提示和里程碑状态 |
+| `GET /referrals/rewards` | 邀请奖励流水 | 服务端里程碑验证后幂等发放，支持撤销记录 |
 
 支付与广告服务端回调：
 

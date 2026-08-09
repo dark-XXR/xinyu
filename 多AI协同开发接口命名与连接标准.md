@@ -82,6 +82,7 @@
 | `SUBSCRIPTION` | 订阅 | `/subscriptions` | `subscriptionApi` | `billing` | `subscriptions` |
 | `REFUND` | 退款申请 | `/refund-requests` | `refundApi` | `billing` | `refund_requests`, `refund_events` |
 | `AD_REWARD` | 广告奖励 | `/ad-rewards` | `adRewardApi` | `billing` | `ad_reward_sessions` |
+| `REFERRAL` | 邀请推广 | `/referrals` | `referralApi` | `growth` | `referral_campaigns`, `referrals`, `referral_rewards` |
 | `NOTICE` | 公告 | `/notices` | `noticeApi` | `operations` | `notices`, `notice_deliveries` |
 | `INBOX` | 站内消息 | `/inbox` | `inboxApi` | `notification` | `inbox_messages` |
 | `SUPPORT` | 客服工单 | `/support-tickets` | `supportApi` | `support` | `support_tickets`, `support_messages` |

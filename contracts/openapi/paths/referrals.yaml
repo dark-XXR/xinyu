@@ -1,0 +1,120 @@
+program:
+  get:
+    operationId: getReferralProgram
+    summary: Read the active referral campaign and personal invite link
+    tags: [REFERRAL]
+    parameters:
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/XDeviceId
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+    responses:
+      "200":
+        description: Active campaign presentation, personal invite code, and aggregate progress.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/referrals.yaml#/ReferralProgramResponse
+      "401":
+        $ref: ../components/responses.yaml#/Unauthorized
+      "404":
+        $ref: ../components/responses.yaml#/NotFound
+      "500":
+        $ref: ../components/responses.yaml#/InternalError
+
+bind:
+  post:
+    operationId: bindReferralInvite
+    summary: Bind the authenticated account to one inviter
+    description: |
+      Binding is permanent for the campaign, rejects self-referral, and never
+      returns inviter contact information. The client stores a deep-link code
+      until authentication, then submits it once.
+    tags: [REFERRAL]
+    parameters:
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/XDeviceId
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+      - $ref: ../components/parameters.yaml#/IdempotencyKey
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/referrals.yaml#/BindReferralRequest
+    responses:
+      "200":
+        description: Existing identical binding returned idempotently.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/referrals.yaml#/ReferralInviteResponse
+      "201":
+        description: Referral binding created pending milestone and risk checks.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/referrals.yaml#/ReferralInviteResponse
+      "400":
+        $ref: ../components/responses.yaml#/BadRequest
+      "401":
+        $ref: ../components/responses.yaml#/Unauthorized
+      "409":
+        $ref: ../components/responses.yaml#/Conflict
+      "429":
+        $ref: ../components/responses.yaml#/RateLimited
+      "500":
+        $ref: ../components/responses.yaml#/InternalError
+
+invites:
+  get:
+    operationId: listReferralInvites
+    summary: List masked invitation progress
+    tags: [REFERRAL]
+    parameters:
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/XDeviceId
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+      - $ref: ../components/parameters.yaml#/Cursor
+      - $ref: ../components/parameters.yaml#/Limit
+    responses:
+      "200":
+        description: Owned invitations with irreversible invitee display hints.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/referrals.yaml#/ReferralInviteListResponse
+      "401":
+        $ref: ../components/responses.yaml#/Unauthorized
+      "500":
+        $ref: ../components/responses.yaml#/InternalError
+
+rewards:
+  get:
+    operationId: listReferralRewards
+    summary: List referral reward and reversal entries
+    tags: [REFERRAL]
+    parameters:
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/XDeviceId
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+      - $ref: ../components/parameters.yaml#/Cursor
+      - $ref: ../components/parameters.yaml#/Limit
+    responses:
+      "200":
+        description: Immutable reward grants and reversals for the current user.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/referrals.yaml#/ReferralRewardListResponse
+      "401":
+        $ref: ../components/responses.yaml#/Unauthorized
+      "500":
+        $ref: ../components/responses.yaml#/InternalError

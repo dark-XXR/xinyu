@@ -10,6 +10,7 @@ Run validation from the repository root:
 python tools/contract-ci/validate_fixtures.py
 python tools/contract-ci/validate_fixtures.py --manifest packages/contract-test-fixtures/admin-providers-manifest.json
 python tools/contract-ci/validate_fixtures.py --manifest packages/contract-test-fixtures/commerce-manifest.json
+python tools/contract-ci/validate_fixtures.py --manifest packages/contract-test-fixtures/referral-manifest.json
 ```
 
 The validator bundles and dereferences the OpenAPI document with the locally

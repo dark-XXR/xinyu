@@ -1,0 +1,469 @@
+ReferralCampaignStatus:
+  type: string
+  enum: [DRAFT, READY, ACTIVE, DISABLED, SUPERSEDED]
+
+ReferralMilestoneCode:
+  type: string
+  enum: [ACCOUNT_VERIFIED, FIRST_GENERATION, FIRST_PURCHASE]
+
+ReferralBeneficiary:
+  type: string
+  enum: [INVITER, INVITEE]
+
+ReferralRewardRule:
+  type: object
+  additionalProperties: false
+  required: [milestoneCode, beneficiary, rewardUnit, rewardAmount, coolingOffHours]
+  properties:
+    milestoneCode:
+      $ref: "#/ReferralMilestoneCode"
+    beneficiary:
+      $ref: "#/ReferralBeneficiary"
+    rewardUnit:
+      $ref: ./billing.yaml#/RewardUnit
+    rewardAmount:
+      type: integer
+      minimum: 1
+    coolingOffHours:
+      type: integer
+      minimum: 0
+      maximum: 720
+
+ReferralAntiAbusePolicy:
+  type: object
+  additionalProperties: false
+  required:
+    - blockSelfReferral
+    - blockSameDevice
+    - blockSamePaymentIdentity
+    - requireVerifiedPrimaryChannel
+    - riskReviewScore
+  properties:
+    blockSelfReferral:
+      type: boolean
+      const: true
+    blockSameDevice:
+      type: boolean
+    blockSamePaymentIdentity:
+      type: boolean
+    requireVerifiedPrimaryChannel:
+      type: boolean
+    riskReviewScore:
+      type: integer
+      minimum: 0
+      maximum: 100
+
+ReferralCampaign:
+  type: object
+  additionalProperties: false
+  required:
+    - campaignId
+    - version
+    - campaignCode
+    - displayName
+    - description
+    - status
+    - region
+    - salesChannels
+    - bindingWindowHours
+    - maxQualifiedInvitesPerInviter
+    - rewardRules
+    - antiAbusePolicy
+    - rolloutPercentage
+    - effectiveAt
+    - resourceVersion
+    - createdAt
+    - updatedAt
+  properties:
+    campaignId:
+      type: string
+    version:
+      type: integer
+      minimum: 1
+    campaignCode:
+      type: string
+      pattern: ^[A-Z][A-Z0-9_]{1,63}$
+    displayName:
+      type: string
+      minLength: 1
+      maxLength: 128
+    description:
+      type: string
+      minLength: 1
+      maxLength: 500
+    status:
+      $ref: "#/ReferralCampaignStatus"
+    region:
+      type: string
+      minLength: 2
+      maxLength: 16
+    salesChannels:
+      type: array
+      minItems: 1
+      uniqueItems: true
+      items:
+        $ref: ./billing.yaml#/SalesChannel
+    bindingWindowHours:
+      type: integer
+      minimum: 1
+      maximum: 720
+    maxQualifiedInvitesPerInviter:
+      type: integer
+      minimum: 1
+      maximum: 100000
+    rewardRules:
+      type: array
+      minItems: 1
+      maxItems: 20
+      items:
+        $ref: "#/ReferralRewardRule"
+    antiAbusePolicy:
+      $ref: "#/ReferralAntiAbusePolicy"
+    rolloutPercentage:
+      type: integer
+      minimum: 0
+      maximum: 100
+    effectiveAt:
+      type: string
+      format: date-time
+    expiresAt:
+      type: [string, "null"]
+      format: date-time
+    resourceVersion:
+      type: integer
+      minimum: 1
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: string
+      format: date-time
+
+ReferralProgram:
+  type: object
+  additionalProperties: false
+  required:
+    - campaignId
+    - campaignVersion
+    - displayName
+    - description
+    - inviteCode
+    - inviteUrl
+    - rewardRules
+    - qualifiedInviteCount
+    - pendingInviteCount
+    - totalRewards
+  properties:
+    campaignId:
+      type: string
+    campaignVersion:
+      type: integer
+      minimum: 1
+    displayName:
+      type: string
+    description:
+      type: string
+    inviteCode:
+      type: string
+      pattern: ^[A-Z0-9]{6,16}$
+    inviteUrl:
+      type: string
+      format: uri
+      pattern: ^https://
+    rewardRules:
+      type: array
+      items:
+        $ref: "#/ReferralRewardRule"
+    qualifiedInviteCount:
+      type: integer
+      minimum: 0
+    pendingInviteCount:
+      type: integer
+      minimum: 0
+    totalRewards:
+      type: object
+      additionalProperties:
+        type: integer
+        minimum: 0
+
+ReferralInviteStatus:
+  type: string
+  enum: [BOUND, PENDING_QUALIFICATION, RISK_REVIEW, QUALIFIED, REWARDED, REJECTED, REVOKED]
+
+ReferralInvite:
+  type: object
+  additionalProperties: false
+  required:
+    - referralId
+    - campaignId
+    - campaignVersion
+    - inviteeDisplayHint
+    - status
+    - completedMilestones
+    - boundAt
+    - resourceVersion
+    - updatedAt
+  properties:
+    referralId:
+      type: string
+    campaignId:
+      type: string
+    campaignVersion:
+      type: integer
+      minimum: 1
+    inviteeDisplayHint:
+      type: string
+      description: Irreversible masked hint; email address or phone number is never returned.
+    status:
+      $ref: "#/ReferralInviteStatus"
+    completedMilestones:
+      type: array
+      uniqueItems: true
+      items:
+        $ref: "#/ReferralMilestoneCode"
+    rejectionReasonCode:
+      type: [string, "null"]
+      pattern: ^[A-Z][A-Z0-9_]*$
+    boundAt:
+      type: string
+      format: date-time
+    qualifiedAt:
+      type: [string, "null"]
+      format: date-time
+    resourceVersion:
+      type: integer
+      minimum: 1
+    updatedAt:
+      type: string
+      format: date-time
+
+ReferralRewardStatus:
+  type: string
+  enum: [PENDING, GRANTED, REJECTED, REVERSED]
+
+ReferralReward:
+  type: object
+  additionalProperties: false
+  required:
+    - referralRewardId
+    - referralId
+    - beneficiary
+    - milestoneCode
+    - rewardUnit
+    - rewardAmount
+    - status
+    - createdAt
+    - updatedAt
+  properties:
+    referralRewardId:
+      type: string
+    referralId:
+      type: string
+    beneficiary:
+      $ref: "#/ReferralBeneficiary"
+    milestoneCode:
+      $ref: "#/ReferralMilestoneCode"
+    rewardUnit:
+      $ref: ./billing.yaml#/RewardUnit
+    rewardAmount:
+      type: integer
+      minimum: 1
+    status:
+      $ref: "#/ReferralRewardStatus"
+    walletLedgerEntryId:
+      type: [string, "null"]
+    entitlementEventId:
+      type: [string, "null"]
+    availableAt:
+      type: [string, "null"]
+      format: date-time
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: string
+      format: date-time
+
+BindReferralRequest:
+  type: object
+  additionalProperties: false
+  required: [inviteCode]
+  properties:
+    inviteCode:
+      type: string
+      pattern: ^[A-Z0-9]{6,16}$
+
+ReferralCampaignWriteRequest:
+  type: object
+  additionalProperties: false
+  required:
+    - campaignCode
+    - displayName
+    - description
+    - region
+    - salesChannels
+    - bindingWindowHours
+    - maxQualifiedInvitesPerInviter
+    - rewardRules
+    - antiAbusePolicy
+  properties:
+    campaignCode:
+      type: string
+      pattern: ^[A-Z][A-Z0-9_]{1,63}$
+    displayName:
+      type: string
+      minLength: 1
+      maxLength: 128
+    description:
+      type: string
+      minLength: 1
+      maxLength: 500
+    region:
+      type: string
+      minLength: 2
+      maxLength: 16
+    salesChannels:
+      type: array
+      minItems: 1
+      uniqueItems: true
+      items:
+        $ref: ./billing.yaml#/SalesChannel
+    bindingWindowHours:
+      type: integer
+      minimum: 1
+      maximum: 720
+    maxQualifiedInvitesPerInviter:
+      type: integer
+      minimum: 1
+      maximum: 100000
+    rewardRules:
+      type: array
+      minItems: 1
+      maxItems: 20
+      items:
+        $ref: "#/ReferralRewardRule"
+    antiAbusePolicy:
+      $ref: "#/ReferralAntiAbusePolicy"
+
+PublishReferralCampaignRequest:
+  type: object
+  additionalProperties: false
+  required: [rolloutPercentage, effectiveAt, auditReason]
+  properties:
+    rolloutPercentage:
+      type: integer
+      minimum: 1
+      maximum: 100
+    effectiveAt:
+      type: string
+      format: date-time
+    expiresAt:
+      type: [string, "null"]
+      format: date-time
+    auditReason:
+      type: string
+      minLength: 8
+      maxLength: 500
+
+RollbackReferralCampaignRequest:
+  type: object
+  additionalProperties: false
+  required: [targetVersion, auditReason]
+  properties:
+    targetVersion:
+      type: integer
+      minimum: 1
+    auditReason:
+      type: string
+      minLength: 8
+      maxLength: 500
+
+ReferralProgramResponse:
+  allOf:
+    - $ref: ../components/schemas/common.yaml#/BaseSuccessEnvelope
+    - type: object
+      properties:
+        data:
+          $ref: "#/ReferralProgram"
+
+ReferralInviteResponse:
+  allOf:
+    - $ref: ../components/schemas/common.yaml#/BaseSuccessEnvelope
+    - type: object
+      properties:
+        data:
+          $ref: "#/ReferralInvite"
+
+ReferralInviteListData:
+  type: object
+  additionalProperties: false
+  required: [items, nextCursor, hasMore]
+  properties:
+    items:
+      type: array
+      items:
+        $ref: "#/ReferralInvite"
+    nextCursor:
+      type: [string, "null"]
+    hasMore:
+      type: boolean
+
+ReferralInviteListResponse:
+  allOf:
+    - $ref: ../components/schemas/common.yaml#/BaseSuccessEnvelope
+    - type: object
+      properties:
+        data:
+          $ref: "#/ReferralInviteListData"
+
+ReferralRewardListData:
+  type: object
+  additionalProperties: false
+  required: [items, nextCursor, hasMore]
+  properties:
+    items:
+      type: array
+      items:
+        $ref: "#/ReferralReward"
+    nextCursor:
+      type: [string, "null"]
+    hasMore:
+      type: boolean
+
+ReferralRewardListResponse:
+  allOf:
+    - $ref: ../components/schemas/common.yaml#/BaseSuccessEnvelope
+    - type: object
+      properties:
+        data:
+          $ref: "#/ReferralRewardListData"
+
+ReferralCampaignResponse:
+  allOf:
+    - $ref: ../components/schemas/common.yaml#/BaseSuccessEnvelope
+    - type: object
+      properties:
+        data:
+          $ref: "#/ReferralCampaign"
+
+ReferralCampaignListData:
+  type: object
+  additionalProperties: false
+  required: [items, nextCursor, hasMore]
+  properties:
+    items:
+      type: array
+      items:
+        $ref: "#/ReferralCampaign"
+    nextCursor:
+      type: [string, "null"]
+    hasMore:
+      type: boolean
+
+ReferralCampaignListResponse:
+  allOf:
+    - $ref: ../components/schemas/common.yaml#/BaseSuccessEnvelope
+    - type: object
+      properties:
+        data:
+          $ref: "#/ReferralCampaignListData"

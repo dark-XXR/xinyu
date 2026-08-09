@@ -147,6 +147,38 @@
     {
       "id": "epay-callback-error", "operationId": "receiveEpayCallback", "kind": "response", "statusCode": 409,
       "value": {"code": "PAYMENT_CALLBACK_CONFLICT", "message": "callback conflicts with recorded payment facts", "data": null, "error": {"retryable": false, "fieldErrors": [], "details": {}}, "requestId": "req_epay_callback_02", "timestamp": "2026-08-09T00:10:01Z"}
+    },
+    {
+      "id": "ad-reward-create-request", "operationId": "createAdRewardSession", "kind": "request",
+      "value": {"placementCode": "REWARDED_REPLY_ENERGY"}
+    },
+    {
+      "id": "ad-reward-create-success", "operationId": "createAdRewardSession", "kind": "response", "statusCode": 201,
+      "value": {"code": "OK", "message": "success", "data": {"rewardSessionId": "adr_fixture_0001", "placementCode": "REWARDED_REPLY_ENERGY", "status": "PENDING", "providerCustomData": "opaque-synthetic-custom-data", "rewardUnit": "ENERGY", "rewardAmount": 500, "rewardGranted": false, "walletLedgerEntryId": null, "rejectionReasonCode": null, "expiresAt": "2026-08-09T00:25:00Z", "resourceVersion": 1, "createdAt": "2026-08-09T00:15:00Z", "updatedAt": "2026-08-09T00:15:00Z"}, "requestId": "req_ad_reward_create_01", "timestamp": "2026-08-09T00:15:00Z"}
+    },
+    {
+      "id": "ad-reward-create-error", "operationId": "createAdRewardSession", "kind": "response", "statusCode": 429,
+      "value": {"code": "AD_REWARD_LIMIT_REACHED", "message": "reward limit was reached", "data": null, "error": {"retryable": false, "fieldErrors": [], "details": {}}, "requestId": "req_ad_reward_create_02", "timestamp": "2026-08-09T00:15:01Z"}
+    },
+    {
+      "id": "ad-reward-get-success", "operationId": "getAdRewardSession", "kind": "response", "statusCode": 200,
+      "value": {"code": "OK", "message": "success", "data": {"rewardSessionId": "adr_fixture_0001", "placementCode": "REWARDED_REPLY_ENERGY", "status": "GRANTED", "providerCustomData": "opaque-synthetic-custom-data", "rewardUnit": "ENERGY", "rewardAmount": 500, "rewardGranted": true, "walletLedgerEntryId": "led_ad_reward_fixture", "rejectionReasonCode": null, "expiresAt": "2026-08-09T00:25:00Z", "resourceVersion": 3, "createdAt": "2026-08-09T00:15:00Z", "updatedAt": "2026-08-09T00:17:00Z"}, "requestId": "req_ad_reward_get_01", "timestamp": "2026-08-09T00:17:00Z"}
+    },
+    {
+      "id": "ad-reward-get-error", "operationId": "getAdRewardSession", "kind": "response", "statusCode": 404,
+      "value": {"code": "AD_REWARD_SESSION_NOT_FOUND", "message": "reward session was not found", "data": null, "error": {"retryable": false, "fieldErrors": [], "details": {}}, "requestId": "req_ad_reward_get_02", "timestamp": "2026-08-09T00:17:01Z"}
+    },
+    {
+      "id": "ad-reward-callback-request", "operationId": "receiveAdRewardCallback", "kind": "request",
+      "value": {"providerEventId": "ad_event_fixture_0001", "rewardSessionId": "adr_fixture_0001", "providerCustomData": "opaque-synthetic-custom-data", "placementCode": "REWARDED_REPLY_ENERGY", "completedAt": "2026-08-09T00:16:30Z", "timestamp": "1786234590", "signature": "syntheticfixtureadsignature"}
+    },
+    {
+      "id": "ad-reward-callback-success", "operationId": "receiveAdRewardCallback", "kind": "response", "statusCode": 200,
+      "value": {"code": "OK", "message": "success", "data": {"rewardSessionId": "adr_fixture_0001", "placementCode": "REWARDED_REPLY_ENERGY", "status": "GRANTED", "providerCustomData": "opaque-synthetic-custom-data", "rewardUnit": "ENERGY", "rewardAmount": 500, "rewardGranted": true, "walletLedgerEntryId": "led_ad_reward_fixture", "rejectionReasonCode": null, "expiresAt": "2026-08-09T00:25:00Z", "resourceVersion": 3, "createdAt": "2026-08-09T00:15:00Z", "updatedAt": "2026-08-09T00:17:00Z"}, "requestId": "req_ad_reward_callback_01", "timestamp": "2026-08-09T00:17:00Z"}
+    },
+    {
+      "id": "ad-reward-callback-error", "operationId": "receiveAdRewardCallback", "kind": "response", "statusCode": 409,
+      "value": {"code": "AD_REWARD_CALLBACK_CONFLICT", "message": "callback conflicts with recorded reward facts", "data": null, "error": {"retryable": false, "fieldErrors": [], "details": {}}, "requestId": "req_ad_reward_callback_02", "timestamp": "2026-08-09T00:17:01Z"}
     }
   ]
 }

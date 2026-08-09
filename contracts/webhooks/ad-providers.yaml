@@ -1,0 +1,78 @@
+rewardCallback:
+  post:
+    operationId: receiveAdRewardCallback
+    summary: Verify a server-to-server advertising completion callback
+    description: |
+      The selected reviewed adapter verifies signature, timestamp, provider
+      event identity, reward session binding, placement, and completion. An
+      identical replay ACKs without issuing another reward; a conflicting replay
+      is rejected and audited.
+    tags: [AD_WEBHOOK]
+    security: []
+    parameters:
+      - name: providerId
+        in: path
+        required: true
+        schema:
+          type: string
+      - $ref: ../openapi/components/parameters.yaml#/XRequestId
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/AdRewardCallbackRequest"
+    responses:
+      "200":
+        description: Callback accepted or an identical event replay acknowledged.
+        content:
+          application/json:
+            schema:
+              $ref: ../openapi/schemas/billing.yaml#/AdRewardSessionResponse
+      "400":
+        $ref: ../openapi/components/responses.yaml#/BadRequest
+      "404":
+        $ref: ../openapi/components/responses.yaml#/NotFound
+      "409":
+        $ref: ../openapi/components/responses.yaml#/Conflict
+      "500":
+        $ref: ../openapi/components/responses.yaml#/InternalError
+
+components:
+  AdRewardCallbackRequest:
+    type: object
+    additionalProperties: false
+    required:
+      - providerEventId
+      - rewardSessionId
+      - providerCustomData
+      - placementCode
+      - completedAt
+      - timestamp
+      - signature
+    properties:
+      providerEventId:
+        type: string
+        minLength: 1
+        maxLength: 128
+      rewardSessionId:
+        type: string
+      providerCustomData:
+        type: string
+        minLength: 16
+        maxLength: 1024
+      placementCode:
+        type: string
+        pattern: ^[A-Z][A-Z0-9_]{1,63}$
+      completedAt:
+        type: string
+        format: date-time
+      timestamp:
+        type: string
+        minLength: 1
+        maxLength: 64
+      signature:
+        type: string
+        minLength: 16
+        maxLength: 1024
+        writeOnly: true

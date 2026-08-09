@@ -79,6 +79,15 @@ All URIs are relative to *http://localhost:8000*
 *ADMINRBACApi* | [**logoutAdmin**](docs/ADMINRBACApi.md#logoutadmin) | **POST** /admin/v1/auth/logout | Revoke the current administrator session
 *ADMINRBACApi* | [**refreshAdminAccessToken**](docs/ADMINRBACApi.md#refreshadminaccesstoken) | **POST** /admin/v1/auth/refresh | Rotate an administrator refresh token
 *ADMINRBACApi* | [**verifyAdminMfa**](docs/ADMINRBACApi.md#verifyadminmfa) | **POST** /admin/v1/auth/mfa/verify | Verify an administrator MFA challenge
+*ADMINREFERRALApi* | [**createAdminReferralCampaign**](docs/ADMINREFERRALApi.md#createadminreferralcampaign) | **POST** /admin/v1/referral-campaigns | Create a referral campaign draft
+*ADMINREFERRALApi* | [**getAdminReferralCampaign**](docs/ADMINREFERRALApi.md#getadminreferralcampaign) | **GET** /admin/v1/referral-campaigns/{campaignId} | Read one referral campaign version
+*ADMINREFERRALApi* | [**listAdminReferralCampaigns**](docs/ADMINREFERRALApi.md#listadminreferralcampaigns) | **GET** /admin/v1/referral-campaigns | List referral campaign versions
+*ADMINREFERRALApi* | [**publishAdminReferralCampaign**](docs/ADMINREFERRALApi.md#publishadminreferralcampaign) | **POST** /admin/v1/referral-campaigns/{campaignId}/publish | Publish a referral campaign with bounded rollout
+*ADMINREFERRALApi* | [**rollbackAdminReferralCampaign**](docs/ADMINREFERRALApi.md#rollbackadminreferralcampaign) | **POST** /admin/v1/referral-campaigns/{campaignId}/rollback | Restore a previously published campaign version for new bindings
+*ADMINREFERRALApi* | [**updateAdminReferralCampaign**](docs/ADMINREFERRALApi.md#updateadminreferralcampaign) | **PATCH** /admin/v1/referral-campaigns/{campaignId} | Replace a referral campaign draft configuration
+*ADREWARDApi* | [**createAdRewardSession**](docs/ADREWARDApi.md#createadrewardsessionoperation) | **POST** /v1/ad-rewards/sessions | Create a short-lived server-bound advertising reward session
+*ADREWARDApi* | [**getAdRewardSession**](docs/ADREWARDApi.md#getadrewardsession) | **GET** /v1/ad-rewards/sessions/{rewardSessionId} | Read the verified advertising reward state
+*ADWEBHOOKApi* | [**receiveAdRewardCallback**](docs/ADWEBHOOKApi.md#receiveadrewardcallback) | **POST** /webhooks/v1/ads/{providerId} | Verify a server-to-server advertising completion callback
 *APPCONFIGApi* | [**getAppBootstrap**](docs/APPCONFIGApi.md#getappbootstrap) | **GET** /v1/app/bootstrap | Read the published application configuration
 *APPCONFIGApi* | [**getHealth**](docs/APPCONFIGApi.md#gethealth) | **GET** /health | Read service health
 *AUTHApi* | [**getAuthChannels**](docs/AUTHApi.md#getauthchannels) | **GET** /v1/auth/channels | Read the public authentication channel policy
@@ -112,6 +121,10 @@ All URIs are relative to *http://localhost:8000*
 *PAYMENTWEBHOOKApi* | [**receiveEpayCallback**](docs/PAYMENTWEBHOOKApi.md#receiveepaycallback) | **POST** /webhooks/v1/payments/epay/{providerId} | Receive and verify an Epay-compatible server callback
 *PRODUCTApi* | [**getProduct**](docs/PRODUCTApi.md#getproduct) | **GET** /v1/products/{productVersionId} | Read one currently purchasable product version
 *PRODUCTApi* | [**listProducts**](docs/PRODUCTApi.md#listproducts) | **GET** /v1/products | List the active server-published product catalog
+*REFERRALApi* | [**bindReferralInvite**](docs/REFERRALApi.md#bindreferralinvite) | **POST** /v1/referrals/bind | Bind the authenticated account to one inviter
+*REFERRALApi* | [**getReferralProgram**](docs/REFERRALApi.md#getreferralprogram) | **GET** /v1/referrals/program | Read the active referral campaign and personal invite link
+*REFERRALApi* | [**listReferralInvites**](docs/REFERRALApi.md#listreferralinvites) | **GET** /v1/referrals/invites | List masked invitation progress
+*REFERRALApi* | [**listReferralRewards**](docs/REFERRALApi.md#listreferralrewards) | **GET** /v1/referrals/rewards | List referral reward and reversal entries
 *REFUNDApi* | [**createRefund**](docs/REFUNDApi.md#createrefundoperation) | **POST** /v1/refunds | Request a full or partial refund
 *REFUNDApi* | [**getRefund**](docs/REFUNDApi.md#getrefund) | **GET** /v1/refunds/{refundId} | Read an owned refund and entitlement recovery state
 *RISKApi* | [**appealRiskEvent**](docs/RISKApi.md#appealriskevent) | **POST** /v1/risk-events/{riskEventId}/appeals | Appeal a safety decision without bypassing it
@@ -128,6 +141,10 @@ All URIs are relative to *http://localhost:8000*
 ### Models
 
 - [AccountStatus](docs/AccountStatus.md)
+- [AdRewardCallbackRequest](docs/AdRewardCallbackRequest.md)
+- [AdRewardSession](docs/AdRewardSession.md)
+- [AdRewardSessionResponse](docs/AdRewardSessionResponse.md)
+- [AdRewardStatus](docs/AdRewardStatus.md)
 - [AdminAccountStatus](docs/AdminAccountStatus.md)
 - [AdminAuthErrorCode](docs/AdminAuthErrorCode.md)
 - [AdminAuthErrorResponse](docs/AdminAuthErrorResponse.md)
@@ -164,6 +181,7 @@ All URIs are relative to *http://localhost:8000*
 - [BaseSuccessEnvelope](docs/BaseSuccessEnvelope.md)
 - [BenefitBalances](docs/BenefitBalances.md)
 - [BenefitGrant](docs/BenefitGrant.md)
+- [BindReferralRequest](docs/BindReferralRequest.md)
 - [CancelSubscriptionRequest](docs/CancelSubscriptionRequest.md)
 - [Candidate](docs/Candidate.md)
 - [CandidateAction](docs/CandidateAction.md)
@@ -179,6 +197,7 @@ All URIs are relative to *http://localhost:8000*
 - [ConsentRecord](docs/ConsentRecord.md)
 - [ConsentResponse](docs/ConsentResponse.md)
 - [ConsentType](docs/ConsentType.md)
+- [CreateAdRewardSessionRequest](docs/CreateAdRewardSessionRequest.md)
 - [CreateGenerationRequest](docs/CreateGenerationRequest.md)
 - [CreateOrderRequest](docs/CreateOrderRequest.md)
 - [CreatePaymentAttemptRequest](docs/CreatePaymentAttemptRequest.md)
@@ -259,6 +278,28 @@ All URIs are relative to *http://localhost:8000*
 - [ProviderStatus](docs/ProviderStatus.md)
 - [ProviderWriteRequest](docs/ProviderWriteRequest.md)
 - [PublishProviderRequest](docs/PublishProviderRequest.md)
+- [PublishReferralCampaignRequest](docs/PublishReferralCampaignRequest.md)
+- [ReferralAntiAbusePolicy](docs/ReferralAntiAbusePolicy.md)
+- [ReferralBeneficiary](docs/ReferralBeneficiary.md)
+- [ReferralCampaign](docs/ReferralCampaign.md)
+- [ReferralCampaignListData](docs/ReferralCampaignListData.md)
+- [ReferralCampaignListResponse](docs/ReferralCampaignListResponse.md)
+- [ReferralCampaignResponse](docs/ReferralCampaignResponse.md)
+- [ReferralCampaignStatus](docs/ReferralCampaignStatus.md)
+- [ReferralCampaignWriteRequest](docs/ReferralCampaignWriteRequest.md)
+- [ReferralInvite](docs/ReferralInvite.md)
+- [ReferralInviteListData](docs/ReferralInviteListData.md)
+- [ReferralInviteListResponse](docs/ReferralInviteListResponse.md)
+- [ReferralInviteResponse](docs/ReferralInviteResponse.md)
+- [ReferralInviteStatus](docs/ReferralInviteStatus.md)
+- [ReferralMilestoneCode](docs/ReferralMilestoneCode.md)
+- [ReferralProgram](docs/ReferralProgram.md)
+- [ReferralProgramResponse](docs/ReferralProgramResponse.md)
+- [ReferralReward](docs/ReferralReward.md)
+- [ReferralRewardListData](docs/ReferralRewardListData.md)
+- [ReferralRewardListResponse](docs/ReferralRewardListResponse.md)
+- [ReferralRewardRule](docs/ReferralRewardRule.md)
+- [ReferralRewardStatus](docs/ReferralRewardStatus.md)
 - [RefineCandidateRequest](docs/RefineCandidateRequest.md)
 - [RefreshRequest](docs/RefreshRequest.md)
 - [Refund](docs/Refund.md)
@@ -269,7 +310,9 @@ All URIs are relative to *http://localhost:8000*
 - [RenewalType](docs/RenewalType.md)
 - [ReplyStrategy](docs/ReplyStrategy.md)
 - [ReplyStyle](docs/ReplyStyle.md)
+- [RewardUnit](docs/RewardUnit.md)
 - [RollbackProviderRequest](docs/RollbackProviderRequest.md)
+- [RollbackReferralCampaignRequest](docs/RollbackReferralCampaignRequest.md)
 - [RotateCredentialsRequest](docs/RotateCredentialsRequest.md)
 - [SafetyStatus](docs/SafetyStatus.md)
 - [SalesChannel](docs/SalesChannel.md)

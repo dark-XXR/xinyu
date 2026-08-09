@@ -682,3 +682,81 @@ RefundResponse:
       properties:
         data:
           $ref: "#/Refund"
+
+RewardUnit:
+  type: string
+  enum: [ENERGY, TEXT_QUOTA, VISION_QUOTA, PLAN_DAYS]
+
+AdRewardStatus:
+  type: string
+  enum: [PENDING, VERIFIED, GRANTED, REJECTED, EXPIRED]
+
+AdRewardSession:
+  type: object
+  additionalProperties: false
+  required:
+    - rewardSessionId
+    - placementCode
+    - status
+    - providerCustomData
+    - rewardUnit
+    - rewardAmount
+    - rewardGranted
+    - expiresAt
+    - resourceVersion
+    - createdAt
+    - updatedAt
+  properties:
+    rewardSessionId:
+      type: string
+    placementCode:
+      type: string
+      pattern: ^[A-Z][A-Z0-9_]{1,63}$
+    status:
+      $ref: "#/AdRewardStatus"
+    providerCustomData:
+      type: string
+      minLength: 16
+      maxLength: 1024
+      description: Short-lived opaque value bound to user, session, placement, and expiry.
+    rewardUnit:
+      $ref: "#/RewardUnit"
+    rewardAmount:
+      type: integer
+      minimum: 1
+    rewardGranted:
+      type: boolean
+    walletLedgerEntryId:
+      type: [string, "null"]
+    rejectionReasonCode:
+      type: [string, "null"]
+      pattern: ^[A-Z][A-Z0-9_]*$
+    expiresAt:
+      type: string
+      format: date-time
+    resourceVersion:
+      type: integer
+      minimum: 1
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: string
+      format: date-time
+
+CreateAdRewardSessionRequest:
+  type: object
+  additionalProperties: false
+  required: [placementCode]
+  properties:
+    placementCode:
+      type: string
+      pattern: ^[A-Z][A-Z0-9_]{1,63}$
+
+AdRewardSessionResponse:
+  allOf:
+    - $ref: ../components/schemas/common.yaml#/BaseSuccessEnvelope
+    - type: object
+      properties:
+        data:
+          $ref: "#/AdRewardSession"

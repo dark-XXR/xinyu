@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0",
   "openapi": "contracts/openapi/openapi.yaml",
-  "targetTags": ["PRODUCT", "ORDER", "SUBSCRIPTION", "REFUND", "PAYMENT_WEBHOOK"],
+  "targetTags": ["PRODUCT", "ORDER", "SUBSCRIPTION", "REFUND", "PAYMENT_WEBHOOK", "AD_REWARD", "AD_WEBHOOK"],
   "fixtureFiles": ["contracts/examples/billing/commerce.json"],
   "coverage": {
     "requireSuccessResponsePerOperation": true,

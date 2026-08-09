@@ -2,6 +2,9 @@
 /* eslint-disable */
 export * from './ADMINPROVIDERApi';
 export * from './ADMINRBACApi';
+export * from './ADMINREFERRALApi';
+export * from './ADREWARDApi';
+export * from './ADWEBHOOKApi';
 export * from './APPCONFIGApi';
 export * from './AUTHApi';
 export * from './CANDIDATEApi';
@@ -12,6 +15,7 @@ export * from './GENERATIONApi';
 export * from './ORDERApi';
 export * from './PAYMENTWEBHOOKApi';
 export * from './PRODUCTApi';
+export * from './REFERRALApi';
 export * from './REFUNDApi';
 export * from './RISKApi';
 export * from './SUBSCRIPTIONApi';

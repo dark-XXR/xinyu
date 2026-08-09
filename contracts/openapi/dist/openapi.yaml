@@ -41,6 +41,12 @@ tags:
     description: Refund requests and entitlement recovery.
   - name: PAYMENT_WEBHOOK
     description: Provider callbacks verified before payment settlement.
+  - name: AD_REWARD
+    description: Server-verified advertising reward sessions.
+  - name: AD_WEBHOOK
+    description: Signed advertising provider completion callbacks.
+  - name: REFERRAL
+    description: Single-level invitation binding, qualification, and rewards.
   - name: GENERATION
     description: Quotes, generation tasks, snapshots, and SSE events.
   - name: CANDIDATE
@@ -51,6 +57,8 @@ tags:
     description: Administrator authentication, roles, permissions, and audit access.
   - name: ADMIN_PROVIDER
     description: Versioned AI, email, SMS, and payment provider administration.
+  - name: ADMIN_REFERRAL
+    description: Versioned referral campaign administration and rollout.
 paths:
   /health:
     get:
@@ -1152,6 +1160,236 @@ paths:
           $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalError'
+  /v1/ad-rewards/sessions:
+    post:
+      operationId: createAdRewardSession
+      summary: Create a short-lived server-bound advertising reward session
+      description: Reward amount and eligibility come from the active server configuration.
+      tags:
+        - AD_REWARD
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/XDeviceId'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAdRewardSessionRequest'
+      responses:
+        '201':
+          description: Reward session created; no reward has been granted yet.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdRewardSessionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /v1/ad-rewards/sessions/{rewardSessionId}:
+    get:
+      operationId: getAdRewardSession
+      summary: Read the verified advertising reward state
+      tags:
+        - AD_REWARD
+      parameters:
+        - name: rewardSessionId
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/XDeviceId'
+        - $ref: '#/components/parameters/AcceptLanguage'
+      responses:
+        '200':
+          description: Reward state after any verified provider callback.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdRewardSessionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /webhooks/v1/ads/{providerId}:
+    post:
+      operationId: receiveAdRewardCallback
+      summary: Verify a server-to-server advertising completion callback
+      description: |
+        The selected reviewed adapter verifies signature, timestamp, provider
+        event identity, reward session binding, placement, and completion. An
+        identical replay ACKs without issuing another reward; a conflicting replay
+        is rejected and audited.
+      tags:
+        - AD_WEBHOOK
+      security: []
+      parameters:
+        - name: providerId
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/XRequestId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdRewardCallbackRequest'
+      responses:
+        '200':
+          description: Callback accepted or an identical event replay acknowledged.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdRewardSessionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /v1/referrals/program:
+    get:
+      operationId: getReferralProgram
+      summary: Read the active referral campaign and personal invite link
+      tags:
+        - REFERRAL
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/XDeviceId'
+        - $ref: '#/components/parameters/AcceptLanguage'
+      responses:
+        '200':
+          description: Active campaign presentation, personal invite code, and aggregate progress.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReferralProgramResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /v1/referrals/bind:
+    post:
+      operationId: bindReferralInvite
+      summary: Bind the authenticated account to one inviter
+      description: |
+        Binding is permanent for the campaign, rejects self-referral, and never
+        returns inviter contact information. The client stores a deep-link code
+        until authentication, then submits it once.
+      tags:
+        - REFERRAL
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/XDeviceId'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BindReferralRequest'
+      responses:
+        '200':
+          description: Existing identical binding returned idempotently.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReferralInviteResponse'
+        '201':
+          description: Referral binding created pending milestone and risk checks.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReferralInviteResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /v1/referrals/invites:
+    get:
+      operationId: listReferralInvites
+      summary: List masked invitation progress
+      tags:
+        - REFERRAL
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/XDeviceId'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Owned invitations with irreversible invitee display hints.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReferralInviteListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /v1/referrals/rewards:
+    get:
+      operationId: listReferralRewards
+      summary: List referral reward and reversal entries
+      tags:
+        - REFERRAL
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/XDeviceId'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Immutable reward grants and reversals for the current user.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReferralRewardListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
   /v1/generations/quote:
     post:
       operationId: quoteGeneration
@@ -2024,6 +2262,223 @@ paths:
           $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalError'
+  /admin/v1/referral-campaigns:
+    get:
+      operationId: listAdminReferralCampaigns
+      summary: List referral campaign versions
+      tags:
+        - ADMIN_REFERRAL
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Versioned referral campaigns.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReferralCampaignListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    post:
+      operationId: createAdminReferralCampaign
+      summary: Create a referral campaign draft
+      tags:
+        - ADMIN_REFERRAL
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReferralCampaignWriteRequest'
+      responses:
+        '201':
+          description: Referral campaign draft created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReferralCampaignResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /admin/v1/referral-campaigns/{campaignId}:
+    get:
+      operationId: getAdminReferralCampaign
+      summary: Read one referral campaign version
+      tags:
+        - ADMIN_REFERRAL
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/campaignId'
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+      responses:
+        '200':
+          description: Referral campaign version.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReferralCampaignResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    patch:
+      operationId: updateAdminReferralCampaign
+      summary: Replace a referral campaign draft configuration
+      tags:
+        - ADMIN_REFERRAL
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/campaignId'
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReferralCampaignWriteRequest'
+      responses:
+        '200':
+          description: Draft updated and version advanced.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReferralCampaignResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /admin/v1/referral-campaigns/{campaignId}/publish:
+    post:
+      operationId: publishAdminReferralCampaign
+      summary: Publish a referral campaign with bounded rollout
+      description: Publication freezes reward and anti-abuse rules for existing bindings.
+      tags:
+        - ADMIN_REFERRAL
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/campaignId'
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PublishReferralCampaignRequest'
+      responses:
+        '200':
+          description: Campaign publication scheduled or activated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReferralCampaignResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /admin/v1/referral-campaigns/{campaignId}/rollback:
+    post:
+      operationId: rollbackAdminReferralCampaign
+      summary: Restore a previously published campaign version for new bindings
+      description: Existing referrals retain the campaign version bound at creation.
+      tags:
+        - ADMIN_REFERRAL
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/campaignId'
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RollbackReferralCampaignRequest'
+      responses:
+        '200':
+          description: Previous version activated for future referral bindings.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReferralCampaignResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
 components:
   securitySchemes:
     bearerAuth:
@@ -2134,6 +2589,14 @@ components:
         maxLength: 128
     providerId:
       name: providerId
+      in: path
+      required: true
+      schema:
+        type: string
+        minLength: 8
+        maxLength: 128
+    campaignId:
+      name: campaignId
       in: path
       required: true
       schema:
@@ -3746,6 +4209,398 @@ components:
           type: string
           enum:
             - MD5
+    CreateAdRewardSessionRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - placementCode
+      properties:
+        placementCode:
+          type: string
+          pattern: ^[A-Z][A-Z0-9_]{1,63}$
+    AdRewardStatus:
+      type: string
+      enum:
+        - PENDING
+        - VERIFIED
+        - GRANTED
+        - REJECTED
+        - EXPIRED
+    RewardUnit:
+      type: string
+      enum:
+        - ENERGY
+        - TEXT_QUOTA
+        - VISION_QUOTA
+        - PLAN_DAYS
+    AdRewardSession:
+      type: object
+      additionalProperties: false
+      required:
+        - rewardSessionId
+        - placementCode
+        - status
+        - providerCustomData
+        - rewardUnit
+        - rewardAmount
+        - rewardGranted
+        - expiresAt
+        - resourceVersion
+        - createdAt
+        - updatedAt
+      properties:
+        rewardSessionId:
+          type: string
+        placementCode:
+          type: string
+          pattern: ^[A-Z][A-Z0-9_]{1,63}$
+        status:
+          $ref: '#/components/schemas/AdRewardStatus'
+        providerCustomData:
+          type: string
+          minLength: 16
+          maxLength: 1024
+          description: Short-lived opaque value bound to user, session, placement, and expiry.
+        rewardUnit:
+          $ref: '#/components/schemas/RewardUnit'
+        rewardAmount:
+          type: integer
+          minimum: 1
+        rewardGranted:
+          type: boolean
+        walletLedgerEntryId:
+          type:
+            - string
+            - 'null'
+        rejectionReasonCode:
+          type:
+            - string
+            - 'null'
+          pattern: ^[A-Z][A-Z0-9_]*$
+        expiresAt:
+          type: string
+          format: date-time
+        resourceVersion:
+          type: integer
+          minimum: 1
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    AdRewardSessionResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/AdRewardSession'
+    AdRewardCallbackRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - providerEventId
+        - rewardSessionId
+        - providerCustomData
+        - placementCode
+        - completedAt
+        - timestamp
+        - signature
+      properties:
+        providerEventId:
+          type: string
+          minLength: 1
+          maxLength: 128
+        rewardSessionId:
+          type: string
+        providerCustomData:
+          type: string
+          minLength: 16
+          maxLength: 1024
+        placementCode:
+          type: string
+          pattern: ^[A-Z][A-Z0-9_]{1,63}$
+        completedAt:
+          type: string
+          format: date-time
+        timestamp:
+          type: string
+          minLength: 1
+          maxLength: 64
+        signature:
+          type: string
+          minLength: 16
+          maxLength: 1024
+          writeOnly: true
+    ReferralMilestoneCode:
+      type: string
+      enum:
+        - ACCOUNT_VERIFIED
+        - FIRST_GENERATION
+        - FIRST_PURCHASE
+    ReferralBeneficiary:
+      type: string
+      enum:
+        - INVITER
+        - INVITEE
+    ReferralRewardRule:
+      type: object
+      additionalProperties: false
+      required:
+        - milestoneCode
+        - beneficiary
+        - rewardUnit
+        - rewardAmount
+        - coolingOffHours
+      properties:
+        milestoneCode:
+          $ref: '#/components/schemas/ReferralMilestoneCode'
+        beneficiary:
+          $ref: '#/components/schemas/ReferralBeneficiary'
+        rewardUnit:
+          $ref: '#/components/schemas/RewardUnit'
+        rewardAmount:
+          type: integer
+          minimum: 1
+        coolingOffHours:
+          type: integer
+          minimum: 0
+          maximum: 720
+    ReferralProgram:
+      type: object
+      additionalProperties: false
+      required:
+        - campaignId
+        - campaignVersion
+        - displayName
+        - description
+        - inviteCode
+        - inviteUrl
+        - rewardRules
+        - qualifiedInviteCount
+        - pendingInviteCount
+        - totalRewards
+      properties:
+        campaignId:
+          type: string
+        campaignVersion:
+          type: integer
+          minimum: 1
+        displayName:
+          type: string
+        description:
+          type: string
+        inviteCode:
+          type: string
+          pattern: ^[A-Z0-9]{6,16}$
+        inviteUrl:
+          type: string
+          format: uri
+          pattern: ^https://
+        rewardRules:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReferralRewardRule'
+        qualifiedInviteCount:
+          type: integer
+          minimum: 0
+        pendingInviteCount:
+          type: integer
+          minimum: 0
+        totalRewards:
+          type: object
+          additionalProperties:
+            type: integer
+            minimum: 0
+    ReferralProgramResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/ReferralProgram'
+    BindReferralRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - inviteCode
+      properties:
+        inviteCode:
+          type: string
+          pattern: ^[A-Z0-9]{6,16}$
+    ReferralInviteStatus:
+      type: string
+      enum:
+        - BOUND
+        - PENDING_QUALIFICATION
+        - RISK_REVIEW
+        - QUALIFIED
+        - REWARDED
+        - REJECTED
+        - REVOKED
+    ReferralInvite:
+      type: object
+      additionalProperties: false
+      required:
+        - referralId
+        - campaignId
+        - campaignVersion
+        - inviteeDisplayHint
+        - status
+        - completedMilestones
+        - boundAt
+        - resourceVersion
+        - updatedAt
+      properties:
+        referralId:
+          type: string
+        campaignId:
+          type: string
+        campaignVersion:
+          type: integer
+          minimum: 1
+        inviteeDisplayHint:
+          type: string
+          description: Irreversible masked hint; email address or phone number is never returned.
+        status:
+          $ref: '#/components/schemas/ReferralInviteStatus'
+        completedMilestones:
+          type: array
+          uniqueItems: true
+          items:
+            $ref: '#/components/schemas/ReferralMilestoneCode'
+        rejectionReasonCode:
+          type:
+            - string
+            - 'null'
+          pattern: ^[A-Z][A-Z0-9_]*$
+        boundAt:
+          type: string
+          format: date-time
+        qualifiedAt:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        resourceVersion:
+          type: integer
+          minimum: 1
+        updatedAt:
+          type: string
+          format: date-time
+    ReferralInviteResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/ReferralInvite'
+    ReferralInviteListData:
+      type: object
+      additionalProperties: false
+      required:
+        - items
+        - nextCursor
+        - hasMore
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReferralInvite'
+        nextCursor:
+          type:
+            - string
+            - 'null'
+        hasMore:
+          type: boolean
+    ReferralInviteListResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/ReferralInviteListData'
+    ReferralRewardStatus:
+      type: string
+      enum:
+        - PENDING
+        - GRANTED
+        - REJECTED
+        - REVERSED
+    ReferralReward:
+      type: object
+      additionalProperties: false
+      required:
+        - referralRewardId
+        - referralId
+        - beneficiary
+        - milestoneCode
+        - rewardUnit
+        - rewardAmount
+        - status
+        - createdAt
+        - updatedAt
+      properties:
+        referralRewardId:
+          type: string
+        referralId:
+          type: string
+        beneficiary:
+          $ref: '#/components/schemas/ReferralBeneficiary'
+        milestoneCode:
+          $ref: '#/components/schemas/ReferralMilestoneCode'
+        rewardUnit:
+          $ref: '#/components/schemas/RewardUnit'
+        rewardAmount:
+          type: integer
+          minimum: 1
+        status:
+          $ref: '#/components/schemas/ReferralRewardStatus'
+        walletLedgerEntryId:
+          type:
+            - string
+            - 'null'
+        entitlementEventId:
+          type:
+            - string
+            - 'null'
+        availableAt:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    ReferralRewardListData:
+      type: object
+      additionalProperties: false
+      required:
+        - items
+        - nextCursor
+        - hasMore
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReferralReward'
+        nextCursor:
+          type:
+            - string
+            - 'null'
+        hasMore:
+          type: boolean
+    ReferralRewardListResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/ReferralRewardListData'
     GenerationInput:
       type: object
       additionalProperties: false
@@ -4471,6 +5326,12 @@ components:
         - PROVIDER_HEALTH_CHECK
         - PROVIDER_PUBLISH
         - PROVIDER_ROLLBACK
+        - REFERRAL_CAMPAIGN_READ
+        - REFERRAL_CAMPAIGN_WRITE
+        - REFERRAL_CAMPAIGN_PUBLISH
+        - REFERRAL_CAMPAIGN_ROLLBACK
+        - REFERRAL_CASE_READ
+        - REFERRAL_CASE_DECIDE
     AdminIdentitySummary:
       type: object
       additionalProperties: false
@@ -5203,6 +6064,245 @@ components:
         - auditReason
       properties:
         targetResourceVersion:
+          type: integer
+          minimum: 1
+        auditReason:
+          type: string
+          minLength: 8
+          maxLength: 500
+    ReferralCampaignStatus:
+      type: string
+      enum:
+        - DRAFT
+        - READY
+        - ACTIVE
+        - DISABLED
+        - SUPERSEDED
+    ReferralAntiAbusePolicy:
+      type: object
+      additionalProperties: false
+      required:
+        - blockSelfReferral
+        - blockSameDevice
+        - blockSamePaymentIdentity
+        - requireVerifiedPrimaryChannel
+        - riskReviewScore
+      properties:
+        blockSelfReferral:
+          type: boolean
+          const: true
+        blockSameDevice:
+          type: boolean
+        blockSamePaymentIdentity:
+          type: boolean
+        requireVerifiedPrimaryChannel:
+          type: boolean
+        riskReviewScore:
+          type: integer
+          minimum: 0
+          maximum: 100
+    ReferralCampaign:
+      type: object
+      additionalProperties: false
+      required:
+        - campaignId
+        - version
+        - campaignCode
+        - displayName
+        - description
+        - status
+        - region
+        - salesChannels
+        - bindingWindowHours
+        - maxQualifiedInvitesPerInviter
+        - rewardRules
+        - antiAbusePolicy
+        - rolloutPercentage
+        - effectiveAt
+        - resourceVersion
+        - createdAt
+        - updatedAt
+      properties:
+        campaignId:
+          type: string
+        version:
+          type: integer
+          minimum: 1
+        campaignCode:
+          type: string
+          pattern: ^[A-Z][A-Z0-9_]{1,63}$
+        displayName:
+          type: string
+          minLength: 1
+          maxLength: 128
+        description:
+          type: string
+          minLength: 1
+          maxLength: 500
+        status:
+          $ref: '#/components/schemas/ReferralCampaignStatus'
+        region:
+          type: string
+          minLength: 2
+          maxLength: 16
+        salesChannels:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items:
+            $ref: '#/components/schemas/SalesChannel'
+        bindingWindowHours:
+          type: integer
+          minimum: 1
+          maximum: 720
+        maxQualifiedInvitesPerInviter:
+          type: integer
+          minimum: 1
+          maximum: 100000
+        rewardRules:
+          type: array
+          minItems: 1
+          maxItems: 20
+          items:
+            $ref: '#/components/schemas/ReferralRewardRule'
+        antiAbusePolicy:
+          $ref: '#/components/schemas/ReferralAntiAbusePolicy'
+        rolloutPercentage:
+          type: integer
+          minimum: 0
+          maximum: 100
+        effectiveAt:
+          type: string
+          format: date-time
+        expiresAt:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        resourceVersion:
+          type: integer
+          minimum: 1
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    ReferralCampaignListData:
+      type: object
+      additionalProperties: false
+      required:
+        - items
+        - nextCursor
+        - hasMore
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReferralCampaign'
+        nextCursor:
+          type:
+            - string
+            - 'null'
+        hasMore:
+          type: boolean
+    ReferralCampaignListResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/ReferralCampaignListData'
+    ReferralCampaignWriteRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - campaignCode
+        - displayName
+        - description
+        - region
+        - salesChannels
+        - bindingWindowHours
+        - maxQualifiedInvitesPerInviter
+        - rewardRules
+        - antiAbusePolicy
+      properties:
+        campaignCode:
+          type: string
+          pattern: ^[A-Z][A-Z0-9_]{1,63}$
+        displayName:
+          type: string
+          minLength: 1
+          maxLength: 128
+        description:
+          type: string
+          minLength: 1
+          maxLength: 500
+        region:
+          type: string
+          minLength: 2
+          maxLength: 16
+        salesChannels:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items:
+            $ref: '#/components/schemas/SalesChannel'
+        bindingWindowHours:
+          type: integer
+          minimum: 1
+          maximum: 720
+        maxQualifiedInvitesPerInviter:
+          type: integer
+          minimum: 1
+          maximum: 100000
+        rewardRules:
+          type: array
+          minItems: 1
+          maxItems: 20
+          items:
+            $ref: '#/components/schemas/ReferralRewardRule'
+        antiAbusePolicy:
+          $ref: '#/components/schemas/ReferralAntiAbusePolicy'
+    ReferralCampaignResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/ReferralCampaign'
+    PublishReferralCampaignRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - rolloutPercentage
+        - effectiveAt
+        - auditReason
+      properties:
+        rolloutPercentage:
+          type: integer
+          minimum: 1
+          maximum: 100
+        effectiveAt:
+          type: string
+          format: date-time
+        expiresAt:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        auditReason:
+          type: string
+          minLength: 8
+          maxLength: 500
+    RollbackReferralCampaignRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - targetVersion
+        - auditReason
+      properties:
+        targetVersion:
           type: integer
           minimum: 1
         auditReason:

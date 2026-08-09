@@ -1,0 +1,68 @@
+sessions:
+  post:
+    operationId: createAdRewardSession
+    summary: Create a short-lived server-bound advertising reward session
+    description: Reward amount and eligibility come from the active server configuration.
+    tags: [AD_REWARD]
+    parameters:
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/XDeviceId
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+      - $ref: ../components/parameters.yaml#/IdempotencyKey
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/billing.yaml#/CreateAdRewardSessionRequest
+    responses:
+      "201":
+        description: Reward session created; no reward has been granted yet.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/billing.yaml#/AdRewardSessionResponse
+      "400":
+        $ref: ../components/responses.yaml#/BadRequest
+      "401":
+        $ref: ../components/responses.yaml#/Unauthorized
+      "409":
+        $ref: ../components/responses.yaml#/Conflict
+      "429":
+        $ref: ../components/responses.yaml#/RateLimited
+      "503":
+        $ref: ../components/responses.yaml#/ServiceUnavailable
+      "500":
+        $ref: ../components/responses.yaml#/InternalError
+
+session:
+  get:
+    operationId: getAdRewardSession
+    summary: Read the verified advertising reward state
+    tags: [AD_REWARD]
+    parameters:
+      - name: rewardSessionId
+        in: path
+        required: true
+        schema:
+          type: string
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/XDeviceId
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+    responses:
+      "200":
+        description: Reward state after any verified provider callback.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/billing.yaml#/AdRewardSessionResponse
+      "401":
+        $ref: ../components/responses.yaml#/Unauthorized
+      "404":
+        $ref: ../components/responses.yaml#/NotFound
+      "500":
+        $ref: ../components/responses.yaml#/InternalError
