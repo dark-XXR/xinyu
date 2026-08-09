@@ -16,6 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from love_reply_api.application.errors import ApiError
 from love_reply_api.application.payment_adapters import EpayVerifiedCallback
 from love_reply_api.application.provider_runtime import RegistryPaymentGateway
+from love_reply_api.application.referrals import ReferralService
 from love_reply_api.infrastructure.commerce_records import (
     CommerceGrantRecord,
     CommerceOrderRecord,
@@ -33,9 +34,16 @@ from love_reply_api.infrastructure.generation_records import (
 
 
 class CommerceService:
-    def __init__(self, *, session: AsyncSession, gateway: RegistryPaymentGateway) -> None:
+    def __init__(
+        self,
+        *,
+        session: AsyncSession,
+        gateway: RegistryPaymentGateway,
+        referrals: ReferralService | None = None,
+    ) -> None:
         self._session = session
         self._gateway = gateway
+        self._referrals = referrals
 
     async def list_products(self, *, region: str, channel: str) -> list[ProductVersionRecord]:
         now = datetime.now(UTC)
@@ -281,6 +289,14 @@ class CommerceService:
             provider_id=provider_id,
             provider_transaction_id=callback.provider_transaction_id,
             fingerprint=fingerprint,
+            payment_identity_hash=(
+                self._referrals.hash_payment_identity(
+                    provider_id=provider_id,
+                    payer_reference=callback.payer_reference,
+                )
+                if self._referrals is not None and callback.payer_reference is not None
+                else None
+            ),
         )
         await self._session.commit()
         return str(provider.configuration["callbackAckText"])
@@ -437,6 +453,7 @@ class CommerceService:
         provider_id: str,
         provider_transaction_id: str,
         fingerprint: str,
+        payment_identity_hash: str | None = None,
     ) -> None:
         if order.entitlement_granted:
             return
@@ -462,6 +479,12 @@ class CommerceService:
             )
         )
         await self._grant(order=order, now=now)
+        if self._referrals is not None:
+            await self._referrals.record_milestone(
+                invitee_user_id=order.user_id,
+                milestone_code="FIRST_PURCHASE",
+                payment_identity_hash=payment_identity_hash,
+            )
 
     async def _grant(self, *, order: CommerceOrderRecord, now: datetime) -> None:
         product = order.product_snapshot

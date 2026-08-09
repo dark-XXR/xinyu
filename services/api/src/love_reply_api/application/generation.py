@@ -9,6 +9,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from love_reply_api.application.errors import ApiError
+from love_reply_api.application.referrals import ReferralService
 from love_reply_api.application.runtime_config import RuntimeConfigService
 from love_reply_api.config import Settings
 from love_reply_api.domain.generation import (
@@ -88,6 +89,7 @@ class GenerationService:
     def __init__(self, *, session: AsyncSession, settings: Settings) -> None:
         self._session = session
         self._settings = settings
+        self._referrals = ReferralService(session=session, settings=settings)
 
     @staticmethod
     def request_hash(
@@ -192,8 +194,7 @@ class GenerationService:
             estimated_energy=estimated_energy,
             charged_from=charged_from.value,
             entitlement_version=entitlement.resource_version,
-            expires_at=now
-            + timedelta(seconds=runtime_config.generation_policy.quote_ttl_seconds),
+            expires_at=now + timedelta(seconds=runtime_config.generation_policy.quote_ttl_seconds),
             consumed_at=None,
             created_at=now,
         )
@@ -571,9 +572,7 @@ class GenerationService:
         await self._session.commit()
         return appeal
 
-    async def _owned_quote(
-        self, *, user_id: str, quote_id: str
-    ) -> GenerationQuoteRecord:
+    async def _owned_quote(self, *, user_id: str, quote_id: str) -> GenerationQuoteRecord:
         quote = await self._session.scalar(
             select(GenerationQuoteRecord).where(
                 GenerationQuoteRecord.user_id == user_id,
@@ -584,9 +583,7 @@ class GenerationService:
             raise ApiError(status_code=404, code="QUOTE_NOT_FOUND", message="Quote was not found.")
         return quote
 
-    async def _owned_candidate(
-        self, *, user_id: str, candidate_id: str
-    ) -> ReplyCandidateRecord:
+    async def _owned_candidate(self, *, user_id: str, candidate_id: str) -> ReplyCandidateRecord:
         candidate = await self._session.scalar(
             select(ReplyCandidateRecord)
             .join(
@@ -749,6 +746,10 @@ class GenerationService:
             "task.completed",
             {"resourceVersion": task.resource_version},
             now,
+        )
+        await self._referrals.record_milestone(
+            invitee_user_id=task.user_id,
+            milestone_code="FIRST_GENERATION",
         )
         await self._session.commit()
 

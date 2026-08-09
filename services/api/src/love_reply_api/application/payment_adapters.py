@@ -59,6 +59,7 @@ class EpayVerifiedCallback:
     product_name: str
     amount_minor: int
     occurred_at: datetime | None
+    payer_reference: str | None = None
 
 
 class EpayTransport:
@@ -261,6 +262,8 @@ class EpayTransport:
             product_name=form["name"],
             amount_minor=self._parse_amount(form["money"]),
             occurred_at=occurred_at,
+            # 部分易支付实现会返回已验签的付款方稳定标识；业务层只保存其服务端哈希。
+            payer_reference=form.get("buyer_id") or form.get("buyer") or form.get("account"),
         )
 
     @classmethod

@@ -19,6 +19,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from love_reply_api.application.commerce import CommerceService
 from love_reply_api.application.errors import ApiError
 from love_reply_api.application.provider_runtime import RegistryPaymentGateway
+from love_reply_api.application.referrals import ReferralService
 from love_reply_api.infrastructure.commerce_records import (
     AdminCommerceAuditRecord,
     CommerceGrantRecord,
@@ -47,10 +48,16 @@ class Page(Generic[RecordT]):
 
 
 class CommerceAdminService:
-    def __init__(self, *, session: AsyncSession, gateway: RegistryPaymentGateway) -> None:
+    def __init__(
+        self,
+        *,
+        session: AsyncSession,
+        gateway: RegistryPaymentGateway,
+        referrals: ReferralService | None = None,
+    ) -> None:
         self._session = session
         self._gateway = gateway
-        self._commerce = CommerceService(session=session, gateway=gateway)
+        self._commerce = CommerceService(session=session, gateway=gateway, referrals=referrals)
 
     async def list_products(self, *, cursor: str | None, limit: int) -> Page[ProductVersionRecord]:
         statement = select(ProductVersionRecord).order_by(ProductVersionRecord.product_version_id)

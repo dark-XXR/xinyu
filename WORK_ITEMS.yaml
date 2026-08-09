@@ -624,7 +624,7 @@ items:
     title: Implement referral campaigns invite binding qualification risk and rewards
     moduleCode: REFERRAL
     owner: codex-root
-    status: planned
+    status: done
     allowedPaths:
       - services/api/src/love_reply_api/application/**
       - services/api/src/love_reply_api/domain/**
@@ -640,7 +640,7 @@ items:
       - milestone_replays_grant_each_reward_exactly_once
       - rejected_or_reversed_rewards_have_immutable_audit_entries
       - campaign_rollout_and_rollback_do_not_reprice_existing_referrals
-    handoffNotes: ""
+    handoffNotes: "Complete. Versioned campaigns, stable rollout, HTTPS personal invite codes, transaction-locked single-level binding, self/same-device/shared-payment-identity checks, immutable campaign snapshots, milestone hooks for verified accounts, first generation and first purchase, cooling-off rewards, wallet/entitlement grants, idempotent replay, conservative reversal and immutable audit records are implemented. Fifty-nine backend tests pass and the referral migration passed downgrade/upgrade."
 
   - taskId: FRONTEND-ANDROID-REFERRAL-001
     title: Build invite sharing progress and reward history experience

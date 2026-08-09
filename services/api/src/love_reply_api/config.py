@@ -36,6 +36,7 @@ class Settings(BaseSettings):
     idempotency_ttl_seconds: int = 86_400
     idempotency_max_response_bytes: int = 1_048_576
     generation_event_ttl_seconds: int = 86_400
+    referral_invite_base_url: str = "https://example.test/invite"
 
     def assert_deployable(self) -> None:
         if self.app_env == "production" and self.jwt_signing_key.get_secret_value().startswith(
@@ -52,6 +53,8 @@ class Settings(BaseSettings):
             raise ValueError("DATA_ENCRYPTION_KEY must be configured for production")
         if self.app_env == "production" and len(data_encryption_key) < 32:
             raise ValueError("DATA_ENCRYPTION_KEY must be at least 32 characters")
+        if self.app_env == "production" and not self.referral_invite_base_url.startswith("https://"):
+            raise ValueError("REFERRAL_INVITE_BASE_URL must use HTTPS")
 
 
 @lru_cache

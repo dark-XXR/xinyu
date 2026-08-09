@@ -28,6 +28,7 @@ from love_reply_api.transport.http.routes.billing import webhook_router as payme
 from love_reply_api.transport.http.routes.candidates import router as candidate_router
 from love_reply_api.transport.http.routes.generations import router as generation_router
 from love_reply_api.transport.http.routes.me import router as me_router
+from love_reply_api.transport.http.routes.referrals import router as referral_router
 
 settings = get_settings()
 settings.assert_deployable()
@@ -62,6 +63,7 @@ app.include_router(admin_ai_router)
 app.include_router(admin_provider_router)
 app.include_router(auth_router)
 app.include_router(me_router)
+app.include_router(referral_router)
 app.include_router(billing_router)
 app.include_router(payment_webhook_router)
 app.include_router(generation_router)

@@ -30,6 +30,7 @@ from love_reply_api.application.provider_runtime import (
     SmtpTransport,
 )
 from love_reply_api.application.providers import ProviderHealthChecker, ProviderService
+from love_reply_api.application.referrals import ReferralService
 from love_reply_api.application.tokens import TokenService
 from love_reply_api.config import Settings, get_settings
 from love_reply_api.infrastructure.admin_records import AdminSessionRecord, AdminUserRecord
@@ -236,7 +237,11 @@ def get_commerce_service(
         settings=settings,
         epay_transport=cast(EpayTransport, request.app.state.epay_transport),
     )
-    return CommerceService(session=session, gateway=gateway)
+    return CommerceService(
+        session=session,
+        gateway=gateway,
+        referrals=ReferralService(session=session, settings=settings),
+    )
 
 
 def get_commerce_admin_service(
@@ -249,7 +254,18 @@ def get_commerce_admin_service(
         settings=settings,
         epay_transport=cast(EpayTransport, request.app.state.epay_transport),
     )
-    return CommerceAdminService(session=session, gateway=gateway)
+    return CommerceAdminService(
+        session=session,
+        gateway=gateway,
+        referrals=ReferralService(session=session, settings=settings),
+    )
+
+
+def get_referral_service(
+    session: Annotated[AsyncSession, Depends(get_session)],
+    settings: Annotated[Settings, Depends(get_settings)],
+) -> ReferralService:
+    return ReferralService(session=session, settings=settings)
 
 
 def get_ai_provider(

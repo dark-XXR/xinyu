@@ -69,6 +69,9 @@
 | B14 | 运行时业务配置 | `services/api/src/love_reply_api/application/runtime_config.py` | 免费额度、模型、风格、开关和认证渠道配置读取 |
 | B15 | 通用依赖注入 | `services/api/src/love_reply_api/transport/http/dependencies.py` | 为接口装配数据库、认证和供应商运行时 |
 | B16 | 数据库连接 | `services/api/src/love_reply_api/infrastructure/database.py` | 数据库引擎和每次请求的事务会话 |
+| B17 | 邀请推广用户与管理接口 | `services/api/src/love_reply_api/transport/http/routes/referrals.py` | 活动、个人邀请码、绑定、进度、奖励、发布和回滚共 10 个操作 |
+| B18 | 邀请推广业务规则 | `services/api/src/love_reply_api/application/referrals.py` | 单层绑定、设备和支付身份风控、里程碑、冷静期、发奖和撤销 |
+| B19 | 邀请推广接口参数 | `services/api/src/love_reply_api/transport/http/referral_schemas.py` | 活动配置、奖励规则、绑定及响应字段校验 |
 
 ## 数据表和迁移
 
@@ -81,6 +84,8 @@
 | D05 | 数据库升级文件目录 | `database/migrations/versions/` | 按版本升级数据库；已有文件不可随意改写 |
 | D06 | 商品、订单、支付和退款表 | `services/api/src/love_reply_api/infrastructure/commerce_records.py` | 商品版本、订单快照、支付事件、订阅和退款 |
 | D07 | 商业后台升级文件 | `database/migrations/versions/f5b1c27a9e10_add_commerce_administration.py` | 商品审批、退款执行人、权益发放快照、商业审计、人工调整和对账批次表 |
+| D08 | 邀请推广数据表 | `services/api/src/love_reply_api/infrastructure/referral_records.py` | 活动版本、邀请码、绑定、支付身份哈希、奖励和审计记录 |
+| D09 | 邀请推广升级文件 | `database/migrations/versions/a6ce441f72d8_add_referral_runtime.py` | 创建邀请推广运行时全部数据表和索引 |
 
 ## 契约与配置
 
@@ -95,6 +100,8 @@
 | C07 | 当前开发进度 | `docs/handoffs/DEVELOPMENT_STATUS.md` | 已完成功能、验证结果和下一步计划 |
 | C08 | 管理员商业接口契约 | `contracts/openapi/admin/finance.yaml` | 商品、订单、退款、对账和权益调整接口定义 |
 | C09 | 管理员商业数据结构 | `contracts/openapi/schemas/admin-business.yaml` | 后台商品价格、次数、权益、审批和财务操作字段 |
+| C10 | 邀请推广接口契约 | `contracts/openapi/paths/referrals.yaml`、`contracts/openapi/admin/referrals.yaml` | 用户邀请流程和管理员活动版本操作 |
+| C11 | 邀请推广数据结构 | `contracts/openapi/schemas/referrals.yaml` | 活动、里程碑、奖励、风控和绑定状态字段 |
 
 ## 目录维护规则
 

@@ -89,7 +89,7 @@ def test_callback_uses_constant_fact_validation_and_exact_minor_units() -> None:
     callback = transport.verify_callback(
         configuration=CONFIGURATION,
         credentials=CREDENTIALS,
-        form=_signed_callback(),
+        form=_signed_callback(buyer_id="payer-fixture-01"),
     )
 
     assert callback.merchant_id == "merchant-1001"
@@ -97,6 +97,7 @@ def test_callback_uses_constant_fact_validation_and_exact_minor_units() -> None:
     assert callback.amount_minor == 1990
     assert callback.payment_method == "ALIPAY"
     assert callback.occurred_at == NOW
+    assert callback.payer_reference == "payer-fixture-01"
 
 
 @pytest.mark.parametrize(

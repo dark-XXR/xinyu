@@ -432,6 +432,9 @@ async def receive_epay_callback(
     sign: Annotated[str, Form()],
     sign_type: Annotated[str, Form()],
     timestamp_: Annotated[str | None, Form(alias="timestamp")] = None,
+    buyer_id: Annotated[str | None, Form()] = None,
+    buyer: Annotated[str | None, Form()] = None,
+    account: Annotated[str | None, Form()] = None,
 ) -> Response:
     form = {
         "pid": pid,
@@ -446,5 +449,8 @@ async def receive_epay_callback(
     }
     if timestamp_ is not None:
         form["timestamp"] = timestamp_
+    for key, value in (("buyer_id", buyer_id), ("buyer", buyer), ("account", account)):
+        if value is not None:
+            form[key] = value
     ack = await service.receive_callback(provider_id=provider_id, form=form)
     return Response(content=ack, media_type="text/plain")

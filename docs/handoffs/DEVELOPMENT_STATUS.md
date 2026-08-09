@@ -4,10 +4,10 @@ Last updated: 2026-08-09
 
 ## Current checkpoint
 
-- Active task: `BACKEND-REFERRAL-001`
+- Active task: `FRONTEND-ADMIN-CONSOLE-001`
 - State: `planned`
 - Contract version: `1.0.0`
-- Current phase: commerce backend is complete; referral runtime and administration UI are next
+- Current phase: all planned backend work is complete; administration UI is next
 
 ## Completed
 
@@ -87,6 +87,12 @@ Last updated: 2026-08-09
   binding, masked invite progress, milestone and risk qualification, cooling-off, reward and
   reversal ledgers, plus administrator publication and rollback. Twenty-five fixtures validate
   10 operations; reward amounts and limits are not client constants.
+- Referral runtime now resolves stable campaign rollout, creates opaque personal HTTPS codes,
+  transaction-locks one permanent invitee binding, stores the bound campaign snapshot, and enforces
+  self, same-device, verified-channel, shared-payment-identity and per-inviter-limit rules.
+- Account verification, first successful generation and first verified purchase drive configured
+  milestones from real backend transactions. Cooling-off rewards grant through wallet or entitlement
+  ledgers exactly once; eligible reversals and failed reversal reviews both leave immutable audits.
 - Android Compose project with an app module and a read-only generated API module.
 - Encrypted access/refresh token persistence, atomic refresh retry, and installation ID.
 - Email-first login with server-policy-controlled SMS fallback, shared encrypted sessions and refresh,
@@ -119,10 +125,11 @@ Android Lint, and Debug APK assembly all passed.
 Identity contract validation now covers 46 fixtures across 19 tagged operations. Generated
 Kotlin and TypeScript clients both compile with the new email/channel models and operations.
 
-Backend verification now covers 55 PostgreSQL integration and transport tests. The email/auth,
+Backend verification now covers 59 PostgreSQL integration and transport tests. The email/auth,
 administrator authentication, provider-registry, and AI-gateway migrations passed
 upgrade, downgrade, and re-upgrade. The commerce administration migration also passed its own
-downgrade/upgrade loop. Ruff, strict MyPy across 58 source files, OpenAPI lint/bundle, generated
+downgrade/upgrade loop. Referral tables also passed downgrade/upgrade. Ruff, strict MyPy across
+62 source files, OpenAPI lint/bundle, referral fixture validation, generated
 TypeScript build, generated Kotlin build, Android unit tests, Android Lint, and Debug APK assembly pass.
 
 ## External inputs
@@ -152,7 +159,7 @@ browser/emulator output rather than IDE automation.
 
 ## Next exact actions
 
-1. Complete referral campaign, binding, risk, milestone, reward and reversal runtime behavior.
-2. Build the administration console through Antigravity CLI only, starting with providers and commerce.
-3. Add contract fixtures for the new administrator commerce operations.
-4. Redesign the Android UI through Antigravity CLI and verify it on emulator viewports.
+1. Build the administration console through Antigravity CLI only, starting with providers and commerce.
+2. Add contract fixtures for the new administrator commerce operations.
+3. Redesign the Android UI through Antigravity CLI and verify it on emulator viewports.
+4. Add invite sharing, progress and reward history to the redesigned Android experience.
