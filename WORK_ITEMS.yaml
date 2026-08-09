@@ -205,7 +205,7 @@ items:
       - duplicate_webhooks_do_not_duplicate_entitlements
       - epay_callbacks_verify_signature_merchant_order_and_amount
       - product_versions_bind_price_benefits_region_and_channel
-    handoffNotes: "P0 entitlement, wallet, immutable ledger, quote reservation, settlement, and release contracts are complete. Product, payment order, subscription, refund, and ad reward operations remain P1 and are hidden from the MVP UI."
+    handoffNotes: "P0 entitlement, wallet, immutable ledger, quote reservation, settlement, and release are complete. P1 now includes a server-published versioned product catalog, immutable order snapshots, payment attempts, provider-query reconciliation, prepaid or mandate-backed subscriptions, refund and entitlement-recovery state, and an EPAY_COMPAT callback that never trusts browser redirects. Twenty-seven commerce fixtures validate 11 operations. Ad reward operations remain before this task can be marked done."
 
   - taskId: CONTRACT-OPERATIONS-001
     title: Define bootstrap notices inbox support jobs releases and telemetry
@@ -324,7 +324,7 @@ items:
       - every_operation_has_success_or_expected_error_fixture
       - fixtures_validate_against_openapi_and_event_schemas
       - fixtures_contain_no_real_personal_data
-    handoffNotes: "Identity has 46 fixtures across 19 operations. P0 generation and billing have 30 fixtures across 12 operations, including text/event-stream. Admin providers have 22 fixtures across 8 operations. Remaining commerce, AI administration, business administration, and platform modules still require fixtures."
+    handoffNotes: "Identity has 46 fixtures across 19 operations. P0 generation and billing have 30 fixtures across 12 operations, including text/event-stream. Admin providers have 22 fixtures across 8 operations. Commerce has 27 fixtures across 11 operations. Remaining ad reward, AI administration, business administration, and platform modules still require fixtures."
 
   - taskId: CONTRACT-CODEGEN-001
     title: Configure Android TypeScript and backend contract generation

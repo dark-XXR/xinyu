@@ -1,0 +1,65 @@
+subscriptions:
+  get:
+    operationId: listSubscriptions
+    summary: List owned prepaid terms and recurring mandates
+    tags: [SUBSCRIPTION]
+    parameters:
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/XDeviceId
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+    responses:
+      "200":
+        description: Current and historical subscription terms.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/billing.yaml#/SubscriptionListResponse
+      "401":
+        $ref: ../components/responses.yaml#/Unauthorized
+      "500":
+        $ref: ../components/responses.yaml#/InternalError
+
+cancel:
+  post:
+    operationId: cancelSubscription
+    summary: Cancel renewal or schedule cancellation at period end
+    description: Prepaid non-renewing terms remain active until their purchased expiry.
+    tags: [SUBSCRIPTION]
+    parameters:
+      - name: subscriptionId
+        in: path
+        required: true
+        schema:
+          type: string
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/XDeviceId
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+      - $ref: ../components/parameters.yaml#/IdempotencyKey
+      - $ref: ../components/parameters.yaml#/IfMatch
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/billing.yaml#/CancelSubscriptionRequest
+    responses:
+      "200":
+        description: Updated subscription term.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/billing.yaml#/SubscriptionResponse
+      "400":
+        $ref: ../components/responses.yaml#/BadRequest
+      "401":
+        $ref: ../components/responses.yaml#/Unauthorized
+      "404":
+        $ref: ../components/responses.yaml#/NotFound
+      "409":
+        $ref: ../components/responses.yaml#/Conflict
+      "500":
+        $ref: ../components/responses.yaml#/InternalError

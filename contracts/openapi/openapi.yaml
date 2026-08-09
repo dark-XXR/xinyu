@@ -31,6 +31,16 @@ tags:
     description: Server-authoritative plans, benefits, and model access.
   - name: WALLET
     description: Energy balance and immutable ledger.
+  - name: PRODUCT
+    description: Published versioned product and price catalog.
+  - name: ORDER
+    description: Immutable orders and payment attempts.
+  - name: SUBSCRIPTION
+    description: Prepaid and provider-mandate subscription terms.
+  - name: REFUND
+    description: Refund requests and entitlement recovery.
+  - name: PAYMENT_WEBHOOK
+    description: Provider callbacks verified before payment settlement.
   - name: GENERATION
     description: Quotes, generation tasks, snapshots, and SSE events.
   - name: CANDIDATE
@@ -107,6 +117,28 @@ paths:
     $ref: ./paths/wallet.yaml#/wallet
   /v1/wallet/ledger:
     $ref: ./paths/wallet.yaml#/ledger
+  /v1/products:
+    $ref: ./paths/products.yaml#/products
+  /v1/products/{productVersionId}:
+    $ref: ./paths/products.yaml#/product
+  /v1/orders:
+    $ref: ./paths/orders.yaml#/orders
+  /v1/orders/{orderId}:
+    $ref: ./paths/orders.yaml#/order
+  /v1/orders/{orderId}/payment-attempts:
+    $ref: ./paths/orders.yaml#/paymentAttempts
+  /v1/orders/{orderId}/sync-payment:
+    $ref: ./paths/orders.yaml#/syncPayment
+  /v1/subscriptions:
+    $ref: ./paths/subscriptions.yaml#/subscriptions
+  /v1/subscriptions/{subscriptionId}/cancel:
+    $ref: ./paths/subscriptions.yaml#/cancel
+  /v1/refunds:
+    $ref: ./paths/refunds.yaml#/refunds
+  /v1/refunds/{refundId}:
+    $ref: ./paths/refunds.yaml#/refund
+  /webhooks/v1/payments/epay/{providerId}:
+    $ref: ../webhooks/payment-providers.yaml#/epayCallback
   /v1/generations/quote:
     $ref: ./paths/generations.yaml#/quote
   /v1/generations:

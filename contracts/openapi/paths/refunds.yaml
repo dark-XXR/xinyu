@@ -1,0 +1,65 @@
+refunds:
+  post:
+    operationId: createRefund
+    summary: Request a full or partial refund
+    tags: [REFUND]
+    parameters:
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/XDeviceId
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+      - $ref: ../components/parameters.yaml#/IdempotencyKey
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/billing.yaml#/CreateRefundRequest
+    responses:
+      "202":
+        description: Refund request accepted for automatic checks or manual review.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/billing.yaml#/RefundResponse
+      "400":
+        $ref: ../components/responses.yaml#/BadRequest
+      "401":
+        $ref: ../components/responses.yaml#/Unauthorized
+      "404":
+        $ref: ../components/responses.yaml#/NotFound
+      "409":
+        $ref: ../components/responses.yaml#/Conflict
+      "500":
+        $ref: ../components/responses.yaml#/InternalError
+
+refund:
+  get:
+    operationId: getRefund
+    summary: Read an owned refund and entitlement recovery state
+    tags: [REFUND]
+    parameters:
+      - name: refundId
+        in: path
+        required: true
+        schema:
+          type: string
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/XDeviceId
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+    responses:
+      "200":
+        description: Current refund and benefit-recovery state.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/billing.yaml#/RefundResponse
+      "401":
+        $ref: ../components/responses.yaml#/Unauthorized
+      "404":
+        $ref: ../components/responses.yaml#/NotFound
+      "500":
+        $ref: ../components/responses.yaml#/InternalError

@@ -1,0 +1,152 @@
+orders:
+  post:
+    operationId: createOrder
+    summary: Create an immutable order and initial payment attempt
+    description: |
+      Binds the current product, price, currency, region, renewal, and benefit
+      facts before checkout. A checkout redirect is never proof of payment.
+    tags: [ORDER]
+    parameters:
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/XDeviceId
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+      - $ref: ../components/parameters.yaml#/IdempotencyKey
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/billing.yaml#/CreateOrderRequest
+    responses:
+      "201":
+        description: Order and initial payment attempt created.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/billing.yaml#/OrderResponse
+      "400":
+        $ref: ../components/responses.yaml#/BadRequest
+      "401":
+        $ref: ../components/responses.yaml#/Unauthorized
+      "409":
+        $ref: ../components/responses.yaml#/Conflict
+      "503":
+        $ref: ../components/responses.yaml#/ServiceUnavailable
+      "500":
+        $ref: ../components/responses.yaml#/InternalError
+
+order:
+  get:
+    operationId: getOrder
+    summary: Read an owned order and its payment attempts
+    tags: [ORDER]
+    parameters:
+      - $ref: "#/components/orderId"
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/XDeviceId
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+    responses:
+      "200":
+        description: Current server-authoritative order state.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/billing.yaml#/OrderResponse
+      "401":
+        $ref: ../components/responses.yaml#/Unauthorized
+      "404":
+        $ref: ../components/responses.yaml#/NotFound
+      "500":
+        $ref: ../components/responses.yaml#/InternalError
+
+paymentAttempts:
+  post:
+    operationId: createPaymentAttempt
+    summary: Create another payment attempt for an unpaid order
+    tags: [ORDER]
+    parameters:
+      - $ref: "#/components/orderId"
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/XDeviceId
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+      - $ref: ../components/parameters.yaml#/IdempotencyKey
+      - $ref: ../components/parameters.yaml#/IfMatch
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/billing.yaml#/CreatePaymentAttemptRequest
+    responses:
+      "201":
+        description: New payment attempt created without changing settlement state.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/billing.yaml#/OrderResponse
+      "400":
+        $ref: ../components/responses.yaml#/BadRequest
+      "401":
+        $ref: ../components/responses.yaml#/Unauthorized
+      "404":
+        $ref: ../components/responses.yaml#/NotFound
+      "409":
+        $ref: ../components/responses.yaml#/Conflict
+      "503":
+        $ref: ../components/responses.yaml#/ServiceUnavailable
+      "500":
+        $ref: ../components/responses.yaml#/InternalError
+
+syncPayment:
+  post:
+    operationId: syncOrderPayment
+    summary: Query the provider and reconcile an unpaid order
+    description: |
+      A verified provider query may settle an order only when merchant, order,
+      amount, currency, and terminal status all match. The operation is bounded
+      and rate limited; it cannot trust browser return parameters.
+    tags: [ORDER]
+    parameters:
+      - $ref: "#/components/orderId"
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/XDeviceId
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+      - $ref: ../components/parameters.yaml#/IdempotencyKey
+      - $ref: ../components/parameters.yaml#/IfMatch
+    responses:
+      "200":
+        description: Reconciled order snapshot, whether changed or unchanged.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/billing.yaml#/OrderResponse
+      "401":
+        $ref: ../components/responses.yaml#/Unauthorized
+      "404":
+        $ref: ../components/responses.yaml#/NotFound
+      "409":
+        $ref: ../components/responses.yaml#/Conflict
+      "429":
+        $ref: ../components/responses.yaml#/RateLimited
+      "503":
+        $ref: ../components/responses.yaml#/ServiceUnavailable
+      "500":
+        $ref: ../components/responses.yaml#/InternalError
+
+components:
+  orderId:
+    name: orderId
+    in: path
+    required: true
+    schema:
+      type: string
+      minLength: 8
+      maxLength: 128

@@ -167,3 +167,518 @@ WalletLedgerResponse:
       properties:
         data:
           $ref: "#/WalletLedgerData"
+
+ProductType:
+  type: string
+  enum: [PLAN, ENERGY_PACK]
+
+ProductPublicationStatus:
+  type: string
+  enum: [ACTIVE, RETIRED]
+
+SalesChannel:
+  type: string
+  enum: [ANDROID, ADMIN_ASSISTED]
+
+RenewalType:
+  type: string
+  enum: [NONE, PROVIDER_MANDATE]
+
+BenefitGrant:
+  type: object
+  additionalProperties: false
+  required:
+    - textQuota
+    - visionQuota
+    - energyAmount
+    - allowedModelIds
+    - allowedStyleIds
+  properties:
+    textQuota:
+      type: integer
+      minimum: 0
+    visionQuota:
+      type: integer
+      minimum: 0
+    energyAmount:
+      type: integer
+      minimum: 0
+    allowedModelIds:
+      type: array
+      uniqueItems: true
+      items:
+        type: string
+    allowedStyleIds:
+      type: array
+      uniqueItems: true
+      items:
+        type: string
+    deepAnalysisEnabled:
+      type: boolean
+      default: false
+
+ProductVersion:
+  type: object
+  additionalProperties: false
+  required:
+    - productVersionId
+    - productCode
+    - version
+    - productType
+    - displayName
+    - currency
+    - amountMinor
+    - region
+    - salesChannels
+    - renewalType
+    - benefitWindowDays
+    - benefits
+    - status
+    - effectiveAt
+  properties:
+    productVersionId:
+      type: string
+    productCode:
+      type: string
+      pattern: ^[A-Z][A-Z0-9_]{1,63}$
+    version:
+      type: integer
+      minimum: 1
+    productType:
+      $ref: "#/ProductType"
+    displayName:
+      type: string
+      minLength: 1
+      maxLength: 128
+    description:
+      type: [string, "null"]
+      maxLength: 500
+    currency:
+      type: string
+      pattern: ^[A-Z]{3}$
+    amountMinor:
+      type: integer
+      minimum: 0
+    region:
+      type: string
+      minLength: 2
+      maxLength: 16
+    salesChannels:
+      type: array
+      minItems: 1
+      uniqueItems: true
+      items:
+        $ref: "#/SalesChannel"
+    renewalType:
+      $ref: "#/RenewalType"
+    termDays:
+      type: [integer, "null"]
+      minimum: 1
+    benefitWindowDays:
+      type: integer
+      minimum: 1
+    benefits:
+      $ref: "#/BenefitGrant"
+    status:
+      $ref: "#/ProductPublicationStatus"
+    effectiveAt:
+      type: string
+      format: date-time
+    expiresAt:
+      type: [string, "null"]
+      format: date-time
+
+ProductListData:
+  type: object
+  additionalProperties: false
+  required: [catalogVersion, items]
+  properties:
+    catalogVersion:
+      type: integer
+      minimum: 1
+    items:
+      type: array
+      items:
+        $ref: "#/ProductVersion"
+
+ProductListResponse:
+  allOf:
+    - $ref: ../components/schemas/common.yaml#/BaseSuccessEnvelope
+    - type: object
+      properties:
+        data:
+          $ref: "#/ProductListData"
+
+ProductResponse:
+  allOf:
+    - $ref: ../components/schemas/common.yaml#/BaseSuccessEnvelope
+    - type: object
+      properties:
+        data:
+          $ref: "#/ProductVersion"
+
+PaymentMethod:
+  type: string
+  enum: [ALIPAY, WECHAT_PAY]
+
+OrderStatus:
+  type: string
+  enum:
+    - CREATED
+    - PENDING_PAYMENT
+    - PAID
+    - FAILED
+    - CANCELLED
+    - EXPIRED
+    - PARTIALLY_REFUNDED
+    - REFUNDED
+
+PaymentAttemptStatus:
+  type: string
+  enum: [CREATED, PENDING, SUCCEEDED, FAILED, EXPIRED]
+
+CheckoutActionType:
+  type: string
+  enum: [REDIRECT_URL, QR_CODE_URL]
+
+CheckoutAction:
+  type: object
+  additionalProperties: false
+  required: [actionType, value, expiresAt]
+  properties:
+    actionType:
+      $ref: "#/CheckoutActionType"
+    value:
+      type: string
+      minLength: 1
+      maxLength: 2048
+      description: Short-lived provider checkout URL; it is not proof of payment.
+    expiresAt:
+      type: string
+      format: date-time
+
+ProductOrderSnapshot:
+  type: object
+  additionalProperties: false
+  required:
+    - productVersionId
+    - productCode
+    - version
+    - displayName
+    - currency
+    - amountMinor
+    - renewalType
+    - termDays
+    - benefitWindowDays
+    - benefits
+  properties:
+    productVersionId:
+      type: string
+    productCode:
+      type: string
+    version:
+      type: integer
+      minimum: 1
+    displayName:
+      type: string
+    currency:
+      type: string
+      pattern: ^[A-Z]{3}$
+    amountMinor:
+      type: integer
+      minimum: 0
+    renewalType:
+      $ref: "#/RenewalType"
+    termDays:
+      type: [integer, "null"]
+      minimum: 1
+    benefitWindowDays:
+      type: integer
+      minimum: 1
+    benefits:
+      $ref: "#/BenefitGrant"
+
+PaymentAttempt:
+  type: object
+  additionalProperties: false
+  required:
+    - paymentAttemptId
+    - paymentMethod
+    - status
+    - amountMinor
+    - currency
+    - createdAt
+    - updatedAt
+  properties:
+    paymentAttemptId:
+      type: string
+    paymentMethod:
+      $ref: "#/PaymentMethod"
+    status:
+      $ref: "#/PaymentAttemptStatus"
+    amountMinor:
+      type: integer
+      minimum: 0
+    currency:
+      type: string
+      pattern: ^[A-Z]{3}$
+    checkoutAction:
+      oneOf:
+        - $ref: "#/CheckoutAction"
+        - type: "null"
+    providerTransactionId:
+      type: [string, "null"]
+      description: Redacted provider reference, not a credential.
+    failureCode:
+      type: [string, "null"]
+      pattern: ^[A-Z][A-Z0-9_]*$
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: string
+      format: date-time
+
+Order:
+  type: object
+  additionalProperties: false
+  required:
+    - orderId
+    - status
+    - product
+    - currency
+    - amountMinor
+    - paidAmountMinor
+    - paymentAttempts
+    - entitlementGranted
+    - resourceVersion
+    - createdAt
+    - updatedAt
+  properties:
+    orderId:
+      type: string
+    status:
+      $ref: "#/OrderStatus"
+    product:
+      $ref: "#/ProductOrderSnapshot"
+    currency:
+      type: string
+      pattern: ^[A-Z]{3}$
+    amountMinor:
+      type: integer
+      minimum: 0
+    paidAmountMinor:
+      type: integer
+      minimum: 0
+    paymentAttempts:
+      type: array
+      items:
+        $ref: "#/PaymentAttempt"
+    entitlementGranted:
+      type: boolean
+      description: True only after a verified server callback or verified provider query.
+    paidAt:
+      type: [string, "null"]
+      format: date-time
+    expiresAt:
+      type: [string, "null"]
+      format: date-time
+    resourceVersion:
+      type: integer
+      minimum: 1
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: string
+      format: date-time
+
+CreateOrderRequest:
+  type: object
+  additionalProperties: false
+  required: [productVersionId, paymentMethod]
+  properties:
+    productVersionId:
+      type: string
+    paymentMethod:
+      $ref: "#/PaymentMethod"
+
+CreatePaymentAttemptRequest:
+  type: object
+  additionalProperties: false
+  required: [paymentMethod]
+  properties:
+    paymentMethod:
+      $ref: "#/PaymentMethod"
+
+OrderResponse:
+  allOf:
+    - $ref: ../components/schemas/common.yaml#/BaseSuccessEnvelope
+    - type: object
+      properties:
+        data:
+          $ref: "#/Order"
+
+SubscriptionStatus:
+  type: string
+  enum: [ACTIVE, CANCELLATION_SCHEDULED, CANCELLED, EXPIRED]
+
+Subscription:
+  type: object
+  additionalProperties: false
+  required:
+    - subscriptionId
+    - productCode
+    - productVersionId
+    - status
+    - renewalType
+    - currentPeriodStartsAt
+    - currentPeriodEndsAt
+    - autoRenew
+    - resourceVersion
+    - createdAt
+    - updatedAt
+  properties:
+    subscriptionId:
+      type: string
+    productCode:
+      type: string
+    productVersionId:
+      type: string
+    status:
+      $ref: "#/SubscriptionStatus"
+    renewalType:
+      $ref: "#/RenewalType"
+    currentPeriodStartsAt:
+      type: string
+      format: date-time
+    currentPeriodEndsAt:
+      type: string
+      format: date-time
+    autoRenew:
+      type: boolean
+    cancelAtPeriodEnd:
+      type: boolean
+      default: false
+    resourceVersion:
+      type: integer
+      minimum: 1
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: string
+      format: date-time
+
+SubscriptionListData:
+  type: object
+  additionalProperties: false
+  required: [items]
+  properties:
+    items:
+      type: array
+      items:
+        $ref: "#/Subscription"
+
+CancelSubscriptionRequest:
+  type: object
+  additionalProperties: false
+  required: [cancelAtPeriodEnd]
+  properties:
+    cancelAtPeriodEnd:
+      type: boolean
+
+SubscriptionListResponse:
+  allOf:
+    - $ref: ../components/schemas/common.yaml#/BaseSuccessEnvelope
+    - type: object
+      properties:
+        data:
+          $ref: "#/SubscriptionListData"
+
+SubscriptionResponse:
+  allOf:
+    - $ref: ../components/schemas/common.yaml#/BaseSuccessEnvelope
+    - type: object
+      properties:
+        data:
+          $ref: "#/Subscription"
+
+RefundStatus:
+  type: string
+  enum: [REQUESTED, REVIEWING, APPROVED, REJECTED, PROCESSING, SUCCEEDED, FAILED]
+
+Refund:
+  type: object
+  additionalProperties: false
+  required:
+    - refundId
+    - orderId
+    - status
+    - currency
+    - requestedAmountMinor
+    - refundedAmountMinor
+    - reasonCode
+    - entitlementRecoveryStatus
+    - resourceVersion
+    - createdAt
+    - updatedAt
+  properties:
+    refundId:
+      type: string
+    orderId:
+      type: string
+    status:
+      $ref: "#/RefundStatus"
+    currency:
+      type: string
+      pattern: ^[A-Z]{3}$
+    requestedAmountMinor:
+      type: integer
+      minimum: 1
+    refundedAmountMinor:
+      type: integer
+      minimum: 0
+    reasonCode:
+      type: string
+      pattern: ^[A-Z][A-Z0-9_]*$
+    entitlementRecoveryStatus:
+      type: string
+      enum: [NOT_REQUIRED, PENDING, COMPLETED, MANUAL_REVIEW]
+    rejectionReasonCode:
+      type: [string, "null"]
+      pattern: ^[A-Z][A-Z0-9_]*$
+    resourceVersion:
+      type: integer
+      minimum: 1
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: string
+      format: date-time
+
+CreateRefundRequest:
+  type: object
+  additionalProperties: false
+  required: [orderId, amountMinor, reasonCode]
+  properties:
+    orderId:
+      type: string
+    amountMinor:
+      type: integer
+      minimum: 1
+    reasonCode:
+      type: string
+      pattern: ^[A-Z][A-Z0-9_]*$
+    comment:
+      type: [string, "null"]
+      maxLength: 500
+
+RefundResponse:
+  allOf:
+    - $ref: ../components/schemas/common.yaml#/BaseSuccessEnvelope
+    - type: object
+      properties:
+        data:
+          $ref: "#/Refund"

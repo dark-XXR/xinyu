@@ -105,7 +105,18 @@ All URIs are relative to *http://localhost:8000*
 *GENERATIONApi* | [**quoteGeneration**](docs/GENERATIONApi.md#quotegeneration) | **POST** /v1/generations/quote | Quote energy cost before creating a generation
 *GENERATIONApi* | [**regenerateGeneration**](docs/GENERATIONApi.md#regenerategeneration) | **POST** /v1/generations/{generationId}/regenerate | Create a child generation using a new quote
 *GENERATIONApi* | [**streamGenerationEvents**](docs/GENERATIONApi.md#streamgenerationevents) | **GET** /v1/generations/{generationId}/events | Stream retained generation events
+*ORDERApi* | [**createOrder**](docs/ORDERApi.md#createorderoperation) | **POST** /v1/orders | Create an immutable order and initial payment attempt
+*ORDERApi* | [**createPaymentAttempt**](docs/ORDERApi.md#createpaymentattemptoperation) | **POST** /v1/orders/{orderId}/payment-attempts | Create another payment attempt for an unpaid order
+*ORDERApi* | [**getOrder**](docs/ORDERApi.md#getorder) | **GET** /v1/orders/{orderId} | Read an owned order and its payment attempts
+*ORDERApi* | [**syncOrderPayment**](docs/ORDERApi.md#syncorderpayment) | **POST** /v1/orders/{orderId}/sync-payment | Query the provider and reconcile an unpaid order
+*PAYMENTWEBHOOKApi* | [**receiveEpayCallback**](docs/PAYMENTWEBHOOKApi.md#receiveepaycallback) | **POST** /webhooks/v1/payments/epay/{providerId} | Receive and verify an Epay-compatible server callback
+*PRODUCTApi* | [**getProduct**](docs/PRODUCTApi.md#getproduct) | **GET** /v1/products/{productVersionId} | Read one currently purchasable product version
+*PRODUCTApi* | [**listProducts**](docs/PRODUCTApi.md#listproducts) | **GET** /v1/products | List the active server-published product catalog
+*REFUNDApi* | [**createRefund**](docs/REFUNDApi.md#createrefundoperation) | **POST** /v1/refunds | Request a full or partial refund
+*REFUNDApi* | [**getRefund**](docs/REFUNDApi.md#getrefund) | **GET** /v1/refunds/{refundId} | Read an owned refund and entitlement recovery state
 *RISKApi* | [**appealRiskEvent**](docs/RISKApi.md#appealriskevent) | **POST** /v1/risk-events/{riskEventId}/appeals | Appeal a safety decision without bypassing it
+*SUBSCRIPTIONApi* | [**cancelSubscription**](docs/SUBSCRIPTIONApi.md#cancelsubscriptionoperation) | **POST** /v1/subscriptions/{subscriptionId}/cancel | Cancel renewal or schedule cancellation at period end
+*SUBSCRIPTIONApi* | [**listSubscriptions**](docs/SUBSCRIPTIONApi.md#listsubscriptions) | **GET** /v1/subscriptions | List owned prepaid terms and recurring mandates
 *USERApi* | [**getCurrentUser**](docs/USERApi.md#getcurrentuser) | **GET** /v1/me | Get the current account
 *USERApi* | [**listDevices**](docs/USERApi.md#listdevices) | **GET** /v1/me/devices | List authenticated devices
 *USERApi* | [**revokeDevice**](docs/USERApi.md#revokedevice) | **DELETE** /v1/me/devices/{deviceId} | Revoke one authenticated device
@@ -152,12 +163,16 @@ All URIs are relative to *http://localhost:8000*
 - [AuthChannelPolicyResponse](docs/AuthChannelPolicyResponse.md)
 - [BaseSuccessEnvelope](docs/BaseSuccessEnvelope.md)
 - [BenefitBalances](docs/BenefitBalances.md)
+- [BenefitGrant](docs/BenefitGrant.md)
+- [CancelSubscriptionRequest](docs/CancelSubscriptionRequest.md)
 - [Candidate](docs/Candidate.md)
 - [CandidateAction](docs/CandidateAction.md)
 - [CandidateActionRequest](docs/CandidateActionRequest.md)
 - [CandidateActionResponse](docs/CandidateActionResponse.md)
 - [CandidateActionType](docs/CandidateActionType.md)
 - [ChargedFrom](docs/ChargedFrom.md)
+- [CheckoutAction](docs/CheckoutAction.md)
+- [CheckoutActionType](docs/CheckoutActionType.md)
 - [CommunicationGoal](docs/CommunicationGoal.md)
 - [ConsentListData](docs/ConsentListData.md)
 - [ConsentListResponse](docs/ConsentListResponse.md)
@@ -165,6 +180,9 @@ All URIs are relative to *http://localhost:8000*
 - [ConsentResponse](docs/ConsentResponse.md)
 - [ConsentType](docs/ConsentType.md)
 - [CreateGenerationRequest](docs/CreateGenerationRequest.md)
+- [CreateOrderRequest](docs/CreateOrderRequest.md)
+- [CreatePaymentAttemptRequest](docs/CreatePaymentAttemptRequest.md)
+- [CreateRefundRequest](docs/CreateRefundRequest.md)
 - [CredentialName](docs/CredentialName.md)
 - [CredentialRotation](docs/CredentialRotation.md)
 - [CredentialRotationResponse](docs/CredentialRotationResponse.md)
@@ -216,7 +234,20 @@ All URIs are relative to *http://localhost:8000*
 - [ModelQuoteOption](docs/ModelQuoteOption.md)
 - [NativeAiConfiguration](docs/NativeAiConfiguration.md)
 - [OpenAiCompatibleConfiguration](docs/OpenAiCompatibleConfiguration.md)
+- [Order](docs/Order.md)
+- [OrderResponse](docs/OrderResponse.md)
+- [OrderStatus](docs/OrderStatus.md)
+- [PaymentAttempt](docs/PaymentAttempt.md)
+- [PaymentAttemptStatus](docs/PaymentAttemptStatus.md)
+- [PaymentMethod](docs/PaymentMethod.md)
 - [PendingConsent](docs/PendingConsent.md)
+- [ProductListData](docs/ProductListData.md)
+- [ProductListResponse](docs/ProductListResponse.md)
+- [ProductOrderSnapshot](docs/ProductOrderSnapshot.md)
+- [ProductPublicationStatus](docs/ProductPublicationStatus.md)
+- [ProductResponse](docs/ProductResponse.md)
+- [ProductType](docs/ProductType.md)
+- [ProductVersion](docs/ProductVersion.md)
 - [Provider](docs/Provider.md)
 - [ProviderConfiguration](docs/ProviderConfiguration.md)
 - [ProviderHealthCheck](docs/ProviderHealthCheck.md)
@@ -230,13 +261,18 @@ All URIs are relative to *http://localhost:8000*
 - [PublishProviderRequest](docs/PublishProviderRequest.md)
 - [RefineCandidateRequest](docs/RefineCandidateRequest.md)
 - [RefreshRequest](docs/RefreshRequest.md)
+- [Refund](docs/Refund.md)
+- [RefundResponse](docs/RefundResponse.md)
+- [RefundStatus](docs/RefundStatus.md)
 - [RegenerateRequest](docs/RegenerateRequest.md)
 - [RelationshipStage](docs/RelationshipStage.md)
+- [RenewalType](docs/RenewalType.md)
 - [ReplyStrategy](docs/ReplyStrategy.md)
 - [ReplyStyle](docs/ReplyStyle.md)
 - [RollbackProviderRequest](docs/RollbackProviderRequest.md)
 - [RotateCredentialsRequest](docs/RotateCredentialsRequest.md)
 - [SafetyStatus](docs/SafetyStatus.md)
+- [SalesChannel](docs/SalesChannel.md)
 - [SmsChallenge](docs/SmsChallenge.md)
 - [SmsChallengeResponse](docs/SmsChallengeResponse.md)
 - [SmsConfiguration](docs/SmsConfiguration.md)
@@ -244,6 +280,11 @@ All URIs are relative to *http://localhost:8000*
 - [SmsPurpose](docs/SmsPurpose.md)
 - [SmsSendRequest](docs/SmsSendRequest.md)
 - [SmtpConfiguration](docs/SmtpConfiguration.md)
+- [Subscription](docs/Subscription.md)
+- [SubscriptionListData](docs/SubscriptionListData.md)
+- [SubscriptionListResponse](docs/SubscriptionListResponse.md)
+- [SubscriptionResponse](docs/SubscriptionResponse.md)
+- [SubscriptionStatus](docs/SubscriptionStatus.md)
 - [TlsMode](docs/TlsMode.md)
 - [TokenPair](docs/TokenPair.md)
 - [TokenResponse](docs/TokenResponse.md)

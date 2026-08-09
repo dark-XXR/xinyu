@@ -1,0 +1,61 @@
+products:
+  get:
+    operationId: listProducts
+    summary: List the active server-published product catalog
+    tags: [PRODUCT]
+    security: []
+    parameters:
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/XDeviceId
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+      - name: region
+        in: query
+        required: true
+        schema:
+          type: string
+          minLength: 2
+          maxLength: 16
+    responses:
+      "200":
+        description: Active product versions for the requested region and channel.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/billing.yaml#/ProductListResponse
+      "400":
+        $ref: ../components/responses.yaml#/BadRequest
+      "500":
+        $ref: ../components/responses.yaml#/InternalError
+
+product:
+  get:
+    operationId: getProduct
+    summary: Read one currently purchasable product version
+    tags: [PRODUCT]
+    security: []
+    parameters:
+      - name: productVersionId
+        in: path
+        required: true
+        schema:
+          type: string
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/XDeviceId
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+    responses:
+      "200":
+        description: Published product version.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/billing.yaml#/ProductResponse
+      "400":
+        $ref: ../components/responses.yaml#/BadRequest
+      "404":
+        $ref: ../components/responses.yaml#/NotFound
+      "500":
+        $ref: ../components/responses.yaml#/InternalError

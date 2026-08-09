@@ -1,0 +1,86 @@
+epayCallback:
+  post:
+    operationId: receiveEpayCallback
+    summary: Receive and verify an Epay-compatible server callback
+    description: |
+      The backend verifies the configured provider, signature, merchant, order,
+      amount, currency, callback freshness when available, and terminal state.
+      Duplicate identical events ACK without granting benefits twice; conflicting
+      duplicates are rejected and audited. Browser return parameters never call
+      this operation and never grant entitlements.
+    tags: [PAYMENT_WEBHOOK]
+    security: []
+    parameters:
+      - name: providerId
+        in: path
+        required: true
+        schema:
+          type: string
+      - $ref: ../openapi/components/parameters.yaml#/XRequestId
+    requestBody:
+      required: true
+      content:
+        application/x-www-form-urlencoded:
+          schema:
+            $ref: "#/components/EpayCallbackRequest"
+    responses:
+      "200":
+        description: Provider-specific configured ACK text as plain text.
+        content:
+          text/plain:
+            schema:
+              type: string
+              minLength: 1
+              maxLength: 32
+      "400":
+        $ref: ../openapi/components/responses.yaml#/BadRequest
+      "404":
+        $ref: ../openapi/components/responses.yaml#/NotFound
+      "409":
+        $ref: ../openapi/components/responses.yaml#/Conflict
+      "500":
+        $ref: ../openapi/components/responses.yaml#/InternalError
+
+components:
+  EpayCallbackRequest:
+    type: object
+    additionalProperties: false
+    required: [pid, trade_no, out_trade_no, type, name, money, trade_status, sign, sign_type]
+    properties:
+      pid:
+        type: string
+        minLength: 1
+        maxLength: 128
+      trade_no:
+        type: string
+        minLength: 1
+        maxLength: 128
+      out_trade_no:
+        type: string
+        minLength: 1
+        maxLength: 128
+      type:
+        type: string
+        enum: [alipay, wxpay]
+      name:
+        type: string
+        minLength: 1
+        maxLength: 256
+      money:
+        type: string
+        pattern: ^(?:0|[1-9][0-9]*)(?:\.[0-9]{1,2})?$
+        description: Decimal provider amount parsed exactly and compared to order minor units.
+      trade_status:
+        type: string
+        enum: [TRADE_SUCCESS]
+      timestamp:
+        type: [string, "null"]
+        description: Provider timestamp when supported by the configured reviewed preset.
+      sign:
+        type: string
+        minLength: 16
+        maxLength: 512
+        writeOnly: true
+      sign_type:
+        type: string
+        enum: [MD5]

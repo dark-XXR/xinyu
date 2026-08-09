@@ -21,6 +21,10 @@ Last updated: 2026-08-08
 - Unified administrator provider contract now covers AI, SMTP/API email, Aliyun/Tencent SMS,
   and EPAY-compatible payment configuration, write-only credential rotation, redacted health
   checks, bounded publication, and rollback. Twenty-two provider fixtures validate 8 operations.
+- Versioned products and prices, immutable order benefit snapshots, payment attempts, active
+  provider-query reconciliation, subscription cancellation, refunds, entitlement recovery, and
+  signed Epay-compatible callbacks are now defined. Twenty-seven commerce fixtures validate
+  11 operations; browser returns cannot grant benefits.
 - Android Compose project with an app module and a read-only generated API module.
 - Encrypted access/refresh token persistence, atomic refresh retry, and installation ID.
 - SMS login, server-authoritative entitlement display, composer draft, relationship/goal/style
@@ -77,7 +81,7 @@ not being represented as a completed interactive Antigravity design workflow.
 
 ## Next exact actions
 
-1. Finish product, order, subscription, refund, Epay callback, and reconciliation contracts.
+1. Finish ad reward and administrator finance contracts, then freeze the billing contract.
 2. Implement email auth, encrypted provider registry, AI routes, Epay, and catalog versioning.
 3. Build the administration console for provider, model, payment, product, and audit operations.
 4. Change Android to email-first login, then perform the full Antigravity UI redesign.

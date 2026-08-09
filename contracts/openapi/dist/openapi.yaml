@@ -31,6 +31,16 @@ tags:
     description: Server-authoritative plans, benefits, and model access.
   - name: WALLET
     description: Energy balance and immutable ledger.
+  - name: PRODUCT
+    description: Published versioned product and price catalog.
+  - name: ORDER
+    description: Immutable orders and payment attempts.
+  - name: SUBSCRIPTION
+    description: Prepaid and provider-mandate subscription terms.
+  - name: REFUND
+    description: Refund requests and entitlement recovery.
+  - name: PAYMENT_WEBHOOK
+    description: Provider callbacks verified before payment settlement.
   - name: GENERATION
     description: Quotes, generation tasks, snapshots, and SSE events.
   - name: CANDIDATE
@@ -760,6 +770,386 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /v1/products:
+    get:
+      operationId: listProducts
+      summary: List the active server-published product catalog
+      tags:
+        - PRODUCT
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/XDeviceId'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - name: region
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 2
+            maxLength: 16
+      responses:
+        '200':
+          description: Active product versions for the requested region and channel.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductListResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /v1/products/{productVersionId}:
+    get:
+      operationId: getProduct
+      summary: Read one currently purchasable product version
+      tags:
+        - PRODUCT
+      security: []
+      parameters:
+        - name: productVersionId
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/XDeviceId'
+        - $ref: '#/components/parameters/AcceptLanguage'
+      responses:
+        '200':
+          description: Published product version.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /v1/orders:
+    post:
+      operationId: createOrder
+      summary: Create an immutable order and initial payment attempt
+      description: |
+        Binds the current product, price, currency, region, renewal, and benefit
+        facts before checkout. A checkout redirect is never proof of payment.
+      tags:
+        - ORDER
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/XDeviceId'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOrderRequest'
+      responses:
+        '201':
+          description: Order and initial payment attempt created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /v1/orders/{orderId}:
+    get:
+      operationId: getOrder
+      summary: Read an owned order and its payment attempts
+      tags:
+        - ORDER
+      parameters:
+        - $ref: '#/components/parameters/orderId'
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/XDeviceId'
+        - $ref: '#/components/parameters/AcceptLanguage'
+      responses:
+        '200':
+          description: Current server-authoritative order state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /v1/orders/{orderId}/payment-attempts:
+    post:
+      operationId: createPaymentAttempt
+      summary: Create another payment attempt for an unpaid order
+      tags:
+        - ORDER
+      parameters:
+        - $ref: '#/components/parameters/orderId'
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/XDeviceId'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePaymentAttemptRequest'
+      responses:
+        '201':
+          description: New payment attempt created without changing settlement state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /v1/orders/{orderId}/sync-payment:
+    post:
+      operationId: syncOrderPayment
+      summary: Query the provider and reconcile an unpaid order
+      description: |
+        A verified provider query may settle an order only when merchant, order,
+        amount, currency, and terminal status all match. The operation is bounded
+        and rate limited; it cannot trust browser return parameters.
+      tags:
+        - ORDER
+      parameters:
+        - $ref: '#/components/parameters/orderId'
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/XDeviceId'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/IfMatch'
+      responses:
+        '200':
+          description: Reconciled order snapshot, whether changed or unchanged.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /v1/subscriptions:
+    get:
+      operationId: listSubscriptions
+      summary: List owned prepaid terms and recurring mandates
+      tags:
+        - SUBSCRIPTION
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/XDeviceId'
+        - $ref: '#/components/parameters/AcceptLanguage'
+      responses:
+        '200':
+          description: Current and historical subscription terms.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubscriptionListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /v1/subscriptions/{subscriptionId}/cancel:
+    post:
+      operationId: cancelSubscription
+      summary: Cancel renewal or schedule cancellation at period end
+      description: Prepaid non-renewing terms remain active until their purchased expiry.
+      tags:
+        - SUBSCRIPTION
+      parameters:
+        - name: subscriptionId
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/XDeviceId'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CancelSubscriptionRequest'
+      responses:
+        '200':
+          description: Updated subscription term.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubscriptionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /v1/refunds:
+    post:
+      operationId: createRefund
+      summary: Request a full or partial refund
+      tags:
+        - REFUND
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/XDeviceId'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRefundRequest'
+      responses:
+        '202':
+          description: Refund request accepted for automatic checks or manual review.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefundResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /v1/refunds/{refundId}:
+    get:
+      operationId: getRefund
+      summary: Read an owned refund and entitlement recovery state
+      tags:
+        - REFUND
+      parameters:
+        - name: refundId
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/XDeviceId'
+        - $ref: '#/components/parameters/AcceptLanguage'
+      responses:
+        '200':
+          description: Current refund and benefit-recovery state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefundResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /webhooks/v1/payments/epay/{providerId}:
+    post:
+      operationId: receiveEpayCallback
+      summary: Receive and verify an Epay-compatible server callback
+      description: |
+        The backend verifies the configured provider, signature, merchant, order,
+        amount, currency, callback freshness when available, and terminal state.
+        Duplicate identical events ACK without granting benefits twice; conflicting
+        duplicates are rejected and audited. Browser return parameters never call
+        this operation and never grant entitlements.
+      tags:
+        - PAYMENT_WEBHOOK
+      security: []
+      parameters:
+        - name: providerId
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/XRequestId'
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/EpayCallbackRequest'
+      responses:
+        '200':
+          description: Provider-specific configured ACK text as plain text.
+          content:
+            text/plain:
+              schema:
+                type: string
+                minLength: 1
+                maxLength: 32
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalError'
   /v1/generations/quote:
@@ -1725,6 +2115,14 @@ components:
         minimum: 1
         maximum: 100
         default: 20
+    orderId:
+      name: orderId
+      in: path
+      required: true
+      schema:
+        type: string
+        minLength: 8
+        maxLength: 128
     LastEventId:
       name: Last-Event-ID
       in: header
@@ -2741,6 +3139,613 @@ components:
           properties:
             data:
               $ref: '#/components/schemas/WalletLedgerData'
+    ProductType:
+      type: string
+      enum:
+        - PLAN
+        - ENERGY_PACK
+    SalesChannel:
+      type: string
+      enum:
+        - ANDROID
+        - ADMIN_ASSISTED
+    RenewalType:
+      type: string
+      enum:
+        - NONE
+        - PROVIDER_MANDATE
+    BenefitGrant:
+      type: object
+      additionalProperties: false
+      required:
+        - textQuota
+        - visionQuota
+        - energyAmount
+        - allowedModelIds
+        - allowedStyleIds
+      properties:
+        textQuota:
+          type: integer
+          minimum: 0
+        visionQuota:
+          type: integer
+          minimum: 0
+        energyAmount:
+          type: integer
+          minimum: 0
+        allowedModelIds:
+          type: array
+          uniqueItems: true
+          items:
+            type: string
+        allowedStyleIds:
+          type: array
+          uniqueItems: true
+          items:
+            type: string
+        deepAnalysisEnabled:
+          type: boolean
+          default: false
+    ProductPublicationStatus:
+      type: string
+      enum:
+        - ACTIVE
+        - RETIRED
+    ProductVersion:
+      type: object
+      additionalProperties: false
+      required:
+        - productVersionId
+        - productCode
+        - version
+        - productType
+        - displayName
+        - currency
+        - amountMinor
+        - region
+        - salesChannels
+        - renewalType
+        - benefitWindowDays
+        - benefits
+        - status
+        - effectiveAt
+      properties:
+        productVersionId:
+          type: string
+        productCode:
+          type: string
+          pattern: ^[A-Z][A-Z0-9_]{1,63}$
+        version:
+          type: integer
+          minimum: 1
+        productType:
+          $ref: '#/components/schemas/ProductType'
+        displayName:
+          type: string
+          minLength: 1
+          maxLength: 128
+        description:
+          type:
+            - string
+            - 'null'
+          maxLength: 500
+        currency:
+          type: string
+          pattern: ^[A-Z]{3}$
+        amountMinor:
+          type: integer
+          minimum: 0
+        region:
+          type: string
+          minLength: 2
+          maxLength: 16
+        salesChannels:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items:
+            $ref: '#/components/schemas/SalesChannel'
+        renewalType:
+          $ref: '#/components/schemas/RenewalType'
+        termDays:
+          type:
+            - integer
+            - 'null'
+          minimum: 1
+        benefitWindowDays:
+          type: integer
+          minimum: 1
+        benefits:
+          $ref: '#/components/schemas/BenefitGrant'
+        status:
+          $ref: '#/components/schemas/ProductPublicationStatus'
+        effectiveAt:
+          type: string
+          format: date-time
+        expiresAt:
+          type:
+            - string
+            - 'null'
+          format: date-time
+    ProductListData:
+      type: object
+      additionalProperties: false
+      required:
+        - catalogVersion
+        - items
+      properties:
+        catalogVersion:
+          type: integer
+          minimum: 1
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductVersion'
+    ProductListResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/ProductListData'
+    ProductResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/ProductVersion'
+    PaymentMethod:
+      type: string
+      enum:
+        - ALIPAY
+        - WECHAT_PAY
+    CreateOrderRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - productVersionId
+        - paymentMethod
+      properties:
+        productVersionId:
+          type: string
+        paymentMethod:
+          $ref: '#/components/schemas/PaymentMethod'
+    OrderStatus:
+      type: string
+      enum:
+        - CREATED
+        - PENDING_PAYMENT
+        - PAID
+        - FAILED
+        - CANCELLED
+        - EXPIRED
+        - PARTIALLY_REFUNDED
+        - REFUNDED
+    ProductOrderSnapshot:
+      type: object
+      additionalProperties: false
+      required:
+        - productVersionId
+        - productCode
+        - version
+        - displayName
+        - currency
+        - amountMinor
+        - renewalType
+        - termDays
+        - benefitWindowDays
+        - benefits
+      properties:
+        productVersionId:
+          type: string
+        productCode:
+          type: string
+        version:
+          type: integer
+          minimum: 1
+        displayName:
+          type: string
+        currency:
+          type: string
+          pattern: ^[A-Z]{3}$
+        amountMinor:
+          type: integer
+          minimum: 0
+        renewalType:
+          $ref: '#/components/schemas/RenewalType'
+        termDays:
+          type:
+            - integer
+            - 'null'
+          minimum: 1
+        benefitWindowDays:
+          type: integer
+          minimum: 1
+        benefits:
+          $ref: '#/components/schemas/BenefitGrant'
+    PaymentAttemptStatus:
+      type: string
+      enum:
+        - CREATED
+        - PENDING
+        - SUCCEEDED
+        - FAILED
+        - EXPIRED
+    CheckoutActionType:
+      type: string
+      enum:
+        - REDIRECT_URL
+        - QR_CODE_URL
+    CheckoutAction:
+      type: object
+      additionalProperties: false
+      required:
+        - actionType
+        - value
+        - expiresAt
+      properties:
+        actionType:
+          $ref: '#/components/schemas/CheckoutActionType'
+        value:
+          type: string
+          minLength: 1
+          maxLength: 2048
+          description: Short-lived provider checkout URL; it is not proof of payment.
+        expiresAt:
+          type: string
+          format: date-time
+    PaymentAttempt:
+      type: object
+      additionalProperties: false
+      required:
+        - paymentAttemptId
+        - paymentMethod
+        - status
+        - amountMinor
+        - currency
+        - createdAt
+        - updatedAt
+      properties:
+        paymentAttemptId:
+          type: string
+        paymentMethod:
+          $ref: '#/components/schemas/PaymentMethod'
+        status:
+          $ref: '#/components/schemas/PaymentAttemptStatus'
+        amountMinor:
+          type: integer
+          minimum: 0
+        currency:
+          type: string
+          pattern: ^[A-Z]{3}$
+        checkoutAction:
+          oneOf:
+            - $ref: '#/components/schemas/CheckoutAction'
+            - type: 'null'
+        providerTransactionId:
+          type:
+            - string
+            - 'null'
+          description: Redacted provider reference, not a credential.
+        failureCode:
+          type:
+            - string
+            - 'null'
+          pattern: ^[A-Z][A-Z0-9_]*$
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    Order:
+      type: object
+      additionalProperties: false
+      required:
+        - orderId
+        - status
+        - product
+        - currency
+        - amountMinor
+        - paidAmountMinor
+        - paymentAttempts
+        - entitlementGranted
+        - resourceVersion
+        - createdAt
+        - updatedAt
+      properties:
+        orderId:
+          type: string
+        status:
+          $ref: '#/components/schemas/OrderStatus'
+        product:
+          $ref: '#/components/schemas/ProductOrderSnapshot'
+        currency:
+          type: string
+          pattern: ^[A-Z]{3}$
+        amountMinor:
+          type: integer
+          minimum: 0
+        paidAmountMinor:
+          type: integer
+          minimum: 0
+        paymentAttempts:
+          type: array
+          items:
+            $ref: '#/components/schemas/PaymentAttempt'
+        entitlementGranted:
+          type: boolean
+          description: True only after a verified server callback or verified provider query.
+        paidAt:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        expiresAt:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        resourceVersion:
+          type: integer
+          minimum: 1
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    OrderResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/Order'
+    CreatePaymentAttemptRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - paymentMethod
+      properties:
+        paymentMethod:
+          $ref: '#/components/schemas/PaymentMethod'
+    SubscriptionStatus:
+      type: string
+      enum:
+        - ACTIVE
+        - CANCELLATION_SCHEDULED
+        - CANCELLED
+        - EXPIRED
+    Subscription:
+      type: object
+      additionalProperties: false
+      required:
+        - subscriptionId
+        - productCode
+        - productVersionId
+        - status
+        - renewalType
+        - currentPeriodStartsAt
+        - currentPeriodEndsAt
+        - autoRenew
+        - resourceVersion
+        - createdAt
+        - updatedAt
+      properties:
+        subscriptionId:
+          type: string
+        productCode:
+          type: string
+        productVersionId:
+          type: string
+        status:
+          $ref: '#/components/schemas/SubscriptionStatus'
+        renewalType:
+          $ref: '#/components/schemas/RenewalType'
+        currentPeriodStartsAt:
+          type: string
+          format: date-time
+        currentPeriodEndsAt:
+          type: string
+          format: date-time
+        autoRenew:
+          type: boolean
+        cancelAtPeriodEnd:
+          type: boolean
+          default: false
+        resourceVersion:
+          type: integer
+          minimum: 1
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    SubscriptionListData:
+      type: object
+      additionalProperties: false
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Subscription'
+    SubscriptionListResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/SubscriptionListData'
+    CancelSubscriptionRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - cancelAtPeriodEnd
+      properties:
+        cancelAtPeriodEnd:
+          type: boolean
+    SubscriptionResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/Subscription'
+    CreateRefundRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - orderId
+        - amountMinor
+        - reasonCode
+      properties:
+        orderId:
+          type: string
+        amountMinor:
+          type: integer
+          minimum: 1
+        reasonCode:
+          type: string
+          pattern: ^[A-Z][A-Z0-9_]*$
+        comment:
+          type:
+            - string
+            - 'null'
+          maxLength: 500
+    RefundStatus:
+      type: string
+      enum:
+        - REQUESTED
+        - REVIEWING
+        - APPROVED
+        - REJECTED
+        - PROCESSING
+        - SUCCEEDED
+        - FAILED
+    Refund:
+      type: object
+      additionalProperties: false
+      required:
+        - refundId
+        - orderId
+        - status
+        - currency
+        - requestedAmountMinor
+        - refundedAmountMinor
+        - reasonCode
+        - entitlementRecoveryStatus
+        - resourceVersion
+        - createdAt
+        - updatedAt
+      properties:
+        refundId:
+          type: string
+        orderId:
+          type: string
+        status:
+          $ref: '#/components/schemas/RefundStatus'
+        currency:
+          type: string
+          pattern: ^[A-Z]{3}$
+        requestedAmountMinor:
+          type: integer
+          minimum: 1
+        refundedAmountMinor:
+          type: integer
+          minimum: 0
+        reasonCode:
+          type: string
+          pattern: ^[A-Z][A-Z0-9_]*$
+        entitlementRecoveryStatus:
+          type: string
+          enum:
+            - NOT_REQUIRED
+            - PENDING
+            - COMPLETED
+            - MANUAL_REVIEW
+        rejectionReasonCode:
+          type:
+            - string
+            - 'null'
+          pattern: ^[A-Z][A-Z0-9_]*$
+        resourceVersion:
+          type: integer
+          minimum: 1
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    RefundResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/Refund'
+    EpayCallbackRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - pid
+        - trade_no
+        - out_trade_no
+        - type
+        - name
+        - money
+        - trade_status
+        - sign
+        - sign_type
+      properties:
+        pid:
+          type: string
+          minLength: 1
+          maxLength: 128
+        trade_no:
+          type: string
+          minLength: 1
+          maxLength: 128
+        out_trade_no:
+          type: string
+          minLength: 1
+          maxLength: 128
+        type:
+          type: string
+          enum:
+            - alipay
+            - wxpay
+        name:
+          type: string
+          minLength: 1
+          maxLength: 256
+        money:
+          type: string
+          pattern: ^(?:0|[1-9][0-9]*)(?:\.[0-9]{1,2})?$
+          description: Decimal provider amount parsed exactly and compared to order minor units.
+        trade_status:
+          type: string
+          enum:
+            - TRADE_SUCCESS
+        timestamp:
+          type:
+            - string
+            - 'null'
+          description: Provider timestamp when supported by the configured reviewed preset.
+        sign:
+          type: string
+          minLength: 16
+          maxLength: 512
+          writeOnly: true
+        sign_type:
+          type: string
+          enum:
+            - MD5
     GenerationInput:
       type: object
       additionalProperties: false
