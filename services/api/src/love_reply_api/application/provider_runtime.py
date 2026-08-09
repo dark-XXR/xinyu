@@ -32,6 +32,7 @@ class ResolvedProvider:
     configuration: dict[str, Any]
     credentials: dict[str, str]
     resource_version: int
+    retry_limit: int
 
 
 class PublishedProviderResolver:
@@ -89,6 +90,41 @@ class PublishedProviderResolver:
                 configuration=configuration,
                 credentials=credentials,
                 resource_version=version.resource_version,
+                retry_limit=int(version.snapshot["retryLimit"]),
+            )
+        return None
+
+    async def resolve_by_id(
+        self,
+        *,
+        provider_id: str,
+        routing_key: str,
+        adapter_types: set[str],
+        now: datetime | None = None,
+    ) -> ResolvedProvider | None:
+        candidates = await self._candidates(kind="AI", now=now or datetime.now(UTC))
+        for provider, version in candidates:
+            if provider.provider_id != provider_id:
+                continue
+            configuration = dict(version.snapshot["configuration"])
+            if str(configuration["adapterType"]) not in adapter_types:
+                return None
+            if not self.in_rollout(
+                provider_id=provider.provider_id,
+                routing_key=routing_key,
+                percentage=provider.published_rollout_percentage,
+            ):
+                return None
+            credential_id = version.snapshot["credentialVersionId"]
+            if not isinstance(credential_id, str):
+                return None
+            return ResolvedProvider(
+                provider_id=provider.provider_id,
+                kind=provider.kind,
+                configuration=configuration,
+                credentials=await self._credentials(credential_id),
+                resource_version=version.resource_version,
+                retry_limit=int(version.snapshot["retryLimit"]),
             )
         return None
 
@@ -124,8 +160,7 @@ class PublishedProviderResolver:
             version = await self._session.scalar(
                 select(ProviderVersionRecord).where(
                     ProviderVersionRecord.provider_id == provider.provider_id,
-                    ProviderVersionRecord.resource_version
-                    == provider.published_resource_version,
+                    ProviderVersionRecord.resource_version == provider.published_resource_version,
                     ProviderVersionRecord.was_published.is_(True),
                 )
             )
@@ -134,9 +169,7 @@ class PublishedProviderResolver:
         return candidates
 
     async def _credentials(self, credential_id: str) -> dict[str, str]:
-        credential = await self._session.get(
-            ProviderCredentialVersionRecord, credential_id
-        )
+        credential = await self._session.get(ProviderCredentialVersionRecord, credential_id)
         if credential is None:
             raise ApiError(
                 status_code=503,

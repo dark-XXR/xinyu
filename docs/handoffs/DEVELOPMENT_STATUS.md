@@ -7,7 +7,7 @@ Last updated: 2026-08-09
 - Active task: `BACKEND-PROVIDER-REGISTRY-001`
 - State: `in_progress`
 - Contract version: `1.0.0`
-- Current phase: AI administration contracts are complete; runtime persistence and provider routing are next
+- Current phase: AI runtime routing is complete; administrator AI publication APIs are next
 
 ## Completed
 
@@ -40,6 +40,11 @@ Last updated: 2026-08-09
   and a server-keyed stable rollout bucket. SMTP uses authenticated TLS, database-published localized
   templates, encrypted credentials, and a real synthetic-delivery health check. The auth channel
   endpoint automatically reflects whether an effective SMTP publication exists.
+- The AI runtime now maps logical models to encrypted published OpenAI-compatible, OpenAI,
+  Anthropic, and Gemini providers. Database routes enforce deterministic rollout, prompt versions,
+  per-target timeouts and retries, total attempts, input/output token limits, and request cost
+  ceilings before cross-provider failover. Strict structured output validation and redacted attempt
+  records prevent provider payloads or credentials from leaking into client errors.
 - Versioned products and prices, immutable order benefit snapshots, payment attempts, active
   provider-query reconciliation, subscription cancellation, refunds, entitlement recovery, and
   signed Epay-compatible callbacks are now defined. Twenty-seven commerce fixtures validate
@@ -82,8 +87,8 @@ Android Lint, and Debug APK assembly all passed.
 Identity contract validation now covers 46 fixtures across 19 tagged operations. Generated
 Kotlin and TypeScript clients both compile with the new email/channel models and operations.
 
-Backend verification now covers 19 PostgreSQL integration and transport tests. The email/auth, administrator
-authentication, and provider-registry migrations passed
+Backend verification now covers 32 PostgreSQL integration and transport tests. The email/auth,
+administrator authentication, provider-registry, and AI-gateway migrations passed
 upgrade, downgrade, and re-upgrade; Ruff, strict MyPy, TypeScript, Android unit tests, Android Lint,
 and Debug APK assembly also pass.
 
@@ -114,7 +119,7 @@ not being represented as a completed interactive Antigravity design workflow.
 
 ## Next exact actions
 
-1. Add real AI provider routing with bounded retry, timeout, and cost controls.
+1. Implement administrator AI model, route, prompt, evaluation, and risk-policy publication APIs.
 2. Implement Epay and catalog persistence, then referral rewards.
 3. Build the administration console, followed by the full Antigravity Android UI redesign.
-4. Repeat IDE visual review when the Antigravity launch bridge can create a controllable window.
+4. Repeat IDE visual review when the Antigravity control bridge can capture the CLI-opened window.

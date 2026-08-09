@@ -356,7 +356,11 @@ class GenerationService:
         except Exception as exc:
             await self.fail_and_release(
                 generation_id=generation_id,
-                failure_code="MODEL_GENERATION_FAILED",
+                failure_code=(
+                    "MODEL_PROVIDER_UNAVAILABLE"
+                    if isinstance(exc, ApiError) and exc.code.startswith("AI_")
+                    else "MODEL_GENERATION_FAILED"
+                ),
             )
             raise exc
 

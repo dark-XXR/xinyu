@@ -8,6 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from love_reply_api.application.admin_auth import AdminAuthService
+from love_reply_api.application.ai_gateway import AiHttpTransport, RegistryAiProvider
 from love_reply_api.application.auth import AuthService, EmailSender, SmsSender
 from love_reply_api.application.errors import ApiError
 from love_reply_api.application.generation import AiProvider, GenerationService
@@ -194,8 +195,19 @@ def get_generation_service(
     return GenerationService(session=session, settings=settings)
 
 
-def get_ai_provider(request: Request) -> AiProvider:
-    return cast(AiProvider, request.app.state.ai_provider)
+def get_ai_provider(
+    request: Request,
+    session: Annotated[AsyncSession, Depends(get_session)],
+    settings: Annotated[Settings, Depends(get_settings)],
+) -> AiProvider:
+    override = request.app.state.ai_provider
+    if override is not None:
+        return cast(AiProvider, override)
+    return RegistryAiProvider(
+        session=session,
+        settings=settings,
+        transport=cast(AiHttpTransport, request.app.state.ai_transport),
+    )
 
 
 async def get_auth_context(
