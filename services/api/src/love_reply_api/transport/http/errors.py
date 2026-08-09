@@ -21,7 +21,7 @@ async def api_error_handler(request: Request, exc: ApiError) -> JSONResponse:
             "data": None,
             "error": {
                 "retryable": exc.retryable,
-                "retryAfterSeconds": None,
+                "retryAfterSeconds": exc.retry_after_seconds,
                 "fieldErrors": [],
                 "details": exc.details,
             },
@@ -58,4 +58,3 @@ async def validation_error_handler(
             "timestamp": datetime.now(UTC).isoformat(),
         },
     )
-

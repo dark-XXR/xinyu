@@ -1,13 +1,13 @@
 # Development status
 
-Last updated: 2026-08-08
+Last updated: 2026-08-09
 
 ## Current checkpoint
 
 - Active task: `BACKEND-AUTH-CHANNELS-001`
 - State: `in_progress`
 - Contract version: `1.0.0`
-- Current phase: user-facing contracts through commerce, ad reward, and referral are complete; real adapters and persistence are next
+- Current phase: email-first authentication persistence and policy enforcement are complete; encrypted provider adapters are next
 
 ## Completed
 
@@ -15,6 +15,9 @@ Last updated: 2026-08-08
   SSE, risk appeal, generated Kotlin client, and generated TypeScript client.
 - Additive email-first authentication contract with public channel policy, email OTP challenge,
   email login, stable provider-unavailable errors, and SMS compatibility.
+- Email OTP is now implemented end to end through an injected delivery adapter. The database stores
+  only HMAC challenge digests, supports email-only users, enforces published TTL, resend, attempt,
+  enable/disable policies, and reuses SMS token rotation, device, wallet, and entitlement behavior.
 - Published runtime configuration now owns free benefits, logical models, reply styles, feature
   switches, and quote lifetime. Android reads its style catalog from server bootstrap and
   intersects it with the authenticated entitlement.
@@ -60,6 +63,10 @@ Android Lint, and Debug APK assembly all passed.
 Identity contract validation now covers 46 fixtures across 19 tagged operations. Generated
 Kotlin and TypeScript clients both compile with the new email/channel models and operations.
 
+Backend verification now covers 13 PostgreSQL integration tests. The email/auth migration passed
+upgrade, downgrade, and re-upgrade; Ruff, strict MyPy, TypeScript, Android unit tests, Android Lint,
+and Debug APK assembly also pass.
+
 ## External inputs
 
 - Real email/SMTP credentials and verified sender domain are not configured.
@@ -87,7 +94,7 @@ not being represented as a completed interactive Antigravity design workflow.
 
 ## Next exact actions
 
-1. Implement email-first authentication and the encrypted provider registry.
-2. Implement AI routes, Epay, catalog versioning, advertising rewards, and referral persistence.
-3. Build the administration console for provider, model, payment, product, and audit operations.
-4. Change Android to email-first login, then perform the full Antigravity UI redesign.
+1. Implement the encrypted provider registry and connect the SMTP/API email delivery adapter.
+2. Change Android to email-first login and expose SMS only when the channel policy allows it.
+3. Implement AI routes, Epay, catalog versioning, advertising rewards, and referral persistence.
+4. Build the administration console, then perform the full Antigravity Android UI redesign.

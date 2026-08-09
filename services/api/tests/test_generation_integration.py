@@ -29,6 +29,7 @@ from love_reply_api.infrastructure.identity_records import (
     AuthSessionRecord,
     ConsentRecord,
     DataRequestRecord,
+    EmailChallengeRecord,
     IdempotencyRecord,
     SmsChallengeRecord,
     UserDeviceRecord,
@@ -130,9 +131,10 @@ async def _clean() -> None:
             DataRequestRecord,
             AuthSessionRecord,
             UserDeviceRecord,
-            UserProfileRecord,
-            UserRecord,
-            SmsChallengeRecord,
+        UserProfileRecord,
+        UserRecord,
+        EmailChallengeRecord,
+        SmsChallengeRecord,
         ):
             await session.execute(delete(record))
         await session.commit()

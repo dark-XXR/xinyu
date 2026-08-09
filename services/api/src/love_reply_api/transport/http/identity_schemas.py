@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import Field
+from pydantic import EmailStr, Field, field_validator
 
 from love_reply_api.schemas import ApiModel, SuccessEnvelope
 
@@ -16,6 +16,40 @@ class SmsChallengeData(ApiModel):
     challenge_id: str
     expires_at: datetime
     resend_after_seconds: int
+
+
+class EmailSendRequest(ApiModel):
+    email: EmailStr
+    purpose: str = Field(pattern=r"^LOGIN$")
+    captcha_token: str | None = Field(default=None, max_length=2048)
+
+    @field_validator("email", mode="before")
+    @classmethod
+    def strip_email(cls, value: object) -> object:
+        return value.strip() if isinstance(value, str) else value
+
+
+class EmailChallengeData(SmsChallengeData):
+    masked_destination: str
+
+
+class EmailLoginRequest(ApiModel):
+    challenge_id: str
+    code: str = Field(pattern=r"^[0-9]{6}$")
+
+
+class AuthChannelAvailabilityData(ApiModel):
+    channel: str
+    available: bool
+    challenge_modes: list[str]
+    unavailable_reason_code: str | None
+
+
+class AuthChannelPolicyData(ApiModel):
+    primary_channel: str
+    fallback_channels: list[str]
+    channels: list[AuthChannelAvailabilityData]
+    policy_version: int
 
 
 class SmsLoginRequest(ApiModel):
@@ -125,6 +159,8 @@ class EmptyData(ApiModel):
 
 
 SmsChallengeResponse = SuccessEnvelope[SmsChallengeData]
+EmailChallengeResponse = SuccessEnvelope[EmailChallengeData]
+AuthChannelPolicyResponse = SuccessEnvelope[AuthChannelPolicyData]
 LoginResponse = SuccessEnvelope[LoginData]
 TokenResponse = SuccessEnvelope[TokenData]
 EmptyResponse = SuccessEnvelope[EmptyData]

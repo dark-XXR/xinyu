@@ -23,7 +23,6 @@ class Settings(BaseSettings):
     jwt_issuer: str = "love-reply-api"
     access_token_ttl_seconds: int = 900
     refresh_token_ttl_seconds: int = 2_592_000
-    sms_challenge_ttl_seconds: int = 300
     idempotency_ttl_seconds: int = 86_400
     idempotency_max_response_bytes: int = 1_048_576
     generation_event_ttl_seconds: int = 86_400

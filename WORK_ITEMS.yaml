@@ -451,7 +451,7 @@ items:
     title: Implement email OTP primary authentication and configurable SMS fallback
     moduleCode: AUTH
     owner: codex-root
-    status: planned
+    status: in_progress
     allowedPaths:
       - services/api/src/love_reply_api/application/**
       - services/api/src/love_reply_api/domain/**
@@ -466,7 +466,7 @@ items:
       - email_login_refresh_and_revocation_pass_against_postgres
       - sms_fallback_is_policy_controlled_and_fail_closed
       - auth_provider_errors_do_not_reveal_account_existence
-    handoffNotes: ""
+    handoffNotes: "Email-first OTP persistence, public channel availability, policy-controlled EMAIL/SMS enablement, configurable TTL/resend/attempt limits, email-only users, and shared token/device/entitlement flows are implemented. Thirteen PostgreSQL integration tests pass and raw OTP values are never stored. The final SMTP/API delivery adapter will be supplied by BACKEND-PROVIDER-REGISTRY-001 so credentials remain encrypted and administrator-managed rather than environment-hardcoded."
 
   - taskId: BACKEND-PROVIDER-REGISTRY-001
     title: Implement encrypted configurable provider registry health checks and rollout

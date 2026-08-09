@@ -88,6 +88,25 @@ async def test_published_config_controls_new_entitlement_and_generation_quote() 
             "allowed_model_ids": ["model_runtime_test"],
             "allowed_style_ids": ["runtime_style"],
         },
+        auth_policy={
+            "primary_channel": "EMAIL",
+            "fallback_channels": ["SMS"],
+            "policy_version": 1,
+            "channels": {
+                "EMAIL": {
+                    "enabled": True,
+                    "challenge_ttl_seconds": 600,
+                    "resend_after_seconds": 60,
+                    "max_attempts": 5,
+                },
+                "SMS": {
+                    "enabled": True,
+                    "challenge_ttl_seconds": 300,
+                    "resend_after_seconds": 60,
+                    "max_attempts": 5,
+                },
+            },
+        },
         feature_flags={"runtimeTest": True},
         published_at=now,
         created_at=now,

@@ -6,7 +6,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from love_reply_api.application.auth import AuthService, SmsSender
+from love_reply_api.application.auth import AuthService, EmailSender, SmsSender
 from love_reply_api.application.errors import ApiError
 from love_reply_api.application.generation import AiProvider, GenerationService
 from love_reply_api.application.identity import IdentityService
@@ -57,12 +57,22 @@ def get_sms_sender(request: Request) -> SmsSender:
     return cast(SmsSender, request.app.state.sms_sender)
 
 
+def get_email_sender(request: Request) -> EmailSender:
+    return cast(EmailSender, request.app.state.email_sender)
+
+
 def get_auth_service(
     session: Annotated[AsyncSession, Depends(get_session)],
     settings: Annotated[Settings, Depends(get_settings)],
     sms_sender: Annotated[SmsSender, Depends(get_sms_sender)],
+    email_sender: Annotated[EmailSender, Depends(get_email_sender)],
 ) -> AuthService:
-    return AuthService(session=session, settings=settings, sms_sender=sms_sender)
+    return AuthService(
+        session=session,
+        settings=settings,
+        sms_sender=sms_sender,
+        email_sender=email_sender,
+    )
 
 
 def get_identity_service(

@@ -9,6 +9,7 @@ class ApiError(Exception):
         code: str,
         message: str,
         retryable: bool = False,
+        retry_after_seconds: int | None = None,
         details: dict[str, Any] | None = None,
     ) -> None:
         super().__init__(message)
@@ -16,5 +17,5 @@ class ApiError(Exception):
         self.code = code
         self.message = message
         self.retryable = retryable
+        self.retry_after_seconds = retry_after_seconds
         self.details = details or {}
-

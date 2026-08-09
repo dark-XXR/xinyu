@@ -19,7 +19,8 @@ class UserRecord(Base):
     __tablename__ = "users"
 
     user_id: Mapped[str] = mapped_column(String(64), primary_key=True)
-    phone_e164: Mapped[str] = mapped_column(String(20), unique=True, nullable=False)
+    phone_e164: Mapped[str | None] = mapped_column(String(20), unique=True)
+    email_normalized: Mapped[str | None] = mapped_column(String(254), unique=True)
     status: Mapped[str] = mapped_column(String(32), nullable=False)
     locale: Mapped[str] = mapped_column(String(35), nullable=False)
     time_zone: Mapped[str] = mapped_column(String(64), nullable=False)
@@ -62,6 +63,19 @@ class SmsChallengeRecord(Base):
 
     challenge_id: Mapped[str] = mapped_column(String(64), primary_key=True)
     phone_e164: Mapped[str] = mapped_column(String(20), nullable=False, index=True)
+    purpose: Mapped[str] = mapped_column(String(32), nullable=False)
+    code_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    attempts: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    consumed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class EmailChallengeRecord(Base):
+    __tablename__ = "email_challenges"
+
+    challenge_id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    email_normalized: Mapped[str] = mapped_column(String(254), nullable=False, index=True)
     purpose: Mapped[str] = mapped_column(String(32), nullable=False)
     code_hash: Mapped[str] = mapped_column(String(64), nullable=False)
     attempts: Mapped[int] = mapped_column(Integer, nullable=False, default=0)

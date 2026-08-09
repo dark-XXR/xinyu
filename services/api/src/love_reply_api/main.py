@@ -3,7 +3,7 @@ from uuid import uuid4
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 
-from love_reply_api.application.auth import UnavailableSmsSender
+from love_reply_api.application.auth import UnavailableEmailSender, UnavailableSmsSender
 from love_reply_api.application.errors import ApiError
 from love_reply_api.application.generation import UnavailableAiProvider
 from love_reply_api.config import get_settings
@@ -27,6 +27,7 @@ app = FastAPI(
     openapi_url="/internal/openapi.json" if settings.app_env != "production" else None,
 )
 app.state.sms_sender = UnavailableSmsSender()
+app.state.email_sender = UnavailableEmailSender()
 app.state.ai_provider = UnavailableAiProvider()
 app.add_exception_handler(ApiError, api_error_handler)  # type: ignore[arg-type]
 app.add_exception_handler(RequestValidationError, validation_error_handler)  # type: ignore[arg-type]

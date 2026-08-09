@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 from sqlalchemy import select
@@ -42,6 +43,37 @@ class FreeEntitlementConfig(BaseModel):
     allowed_style_ids: list[str] = Field(min_length=1)
 
 
+AuthChannel = Literal["EMAIL", "SMS"]
+
+
+class AuthChallengePolicyConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    enabled: bool
+    challenge_ttl_seconds: int = Field(ge=60, le=3600)
+    resend_after_seconds: int = Field(ge=1, le=3600)
+    max_attempts: int = Field(ge=1, le=20)
+
+
+class AuthPolicyConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    primary_channel: AuthChannel
+    fallback_channels: list[AuthChannel]
+    channels: dict[AuthChannel, AuthChallengePolicyConfig]
+    policy_version: int = Field(ge=1)
+
+    @model_validator(mode="after")
+    def validate_channels(self) -> "AuthPolicyConfig":
+        if set(self.channels) != {"EMAIL", "SMS"}:
+            raise ValueError("auth policy must configure EMAIL and SMS")
+        if self.primary_channel in self.fallback_channels:
+            raise ValueError("primary auth channel cannot also be a fallback")
+        if len(self.fallback_channels) != len(set(self.fallback_channels)):
+            raise ValueError("fallback auth channels must be unique")
+        return self
+
+
 class PublishedRuntimeConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -51,6 +83,7 @@ class PublishedRuntimeConfig(BaseModel):
     styles: list[ReplyStyleConfig] = Field(min_length=1)
     generation_policy: GenerationPolicyConfig
     free_entitlement: FreeEntitlementConfig
+    auth_policy: AuthPolicyConfig
     feature_flags: dict[str, bool]
 
     @model_validator(mode="after")
@@ -103,6 +136,7 @@ class RuntimeConfigService:
                 styles=record.styles,
                 generation_policy=record.generation_policy,
                 free_entitlement=record.free_entitlement,
+                auth_policy=record.auth_policy,
                 feature_flags=record.feature_flags,
             )
         except ValueError as exc:
