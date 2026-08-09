@@ -57,6 +57,8 @@ tags:
     description: Administrator authentication, roles, permissions, and audit access.
   - name: ADMIN_PROVIDER
     description: Versioned AI, email, SMS, and payment provider administration.
+  - name: ADMIN_AI
+    description: Logical models, bounded routes, prompts, evaluations, and AI risk policies.
   - name: ADMIN_REFERRAL
     description: Versioned referral campaign administration and rollout.
 paths:
@@ -201,6 +203,38 @@ paths:
     $ref: ./admin/providers.yaml#/publish
   /admin/v1/providers/{providerId}/rollback:
     $ref: ./admin/providers.yaml#/rollback
+  /admin/v1/ai/model-mappings:
+    $ref: ./admin/model-gateway.yaml#/modelMappings
+  /admin/v1/ai/model-mappings/{modelMappingId}:
+    $ref: ./admin/model-gateway.yaml#/modelMapping
+  /admin/v1/ai/routes:
+    $ref: ./admin/model-gateway.yaml#/routes
+  /admin/v1/ai/routes/{routeId}:
+    $ref: ./admin/model-gateway.yaml#/route
+  /admin/v1/ai/routes/{routeId}/publish:
+    $ref: ./admin/model-gateway.yaml#/routePublish
+  /admin/v1/ai/routes/{routeId}/rollback:
+    $ref: ./admin/model-gateway.yaml#/routeRollback
+  /admin/v1/ai/prompts:
+    $ref: ./admin/prompts.yaml#/prompts
+  /admin/v1/ai/prompts/{promptId}:
+    $ref: ./admin/prompts.yaml#/prompt
+  /admin/v1/ai/prompts/{promptId}/publish:
+    $ref: ./admin/prompts.yaml#/publish
+  /admin/v1/ai/prompts/{promptId}/rollback:
+    $ref: ./admin/prompts.yaml#/rollback
+  /admin/v1/ai/evaluation-runs:
+    $ref: ./admin/evaluations.yaml#/runs
+  /admin/v1/ai/evaluation-runs/{evaluationRunId}:
+    $ref: ./admin/evaluations.yaml#/run
+  /admin/v1/ai/risk-policies:
+    $ref: ./admin/risk.yaml#/policies
+  /admin/v1/ai/risk-policies/{riskPolicyId}:
+    $ref: ./admin/risk.yaml#/policy
+  /admin/v1/ai/risk-policies/{riskPolicyId}/publish:
+    $ref: ./admin/risk.yaml#/publish
+  /admin/v1/ai/risk-policies/{riskPolicyId}/rollback:
+    $ref: ./admin/risk.yaml#/rollback
   /admin/v1/referral-campaigns:
     $ref: ./admin/referrals.yaml#/campaigns
   /admin/v1/referral-campaigns/{campaignId}:

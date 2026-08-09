@@ -9,6 +9,7 @@ Run validation from the repository root:
 ```text
 python tools/contract-ci/validate_fixtures.py
 python tools/contract-ci/validate_fixtures.py --manifest packages/contract-test-fixtures/admin-providers-manifest.json
+python tools/contract-ci/validate_fixtures.py --manifest packages/contract-test-fixtures/admin-ai-manifest.json
 python tools/contract-ci/validate_fixtures.py --manifest packages/contract-test-fixtures/commerce-manifest.json
 python tools/contract-ci/validate_fixtures.py --manifest packages/contract-test-fixtures/referral-manifest.json
 ```

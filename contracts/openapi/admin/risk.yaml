@@ -1,0 +1,186 @@
+policies:
+  get:
+    operationId: listAdminAiRiskPolicies
+    summary: List versioned AI risk policies
+    tags: [ADMIN_AI]
+    security: [{ adminBearerAuth: [] }]
+    parameters:
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+      - $ref: ../components/parameters.yaml#/Cursor
+      - $ref: ../components/parameters.yaml#/Limit
+    responses:
+      "200":
+        description: Versioned risk policies.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/admin-ai.yaml#/AiRiskPolicyListResponse
+      "401": { $ref: ../components/responses.yaml#/Unauthorized }
+      "403": { $ref: ../components/responses.yaml#/Forbidden }
+      "500": { $ref: ../components/responses.yaml#/InternalError }
+  post:
+    operationId: createAdminAiRiskPolicy
+    summary: Create an AI risk policy draft
+    tags: [ADMIN_AI]
+    security: [{ adminBearerAuth: [] }]
+    parameters:
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+      - $ref: ../components/parameters.yaml#/IdempotencyKey
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/admin-ai.yaml#/AiRiskPolicyWriteRequest
+    responses:
+      "201":
+        description: Risk policy draft created.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/admin-ai.yaml#/AiRiskPolicyResponse
+      "400": { $ref: ../components/responses.yaml#/BadRequest }
+      "401": { $ref: ../components/responses.yaml#/Unauthorized }
+      "403": { $ref: ../components/responses.yaml#/Forbidden }
+      "409": { $ref: ../components/responses.yaml#/Conflict }
+      "500": { $ref: ../components/responses.yaml#/InternalError }
+
+policy:
+  get:
+    operationId: getAdminAiRiskPolicy
+    summary: Read one AI risk policy version
+    tags: [ADMIN_AI]
+    security: [{ adminBearerAuth: [] }]
+    parameters:
+      - $ref: "#/components/riskPolicyId"
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+    responses:
+      "200":
+        description: Risk policy version.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/admin-ai.yaml#/AiRiskPolicyResponse
+      "401": { $ref: ../components/responses.yaml#/Unauthorized }
+      "403": { $ref: ../components/responses.yaml#/Forbidden }
+      "404": { $ref: ../components/responses.yaml#/NotFound }
+      "500": { $ref: ../components/responses.yaml#/InternalError }
+  patch:
+    operationId: updateAdminAiRiskPolicy
+    summary: Replace an AI risk policy draft
+    tags: [ADMIN_AI]
+    security: [{ adminBearerAuth: [] }]
+    parameters:
+      - $ref: "#/components/riskPolicyId"
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+      - $ref: ../components/parameters.yaml#/IdempotencyKey
+      - $ref: ../components/parameters.yaml#/IfMatch
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/admin-ai.yaml#/AiRiskPolicyWriteRequest
+    responses:
+      "200":
+        description: Risk policy draft updated and version advanced.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/admin-ai.yaml#/AiRiskPolicyResponse
+      "400": { $ref: ../components/responses.yaml#/BadRequest }
+      "401": { $ref: ../components/responses.yaml#/Unauthorized }
+      "403": { $ref: ../components/responses.yaml#/Forbidden }
+      "404": { $ref: ../components/responses.yaml#/NotFound }
+      "409": { $ref: ../components/responses.yaml#/Conflict }
+      "500": { $ref: ../components/responses.yaml#/InternalError }
+
+publish:
+  post:
+    operationId: publishAdminAiRiskPolicy
+    summary: Publish an evaluated AI risk policy
+    tags: [ADMIN_AI]
+    security: [{ adminBearerAuth: [] }]
+    parameters:
+      - $ref: "#/components/riskPolicyId"
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+      - $ref: ../components/parameters.yaml#/IdempotencyKey
+      - $ref: ../components/parameters.yaml#/IfMatch
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/admin-ai.yaml#/AiPublishRequest
+    responses:
+      "200":
+        description: Evaluated risk policy publication scheduled or activated.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/admin-ai.yaml#/AiRiskPolicyResponse
+      "400": { $ref: ../components/responses.yaml#/BadRequest }
+      "401": { $ref: ../components/responses.yaml#/Unauthorized }
+      "403": { $ref: ../components/responses.yaml#/Forbidden }
+      "404": { $ref: ../components/responses.yaml#/NotFound }
+      "409": { $ref: ../components/responses.yaml#/Conflict }
+      "500": { $ref: ../components/responses.yaml#/InternalError }
+
+rollback:
+  post:
+    operationId: rollbackAdminAiRiskPolicy
+    summary: Restore a previously published AI risk policy version
+    tags: [ADMIN_AI]
+    security: [{ adminBearerAuth: [] }]
+    parameters:
+      - $ref: "#/components/riskPolicyId"
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+      - $ref: ../components/parameters.yaml#/IdempotencyKey
+      - $ref: ../components/parameters.yaml#/IfMatch
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/admin-ai.yaml#/AiRollbackRequest
+    responses:
+      "200":
+        description: Previous immutable risk policy version restored.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/admin-ai.yaml#/AiRiskPolicyResponse
+      "400": { $ref: ../components/responses.yaml#/BadRequest }
+      "401": { $ref: ../components/responses.yaml#/Unauthorized }
+      "403": { $ref: ../components/responses.yaml#/Forbidden }
+      "404": { $ref: ../components/responses.yaml#/NotFound }
+      "409": { $ref: ../components/responses.yaml#/Conflict }
+      "500": { $ref: ../components/responses.yaml#/InternalError }
+
+components:
+  riskPolicyId:
+    name: riskPolicyId
+    in: path
+    required: true
+    schema:
+      type: string
+      minLength: 8
+      maxLength: 128

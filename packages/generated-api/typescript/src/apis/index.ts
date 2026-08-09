@@ -1,5 +1,6 @@
 /* tslint:disable */
 /* eslint-disable */
+export * from './ADMINAIApi';
 export * from './ADMINPROVIDERApi';
 export * from './ADMINRBACApi';
 export * from './ADMINREFERRALApi';

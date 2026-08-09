@@ -16,9 +16,9 @@ Next, try it out.
 ```ts
 import {
   Configuration,
-  ADMINPROVIDERApi,
+  ADMINAIApi,
 } from '@love-reply/generated-api';
-import type { CheckAdminProviderHealthRequest } from '@love-reply/generated-api';
+import type { CreateAdminAiEvaluationRunRequest } from '@love-reply/generated-api';
 
 async function example() {
   console.log("🚀 Testing @love-reply/generated-api SDK...");
@@ -26,11 +26,9 @@ async function example() {
     // Configure HTTP bearer authorization: adminBearerAuth
     accessToken: "YOUR BEARER TOKEN",
   });
-  const api = new ADMINPROVIDERApi(config);
+  const api = new ADMINAIApi(config);
 
   const body = {
-    // string
-    providerId: providerId_example,
     // string | Semantic application version used for compatibility enforcement.
     xClientVersion: xClientVersion_example,
     // 'ANDROID' | 'ADMIN_WEB'
@@ -39,14 +37,14 @@ async function example() {
     acceptLanguage: acceptLanguage_example,
     // string | Unique key scoped to authenticated actor, operation, and request fingerprint.
     idempotencyKey: idempotencyKey_example,
-    // HealthCheckRequest
-    healthCheckRequest: ...,
+    // AiEvaluationRunRequest
+    aiEvaluationRunRequest: ...,
     // string | Client correlation ID. The server returns the final accepted value. (optional)
     xRequestId: xRequestId_example,
-  } satisfies CheckAdminProviderHealthRequest;
+  } satisfies CreateAdminAiEvaluationRunRequest;
 
   try {
-    const data = await api.checkAdminProviderHealth(body);
+    const data = await api.createAdminAiEvaluationRun(body);
     console.log(data);
   } catch (error) {
     console.error(error);
@@ -66,6 +64,30 @@ All URIs are relative to *http://localhost:8000*
 
 | Class | Method | HTTP request | Description
 | ----- | ------ | ------------ | -------------
+*ADMINAIApi* | [**createAdminAiEvaluationRun**](docs/ADMINAIApi.md#createadminaievaluationrun) | **POST** /admin/v1/ai/evaluation-runs | Start a bounded-cost prompt and route evaluation
+*ADMINAIApi* | [**createAdminAiModelMapping**](docs/ADMINAIApi.md#createadminaimodelmapping) | **POST** /admin/v1/ai/model-mappings | Create an AI model mapping draft
+*ADMINAIApi* | [**createAdminAiPrompt**](docs/ADMINAIApi.md#createadminaiprompt) | **POST** /admin/v1/ai/prompts | Create a prompt template draft
+*ADMINAIApi* | [**createAdminAiRiskPolicy**](docs/ADMINAIApi.md#createadminairiskpolicy) | **POST** /admin/v1/ai/risk-policies | Create an AI risk policy draft
+*ADMINAIApi* | [**createAdminAiRoute**](docs/ADMINAIApi.md#createadminairoute) | **POST** /admin/v1/ai/routes | Create an AI scenario route draft
+*ADMINAIApi* | [**getAdminAiEvaluationRun**](docs/ADMINAIApi.md#getadminaievaluationrun) | **GET** /admin/v1/ai/evaluation-runs/{evaluationRunId} | Read evaluation progress and gate result
+*ADMINAIApi* | [**getAdminAiModelMapping**](docs/ADMINAIApi.md#getadminaimodelmapping) | **GET** /admin/v1/ai/model-mappings/{modelMappingId} | Read one AI model mapping
+*ADMINAIApi* | [**getAdminAiPrompt**](docs/ADMINAIApi.md#getadminaiprompt) | **GET** /admin/v1/ai/prompts/{promptId} | Read one prompt template version
+*ADMINAIApi* | [**getAdminAiRiskPolicy**](docs/ADMINAIApi.md#getadminairiskpolicy) | **GET** /admin/v1/ai/risk-policies/{riskPolicyId} | Read one AI risk policy version
+*ADMINAIApi* | [**getAdminAiRoute**](docs/ADMINAIApi.md#getadminairoute) | **GET** /admin/v1/ai/routes/{routeId} | Read one AI route version
+*ADMINAIApi* | [**listAdminAiModelMappings**](docs/ADMINAIApi.md#listadminaimodelmappings) | **GET** /admin/v1/ai/model-mappings | List administrator-only logical to provider model mappings
+*ADMINAIApi* | [**listAdminAiPrompts**](docs/ADMINAIApi.md#listadminaiprompts) | **GET** /admin/v1/ai/prompts | List versioned AI prompt templates
+*ADMINAIApi* | [**listAdminAiRiskPolicies**](docs/ADMINAIApi.md#listadminairiskpolicies) | **GET** /admin/v1/ai/risk-policies | List versioned AI risk policies
+*ADMINAIApi* | [**listAdminAiRoutes**](docs/ADMINAIApi.md#listadminairoutes) | **GET** /admin/v1/ai/routes | List versioned AI scenario routes
+*ADMINAIApi* | [**publishAdminAiPrompt**](docs/ADMINAIApi.md#publishadminaiprompt) | **POST** /admin/v1/ai/prompts/{promptId}/publish | Publish a prompt version after a successful evaluation gate
+*ADMINAIApi* | [**publishAdminAiRiskPolicy**](docs/ADMINAIApi.md#publishadminairiskpolicy) | **POST** /admin/v1/ai/risk-policies/{riskPolicyId}/publish | Publish an evaluated AI risk policy
+*ADMINAIApi* | [**publishAdminAiRoute**](docs/ADMINAIApi.md#publishadminairoute) | **POST** /admin/v1/ai/routes/{routeId}/publish | Publish an evaluated bounded-cost AI route
+*ADMINAIApi* | [**rollbackAdminAiPrompt**](docs/ADMINAIApi.md#rollbackadminaiprompt) | **POST** /admin/v1/ai/prompts/{promptId}/rollback | Restore a previously published prompt version
+*ADMINAIApi* | [**rollbackAdminAiRiskPolicy**](docs/ADMINAIApi.md#rollbackadminairiskpolicy) | **POST** /admin/v1/ai/risk-policies/{riskPolicyId}/rollback | Restore a previously published AI risk policy version
+*ADMINAIApi* | [**rollbackAdminAiRoute**](docs/ADMINAIApi.md#rollbackadminairoute) | **POST** /admin/v1/ai/routes/{routeId}/rollback | Restore a previously published AI route version
+*ADMINAIApi* | [**updateAdminAiModelMapping**](docs/ADMINAIApi.md#updateadminaimodelmapping) | **PATCH** /admin/v1/ai/model-mappings/{modelMappingId} | Replace an AI model mapping draft
+*ADMINAIApi* | [**updateAdminAiPrompt**](docs/ADMINAIApi.md#updateadminaiprompt) | **PATCH** /admin/v1/ai/prompts/{promptId} | Replace a prompt template draft
+*ADMINAIApi* | [**updateAdminAiRiskPolicy**](docs/ADMINAIApi.md#updateadminairiskpolicy) | **PATCH** /admin/v1/ai/risk-policies/{riskPolicyId} | Replace an AI risk policy draft
+*ADMINAIApi* | [**updateAdminAiRoute**](docs/ADMINAIApi.md#updateadminairoute) | **PATCH** /admin/v1/ai/routes/{routeId} | Replace an AI route draft configuration
 *ADMINPROVIDERApi* | [**checkAdminProviderHealth**](docs/ADMINPROVIDERApi.md#checkadminproviderhealth) | **POST** /admin/v1/providers/{providerId}/health-checks | Execute an audited redacted provider health check
 *ADMINPROVIDERApi* | [**createAdminProvider**](docs/ADMINPROVIDERApi.md#createadminprovider) | **POST** /admin/v1/providers | Create a provider draft
 *ADMINPROVIDERApi* | [**getAdminProvider**](docs/ADMINPROVIDERApi.md#getadminprovider) | **GET** /admin/v1/providers/{providerId} | Read one redacted provider configuration
@@ -168,6 +190,35 @@ All URIs are relative to *http://localhost:8000*
 - [AdminTokenData](docs/AdminTokenData.md)
 - [AdminTokenPair](docs/AdminTokenPair.md)
 - [AdminTokenResponse](docs/AdminTokenResponse.md)
+- [AiEvaluationRun](docs/AiEvaluationRun.md)
+- [AiEvaluationRunRequest](docs/AiEvaluationRunRequest.md)
+- [AiEvaluationRunResponse](docs/AiEvaluationRunResponse.md)
+- [AiModality](docs/AiModality.md)
+- [AiModelMapping](docs/AiModelMapping.md)
+- [AiModelMappingListData](docs/AiModelMappingListData.md)
+- [AiModelMappingListResponse](docs/AiModelMappingListResponse.md)
+- [AiModelMappingResponse](docs/AiModelMappingResponse.md)
+- [AiModelMappingWriteRequest](docs/AiModelMappingWriteRequest.md)
+- [AiPromptListData](docs/AiPromptListData.md)
+- [AiPromptListResponse](docs/AiPromptListResponse.md)
+- [AiPromptResponse](docs/AiPromptResponse.md)
+- [AiPromptTemplate](docs/AiPromptTemplate.md)
+- [AiPromptWriteRequest](docs/AiPromptWriteRequest.md)
+- [AiPublishRequest](docs/AiPublishRequest.md)
+- [AiResourceStatus](docs/AiResourceStatus.md)
+- [AiRiskPolicy](docs/AiRiskPolicy.md)
+- [AiRiskPolicyListData](docs/AiRiskPolicyListData.md)
+- [AiRiskPolicyListResponse](docs/AiRiskPolicyListResponse.md)
+- [AiRiskPolicyResponse](docs/AiRiskPolicyResponse.md)
+- [AiRiskPolicyWriteRequest](docs/AiRiskPolicyWriteRequest.md)
+- [AiRollbackRequest](docs/AiRollbackRequest.md)
+- [AiRoute](docs/AiRoute.md)
+- [AiRouteListData](docs/AiRouteListData.md)
+- [AiRouteListResponse](docs/AiRouteListResponse.md)
+- [AiRouteResponse](docs/AiRouteResponse.md)
+- [AiRouteTarget](docs/AiRouteTarget.md)
+- [AiRouteWriteRequest](docs/AiRouteWriteRequest.md)
+- [AiScenario](docs/AiScenario.md)
 - [AppBootstrap](docs/AppBootstrap.md)
 - [AppBootstrapResponse](docs/AppBootstrapResponse.md)
 - [Appeal](docs/Appeal.md)

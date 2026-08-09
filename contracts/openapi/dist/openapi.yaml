@@ -57,6 +57,8 @@ tags:
     description: Administrator authentication, roles, permissions, and audit access.
   - name: ADMIN_PROVIDER
     description: Versioned AI, email, SMS, and payment provider administration.
+  - name: ADMIN_AI
+    description: Logical models, bounded routes, prompts, evaluations, and AI risk policies.
   - name: ADMIN_REFERRAL
     description: Versioned referral campaign administration and rollout.
 paths:
@@ -2262,6 +2264,852 @@ paths:
           $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalError'
+  /admin/v1/ai/model-mappings:
+    get:
+      operationId: listAdminAiModelMappings
+      summary: List administrator-only logical to provider model mappings
+      tags:
+        - ADMIN_AI
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Versioned model mappings including upstream names and costs.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiModelMappingListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    post:
+      operationId: createAdminAiModelMapping
+      summary: Create an AI model mapping draft
+      tags:
+        - ADMIN_AI
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AiModelMappingWriteRequest'
+      responses:
+        '201':
+          description: Model mapping draft created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiModelMappingResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /admin/v1/ai/model-mappings/{modelMappingId}:
+    get:
+      operationId: getAdminAiModelMapping
+      summary: Read one AI model mapping
+      tags:
+        - ADMIN_AI
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/modelMappingId'
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+      responses:
+        '200':
+          description: Model mapping draft or active version.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiModelMappingResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    patch:
+      operationId: updateAdminAiModelMapping
+      summary: Replace an AI model mapping draft
+      tags:
+        - ADMIN_AI
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/modelMappingId'
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AiModelMappingWriteRequest'
+      responses:
+        '200':
+          description: Model mapping draft updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiModelMappingResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /admin/v1/ai/routes:
+    get:
+      operationId: listAdminAiRoutes
+      summary: List versioned AI scenario routes
+      tags:
+        - ADMIN_AI
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Versioned route configurations.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiRouteListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    post:
+      operationId: createAdminAiRoute
+      summary: Create an AI scenario route draft
+      tags:
+        - ADMIN_AI
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AiRouteWriteRequest'
+      responses:
+        '201':
+          description: Route draft created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiRouteResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /admin/v1/ai/routes/{routeId}:
+    get:
+      operationId: getAdminAiRoute
+      summary: Read one AI route version
+      tags:
+        - ADMIN_AI
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/routeId'
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+      responses:
+        '200':
+          description: AI route version.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiRouteResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    patch:
+      operationId: updateAdminAiRoute
+      summary: Replace an AI route draft configuration
+      tags:
+        - ADMIN_AI
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/routeId'
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AiRouteWriteRequest'
+      responses:
+        '200':
+          description: Route draft updated and version advanced.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiRouteResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /admin/v1/ai/routes/{routeId}/publish:
+    post:
+      operationId: publishAdminAiRoute
+      summary: Publish an evaluated bounded-cost AI route
+      description: Publication freezes model mappings, budgets, timeouts, retries, safety policy, and fallback order.
+      tags:
+        - ADMIN_AI
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/routeId'
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AiPublishRequest'
+      responses:
+        '200':
+          description: Evaluated route publication scheduled or activated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiRouteResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /admin/v1/ai/routes/{routeId}/rollback:
+    post:
+      operationId: rollbackAdminAiRoute
+      summary: Restore a previously published AI route version
+      tags:
+        - ADMIN_AI
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/routeId'
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AiRollbackRequest'
+      responses:
+        '200':
+          description: Previous immutable route version restored.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiRouteResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /admin/v1/ai/prompts:
+    get:
+      operationId: listAdminAiPrompts
+      summary: List versioned AI prompt templates
+      tags:
+        - ADMIN_AI
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Versioned prompt templates.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiPromptListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    post:
+      operationId: createAdminAiPrompt
+      summary: Create a prompt template draft
+      tags:
+        - ADMIN_AI
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AiPromptWriteRequest'
+      responses:
+        '201':
+          description: Prompt draft created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiPromptResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /admin/v1/ai/prompts/{promptId}:
+    get:
+      operationId: getAdminAiPrompt
+      summary: Read one prompt template version
+      tags:
+        - ADMIN_AI
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/promptId'
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+      responses:
+        '200':
+          description: Prompt template version.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiPromptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    patch:
+      operationId: updateAdminAiPrompt
+      summary: Replace a prompt template draft
+      tags:
+        - ADMIN_AI
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/promptId'
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AiPromptWriteRequest'
+      responses:
+        '200':
+          description: Prompt draft updated and version advanced.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiPromptResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /admin/v1/ai/prompts/{promptId}/publish:
+    post:
+      operationId: publishAdminAiPrompt
+      summary: Publish a prompt version after a successful evaluation gate
+      description: The evaluation run must match the prompt and route versions being published.
+      tags:
+        - ADMIN_AI
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/promptId'
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AiPublishRequest'
+      responses:
+        '200':
+          description: Evaluated prompt publication scheduled or activated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiPromptResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /admin/v1/ai/prompts/{promptId}/rollback:
+    post:
+      operationId: rollbackAdminAiPrompt
+      summary: Restore a previously published prompt version
+      tags:
+        - ADMIN_AI
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/promptId'
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AiRollbackRequest'
+      responses:
+        '200':
+          description: Previous immutable prompt version restored.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiPromptResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /admin/v1/ai/evaluation-runs:
+    post:
+      operationId: createAdminAiEvaluationRun
+      summary: Start a bounded-cost prompt and route evaluation
+      tags:
+        - ADMIN_AI
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AiEvaluationRunRequest'
+      responses:
+        '202':
+          description: Evaluation queued within the supplied cost ceiling.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiEvaluationRunResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /admin/v1/ai/evaluation-runs/{evaluationRunId}:
+    get:
+      operationId: getAdminAiEvaluationRun
+      summary: Read evaluation progress and gate result
+      tags:
+        - ADMIN_AI
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/evaluationRunId'
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+      responses:
+        '200':
+          description: Evaluation progress and immutable result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiEvaluationRunResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /admin/v1/ai/risk-policies:
+    get:
+      operationId: listAdminAiRiskPolicies
+      summary: List versioned AI risk policies
+      tags:
+        - ADMIN_AI
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Versioned risk policies.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiRiskPolicyListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    post:
+      operationId: createAdminAiRiskPolicy
+      summary: Create an AI risk policy draft
+      tags:
+        - ADMIN_AI
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AiRiskPolicyWriteRequest'
+      responses:
+        '201':
+          description: Risk policy draft created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiRiskPolicyResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /admin/v1/ai/risk-policies/{riskPolicyId}:
+    get:
+      operationId: getAdminAiRiskPolicy
+      summary: Read one AI risk policy version
+      tags:
+        - ADMIN_AI
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/riskPolicyId'
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+      responses:
+        '200':
+          description: Risk policy version.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiRiskPolicyResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    patch:
+      operationId: updateAdminAiRiskPolicy
+      summary: Replace an AI risk policy draft
+      tags:
+        - ADMIN_AI
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/riskPolicyId'
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AiRiskPolicyWriteRequest'
+      responses:
+        '200':
+          description: Risk policy draft updated and version advanced.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiRiskPolicyResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /admin/v1/ai/risk-policies/{riskPolicyId}/publish:
+    post:
+      operationId: publishAdminAiRiskPolicy
+      summary: Publish an evaluated AI risk policy
+      tags:
+        - ADMIN_AI
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/riskPolicyId'
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AiPublishRequest'
+      responses:
+        '200':
+          description: Evaluated risk policy publication scheduled or activated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiRiskPolicyResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /admin/v1/ai/risk-policies/{riskPolicyId}/rollback:
+    post:
+      operationId: rollbackAdminAiRiskPolicy
+      summary: Restore a previously published AI risk policy version
+      tags:
+        - ADMIN_AI
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/riskPolicyId'
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AiRollbackRequest'
+      responses:
+        '200':
+          description: Previous immutable risk policy version restored.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiRiskPolicyResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
   /admin/v1/referral-campaigns:
     get:
       operationId: listAdminReferralCampaigns
@@ -2589,6 +3437,46 @@ components:
         maxLength: 128
     providerId:
       name: providerId
+      in: path
+      required: true
+      schema:
+        type: string
+        minLength: 8
+        maxLength: 128
+    modelMappingId:
+      name: modelMappingId
+      in: path
+      required: true
+      schema:
+        type: string
+        minLength: 8
+        maxLength: 128
+    routeId:
+      name: routeId
+      in: path
+      required: true
+      schema:
+        type: string
+        minLength: 8
+        maxLength: 128
+    promptId:
+      name: promptId
+      in: path
+      required: true
+      schema:
+        type: string
+        minLength: 8
+        maxLength: 128
+    evaluationRunId:
+      name: evaluationRunId
+      in: path
+      required: true
+      schema:
+        type: string
+        minLength: 8
+        maxLength: 128
+    riskPolicyId:
+      name: riskPolicyId
       in: path
       required: true
       schema:
@@ -6070,6 +6958,804 @@ components:
           type: string
           minLength: 8
           maxLength: 500
+    AiModality:
+      type: string
+      enum:
+        - TEXT
+        - IMAGE
+    AiResourceStatus:
+      type: string
+      enum:
+        - DRAFT
+        - READY
+        - ACTIVE
+        - DISABLED
+        - SUPERSEDED
+    AiModelMapping:
+      type: object
+      additionalProperties: false
+      required:
+        - modelMappingId
+        - logicalModelId
+        - providerId
+        - providerModelName
+        - inputModalities
+        - outputModalities
+        - contextWindowTokens
+        - maxOutputTokens
+        - inputCostMicrounitsPerMillionTokens
+        - outputCostMicrounitsPerMillionTokens
+        - currency
+        - status
+        - enabled
+        - resourceVersion
+        - createdAt
+        - updatedAt
+      properties:
+        modelMappingId:
+          type: string
+        logicalModelId:
+          type: string
+          pattern: ^[a-z][a-z0-9_]{1,63}$
+        providerId:
+          type: string
+        providerModelName:
+          type: string
+          minLength: 1
+          maxLength: 256
+          description: Administrator-only upstream model identifier; never returned to clients.
+        inputModalities:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items:
+            $ref: '#/components/schemas/AiModality'
+        outputModalities:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items:
+            $ref: '#/components/schemas/AiModality'
+        contextWindowTokens:
+          type: integer
+          minimum: 1
+          maximum: 10000000
+        maxOutputTokens:
+          type: integer
+          minimum: 1
+          maximum: 1000000
+        inputCostMicrounitsPerMillionTokens:
+          type: integer
+          minimum: 0
+        outputCostMicrounitsPerMillionTokens:
+          type: integer
+          minimum: 0
+        currency:
+          type: string
+          pattern: ^[A-Z]{3}$
+        qualityTier:
+          type:
+            - string
+            - 'null'
+          maxLength: 64
+        dataRegion:
+          type:
+            - string
+            - 'null'
+          maxLength: 64
+        retentionPolicy:
+          type:
+            - string
+            - 'null'
+          maxLength: 500
+        status:
+          $ref: '#/components/schemas/AiResourceStatus'
+        enabled:
+          type: boolean
+        resourceVersion:
+          type: integer
+          minimum: 1
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    AiModelMappingListData:
+      type: object
+      additionalProperties: false
+      required:
+        - items
+        - nextCursor
+        - hasMore
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/AiModelMapping'
+        nextCursor:
+          type:
+            - string
+            - 'null'
+        hasMore:
+          type: boolean
+    AiModelMappingListResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/AiModelMappingListData'
+    AiModelMappingWriteRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - logicalModelId
+        - providerId
+        - providerModelName
+        - inputModalities
+        - outputModalities
+        - contextWindowTokens
+        - maxOutputTokens
+        - inputCostMicrounitsPerMillionTokens
+        - outputCostMicrounitsPerMillionTokens
+        - currency
+        - enabled
+      properties:
+        logicalModelId:
+          type: string
+          pattern: ^[a-z][a-z0-9_]{1,63}$
+        providerId:
+          type: string
+        providerModelName:
+          type: string
+          minLength: 1
+          maxLength: 256
+        inputModalities:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items:
+            $ref: '#/components/schemas/AiModality'
+        outputModalities:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items:
+            $ref: '#/components/schemas/AiModality'
+        contextWindowTokens:
+          type: integer
+          minimum: 1
+          maximum: 10000000
+        maxOutputTokens:
+          type: integer
+          minimum: 1
+          maximum: 1000000
+        inputCostMicrounitsPerMillionTokens:
+          type: integer
+          minimum: 0
+        outputCostMicrounitsPerMillionTokens:
+          type: integer
+          minimum: 0
+        currency:
+          type: string
+          pattern: ^[A-Z]{3}$
+        qualityTier:
+          type:
+            - string
+            - 'null'
+          maxLength: 64
+        dataRegion:
+          type:
+            - string
+            - 'null'
+          maxLength: 64
+        retentionPolicy:
+          type:
+            - string
+            - 'null'
+          maxLength: 500
+        enabled:
+          type: boolean
+    AiModelMappingResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/AiModelMapping'
+    AiScenario:
+      type: string
+      enum:
+        - REPLY_GENERATION
+        - REPLY_REFINEMENT
+        - SCREENSHOT_OCR
+        - SAFETY_EVALUATION
+    AiRouteTarget:
+      type: object
+      additionalProperties: false
+      required:
+        - modelMappingId
+        - priority
+        - timeoutMs
+        - retryLimit
+      properties:
+        modelMappingId:
+          type: string
+        priority:
+          type: integer
+          minimum: 0
+          maximum: 1000
+        timeoutMs:
+          type: integer
+          minimum: 1000
+          maximum: 120000
+        retryLimit:
+          type: integer
+          minimum: 0
+          maximum: 3
+    AiRoute:
+      type: object
+      additionalProperties: false
+      required:
+        - routeId
+        - version
+        - scenario
+        - logicalModelId
+        - targets
+        - maxInputTokens
+        - maxOutputTokens
+        - budgetCeilingMicrounits
+        - totalAttemptLimit
+        - safetyPolicyId
+        - status
+        - rolloutPercentage
+        - resourceVersion
+        - createdAt
+        - updatedAt
+      properties:
+        routeId:
+          type: string
+        version:
+          type: integer
+          minimum: 1
+        scenario:
+          $ref: '#/components/schemas/AiScenario'
+        logicalModelId:
+          type: string
+          pattern: ^[a-z][a-z0-9_]{1,63}$
+        targets:
+          type: array
+          minItems: 1
+          maxItems: 16
+          items:
+            $ref: '#/components/schemas/AiRouteTarget'
+        maxInputTokens:
+          type: integer
+          minimum: 1
+          maximum: 10000000
+        maxOutputTokens:
+          type: integer
+          minimum: 1
+          maximum: 1000000
+        budgetCeilingMicrounits:
+          type: integer
+          minimum: 0
+        totalAttemptLimit:
+          type: integer
+          minimum: 1
+          maximum: 16
+        safetyPolicyId:
+          type: string
+        status:
+          $ref: '#/components/schemas/AiResourceStatus'
+        rolloutPercentage:
+          type: integer
+          minimum: 0
+          maximum: 100
+        effectiveAt:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        resourceVersion:
+          type: integer
+          minimum: 1
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    AiRouteListData:
+      type: object
+      additionalProperties: false
+      required:
+        - items
+        - nextCursor
+        - hasMore
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/AiRoute'
+        nextCursor:
+          type:
+            - string
+            - 'null'
+        hasMore:
+          type: boolean
+    AiRouteListResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/AiRouteListData'
+    AiRouteWriteRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - scenario
+        - logicalModelId
+        - targets
+        - maxInputTokens
+        - maxOutputTokens
+        - budgetCeilingMicrounits
+        - totalAttemptLimit
+        - safetyPolicyId
+      properties:
+        scenario:
+          $ref: '#/components/schemas/AiScenario'
+        logicalModelId:
+          type: string
+          pattern: ^[a-z][a-z0-9_]{1,63}$
+        targets:
+          type: array
+          minItems: 1
+          maxItems: 16
+          items:
+            $ref: '#/components/schemas/AiRouteTarget'
+        maxInputTokens:
+          type: integer
+          minimum: 1
+          maximum: 10000000
+        maxOutputTokens:
+          type: integer
+          minimum: 1
+          maximum: 1000000
+        budgetCeilingMicrounits:
+          type: integer
+          minimum: 0
+        totalAttemptLimit:
+          type: integer
+          minimum: 1
+          maximum: 16
+        safetyPolicyId:
+          type: string
+    AiRouteResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/AiRoute'
+    AiPublishRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - rolloutPercentage
+        - effectiveAt
+        - evaluationRunId
+        - auditReason
+      properties:
+        rolloutPercentage:
+          type: integer
+          minimum: 1
+          maximum: 100
+        effectiveAt:
+          type: string
+          format: date-time
+        evaluationRunId:
+          type: string
+          description: A successful run is mandatory and must match the published resource version.
+        auditReason:
+          type: string
+          minLength: 8
+          maxLength: 500
+    AiRollbackRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - targetVersion
+        - auditReason
+      properties:
+        targetVersion:
+          type: integer
+          minimum: 1
+        auditReason:
+          type: string
+          minLength: 8
+          maxLength: 500
+    AiPromptTemplate:
+      type: object
+      additionalProperties: false
+      required:
+        - promptId
+        - version
+        - promptCode
+        - scenario
+        - systemTemplate
+        - userTemplate
+        - allowedInputFields
+        - outputSchema
+        - status
+        - resourceVersion
+        - createdAt
+        - updatedAt
+      properties:
+        promptId:
+          type: string
+        version:
+          type: integer
+          minimum: 1
+        promptCode:
+          type: string
+          pattern: ^[A-Z][A-Z0-9_]{1,63}$
+        scenario:
+          $ref: '#/components/schemas/AiScenario'
+        systemTemplate:
+          type: string
+          minLength: 1
+          maxLength: 50000
+        userTemplate:
+          type: string
+          minLength: 1
+          maxLength: 50000
+        allowedInputFields:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items:
+            type: string
+            pattern: ^[a-z][A-Za-z0-9]{0,63}$
+        outputSchema:
+          type: object
+          description: Declarative JSON Schema only; executable expressions are forbidden.
+        safetyPolicyId:
+          type:
+            - string
+            - 'null'
+        status:
+          $ref: '#/components/schemas/AiResourceStatus'
+        effectiveAt:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        resourceVersion:
+          type: integer
+          minimum: 1
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    AiPromptListData:
+      type: object
+      additionalProperties: false
+      required:
+        - items
+        - nextCursor
+        - hasMore
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/AiPromptTemplate'
+        nextCursor:
+          type:
+            - string
+            - 'null'
+        hasMore:
+          type: boolean
+    AiPromptListResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/AiPromptListData'
+    AiPromptWriteRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - promptCode
+        - scenario
+        - systemTemplate
+        - userTemplate
+        - allowedInputFields
+        - outputSchema
+      properties:
+        promptCode:
+          type: string
+          pattern: ^[A-Z][A-Z0-9_]{1,63}$
+        scenario:
+          $ref: '#/components/schemas/AiScenario'
+        systemTemplate:
+          type: string
+          minLength: 1
+          maxLength: 50000
+        userTemplate:
+          type: string
+          minLength: 1
+          maxLength: 50000
+        allowedInputFields:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items:
+            type: string
+            pattern: ^[a-z][A-Za-z0-9]{0,63}$
+        outputSchema:
+          type: object
+        safetyPolicyId:
+          type:
+            - string
+            - 'null'
+    AiPromptResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/AiPromptTemplate'
+    AiEvaluationRunRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - promptId
+        - routeId
+        - suiteIds
+        - evaluatorLogicalModelId
+        - maxCostMicrounits
+      properties:
+        promptId:
+          type: string
+        routeId:
+          type: string
+        suiteIds:
+          type: array
+          minItems: 1
+          maxItems: 50
+          uniqueItems: true
+          items:
+            type: string
+        evaluatorLogicalModelId:
+          type: string
+          pattern: ^[a-z][a-z0-9_]{1,63}$
+        maxCostMicrounits:
+          type: integer
+          minimum: 0
+    AiEvaluationRun:
+      type: object
+      additionalProperties: false
+      required:
+        - evaluationRunId
+        - promptId
+        - routeId
+        - suiteIds
+        - status
+        - passed
+        - totalCases
+        - completedCases
+        - score
+        - safetyPassed
+        - costMicrounits
+        - createdAt
+        - updatedAt
+      properties:
+        evaluationRunId:
+          type: string
+        promptId:
+          type: string
+        routeId:
+          type: string
+        suiteIds:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+          enum:
+            - QUEUED
+            - RUNNING
+            - SUCCEEDED
+            - FAILED
+            - CANCELLED
+        passed:
+          type: boolean
+        totalCases:
+          type: integer
+          minimum: 0
+        completedCases:
+          type: integer
+          minimum: 0
+        score:
+          type: number
+          minimum: 0
+          maximum: 1
+        safetyPassed:
+          type: boolean
+        costMicrounits:
+          type: integer
+          minimum: 0
+        failureCode:
+          type:
+            - string
+            - 'null'
+          pattern: ^[A-Z][A-Z0-9_]*$
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    AiEvaluationRunResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/AiEvaluationRun'
+    AiRiskPolicy:
+      type: object
+      additionalProperties: false
+      required:
+        - riskPolicyId
+        - version
+        - policyCode
+        - blockedCategories
+        - reviewCategories
+        - inputModerationEnabled
+        - outputModerationEnabled
+        - promptInjectionAction
+        - minimumSafetyScore
+        - allowAppeals
+        - status
+        - resourceVersion
+        - createdAt
+        - updatedAt
+      properties:
+        riskPolicyId:
+          type: string
+        version:
+          type: integer
+          minimum: 1
+        policyCode:
+          type: string
+          pattern: ^[A-Z][A-Z0-9_]{1,63}$
+        blockedCategories:
+          type: array
+          uniqueItems: true
+          items:
+            type: string
+            pattern: ^[A-Z][A-Z0-9_]*$
+        reviewCategories:
+          type: array
+          uniqueItems: true
+          items:
+            type: string
+            pattern: ^[A-Z][A-Z0-9_]*$
+        inputModerationEnabled:
+          type: boolean
+        outputModerationEnabled:
+          type: boolean
+        promptInjectionAction:
+          type: string
+          enum:
+            - BLOCK
+            - REVIEW
+            - ALLOW_WITH_WARNING
+        minimumSafetyScore:
+          type: number
+          minimum: 0
+          maximum: 1
+        allowAppeals:
+          type: boolean
+        status:
+          $ref: '#/components/schemas/AiResourceStatus'
+        effectiveAt:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        resourceVersion:
+          type: integer
+          minimum: 1
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    AiRiskPolicyListData:
+      type: object
+      additionalProperties: false
+      required:
+        - items
+        - nextCursor
+        - hasMore
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/AiRiskPolicy'
+        nextCursor:
+          type:
+            - string
+            - 'null'
+        hasMore:
+          type: boolean
+    AiRiskPolicyListResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/AiRiskPolicyListData'
+    AiRiskPolicyWriteRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - policyCode
+        - blockedCategories
+        - reviewCategories
+        - inputModerationEnabled
+        - outputModerationEnabled
+        - promptInjectionAction
+        - minimumSafetyScore
+        - allowAppeals
+      properties:
+        policyCode:
+          type: string
+          pattern: ^[A-Z][A-Z0-9_]{1,63}$
+        blockedCategories:
+          type: array
+          uniqueItems: true
+          items:
+            type: string
+            pattern: ^[A-Z][A-Z0-9_]*$
+        reviewCategories:
+          type: array
+          uniqueItems: true
+          items:
+            type: string
+            pattern: ^[A-Z][A-Z0-9_]*$
+        inputModerationEnabled:
+          type: boolean
+        outputModerationEnabled:
+          type: boolean
+        promptInjectionAction:
+          type: string
+          enum:
+            - BLOCK
+            - REVIEW
+            - ALLOW_WITH_WARNING
+        minimumSafetyScore:
+          type: number
+          minimum: 0
+          maximum: 1
+        allowAppeals:
+          type: boolean
+    AiRiskPolicyResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/AiRiskPolicy'
     ReferralCampaignStatus:
       type: string
       enum:

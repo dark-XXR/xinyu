@@ -1,0 +1,187 @@
+prompts:
+  get:
+    operationId: listAdminAiPrompts
+    summary: List versioned AI prompt templates
+    tags: [ADMIN_AI]
+    security: [{ adminBearerAuth: [] }]
+    parameters:
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+      - $ref: ../components/parameters.yaml#/Cursor
+      - $ref: ../components/parameters.yaml#/Limit
+    responses:
+      "200":
+        description: Versioned prompt templates.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/admin-ai.yaml#/AiPromptListResponse
+      "401": { $ref: ../components/responses.yaml#/Unauthorized }
+      "403": { $ref: ../components/responses.yaml#/Forbidden }
+      "500": { $ref: ../components/responses.yaml#/InternalError }
+  post:
+    operationId: createAdminAiPrompt
+    summary: Create a prompt template draft
+    tags: [ADMIN_AI]
+    security: [{ adminBearerAuth: [] }]
+    parameters:
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+      - $ref: ../components/parameters.yaml#/IdempotencyKey
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/admin-ai.yaml#/AiPromptWriteRequest
+    responses:
+      "201":
+        description: Prompt draft created.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/admin-ai.yaml#/AiPromptResponse
+      "400": { $ref: ../components/responses.yaml#/BadRequest }
+      "401": { $ref: ../components/responses.yaml#/Unauthorized }
+      "403": { $ref: ../components/responses.yaml#/Forbidden }
+      "409": { $ref: ../components/responses.yaml#/Conflict }
+      "500": { $ref: ../components/responses.yaml#/InternalError }
+
+prompt:
+  get:
+    operationId: getAdminAiPrompt
+    summary: Read one prompt template version
+    tags: [ADMIN_AI]
+    security: [{ adminBearerAuth: [] }]
+    parameters:
+      - $ref: "#/components/promptId"
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+    responses:
+      "200":
+        description: Prompt template version.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/admin-ai.yaml#/AiPromptResponse
+      "401": { $ref: ../components/responses.yaml#/Unauthorized }
+      "403": { $ref: ../components/responses.yaml#/Forbidden }
+      "404": { $ref: ../components/responses.yaml#/NotFound }
+      "500": { $ref: ../components/responses.yaml#/InternalError }
+  patch:
+    operationId: updateAdminAiPrompt
+    summary: Replace a prompt template draft
+    tags: [ADMIN_AI]
+    security: [{ adminBearerAuth: [] }]
+    parameters:
+      - $ref: "#/components/promptId"
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+      - $ref: ../components/parameters.yaml#/IdempotencyKey
+      - $ref: ../components/parameters.yaml#/IfMatch
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/admin-ai.yaml#/AiPromptWriteRequest
+    responses:
+      "200":
+        description: Prompt draft updated and version advanced.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/admin-ai.yaml#/AiPromptResponse
+      "400": { $ref: ../components/responses.yaml#/BadRequest }
+      "401": { $ref: ../components/responses.yaml#/Unauthorized }
+      "403": { $ref: ../components/responses.yaml#/Forbidden }
+      "404": { $ref: ../components/responses.yaml#/NotFound }
+      "409": { $ref: ../components/responses.yaml#/Conflict }
+      "500": { $ref: ../components/responses.yaml#/InternalError }
+
+publish:
+  post:
+    operationId: publishAdminAiPrompt
+    summary: Publish a prompt version after a successful evaluation gate
+    description: The evaluation run must match the prompt and route versions being published.
+    tags: [ADMIN_AI]
+    security: [{ adminBearerAuth: [] }]
+    parameters:
+      - $ref: "#/components/promptId"
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+      - $ref: ../components/parameters.yaml#/IdempotencyKey
+      - $ref: ../components/parameters.yaml#/IfMatch
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/admin-ai.yaml#/AiPublishRequest
+    responses:
+      "200":
+        description: Evaluated prompt publication scheduled or activated.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/admin-ai.yaml#/AiPromptResponse
+      "400": { $ref: ../components/responses.yaml#/BadRequest }
+      "401": { $ref: ../components/responses.yaml#/Unauthorized }
+      "403": { $ref: ../components/responses.yaml#/Forbidden }
+      "404": { $ref: ../components/responses.yaml#/NotFound }
+      "409": { $ref: ../components/responses.yaml#/Conflict }
+      "500": { $ref: ../components/responses.yaml#/InternalError }
+
+rollback:
+  post:
+    operationId: rollbackAdminAiPrompt
+    summary: Restore a previously published prompt version
+    tags: [ADMIN_AI]
+    security: [{ adminBearerAuth: [] }]
+    parameters:
+      - $ref: "#/components/promptId"
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+      - $ref: ../components/parameters.yaml#/IdempotencyKey
+      - $ref: ../components/parameters.yaml#/IfMatch
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/admin-ai.yaml#/AiRollbackRequest
+    responses:
+      "200":
+        description: Previous immutable prompt version restored.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/admin-ai.yaml#/AiPromptResponse
+      "400": { $ref: ../components/responses.yaml#/BadRequest }
+      "401": { $ref: ../components/responses.yaml#/Unauthorized }
+      "403": { $ref: ../components/responses.yaml#/Forbidden }
+      "404": { $ref: ../components/responses.yaml#/NotFound }
+      "409": { $ref: ../components/responses.yaml#/Conflict }
+      "500": { $ref: ../components/responses.yaml#/InternalError }
+
+components:
+  promptId:
+    name: promptId
+    in: path
+    required: true
+    schema:
+      type: string
+      minLength: 8
+      maxLength: 128

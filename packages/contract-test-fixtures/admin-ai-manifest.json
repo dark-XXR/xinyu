@@ -1,0 +1,11 @@
+{
+  "schemaVersion": "1.0",
+  "openapi": "contracts/openapi/openapi.yaml",
+  "targetTags": ["ADMIN_AI"],
+  "fixtureFiles": ["contracts/examples/admin/ai/ai-gateway.json"],
+  "coverage": {
+    "requireSuccessResponsePerOperation": false,
+    "requireErrorResponsePerOperation": false,
+    "requireRequestFixtureForRequestBody": false
+  }
+}

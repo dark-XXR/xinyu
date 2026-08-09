@@ -7,7 +7,7 @@ Last updated: 2026-08-09
 - Active task: `BACKEND-PROVIDER-REGISTRY-001`
 - State: `in_progress`
 - Contract version: `1.0.0`
-- Current phase: Android email-first authentication is complete; AI provider routing is next
+- Current phase: AI administration contracts are complete; runtime persistence and provider routing are next
 
 ## Completed
 
@@ -28,6 +28,10 @@ Last updated: 2026-08-09
 - Unified administrator provider contract now covers AI, SMTP/API email, Aliyun/Tencent SMS,
   and EPAY-compatible payment configuration, write-only credential rotation, redacted health
   checks, bounded publication, and rollback. Twenty-two provider fixtures validate 8 operations.
+- AI administration contracts now define administrator-only upstream model mappings, bounded
+  scenario routes, prompt versions, evaluation gates, risk policies, gray rollout, and rollback.
+  Timeouts, retries, token limits, costs, budgets, and fallback order are published data rather
+  than application constants. Generated Kotlin and TypeScript models compile successfully.
 - The provider registry now persists validated drafts, encrypted immutable credential versions,
   redacted health checks, immutable configuration snapshots, publication pointers, gray rollout,
   atomic rollback, and audit events. Editing a published provider cannot change its online snapshot.
@@ -58,8 +62,9 @@ Last updated: 2026-08-09
 - Debug APK assembles successfully with compile SDK 35 and Java 17.
 - Real emulator-to-local-API SMS login, entitlement, quote, generation failure, and quota release
   flow verified. The default unavailable AI provider still fails closed without fake replies.
-- Antigravity is discoverable through computer-use, but launching either registered application ID
-  still fails with `node_repl exec context not found` before a controllable window is created.
+- Antigravity CLI `1.107.0` successfully opens the workspace and creates a registered IDE window.
+  Computer-use state capture still fails with `node_repl exec context not found`, so CLI improves
+  launch reliability but does not repair the desktop control bridge.
 - Login, composer, quote, success, and failure states were exported and inspected at `1080x2400`
   and a compact `360x640dp` equivalent; no clipping, overlap, or unsafe-inset issues remain.
 

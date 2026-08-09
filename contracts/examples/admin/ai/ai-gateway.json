@@ -1,0 +1,224 @@
+{
+  "fixtures": [
+    {
+      "id": "ai-model-mapping-openai-request",
+      "operationId": "createAdminAiModelMapping",
+      "kind": "request",
+      "value": {
+        "logicalModelId": "reply_quality",
+        "providerId": "prv_openai_primary",
+        "providerModelName": "provider-model-a",
+        "inputModalities": ["TEXT"],
+        "outputModalities": ["TEXT"],
+        "contextWindowTokens": 128000,
+        "maxOutputTokens": 4096,
+        "inputCostMicrounitsPerMillionTokens": 2000000,
+        "outputCostMicrounitsPerMillionTokens": 8000000,
+        "currency": "USD",
+        "qualityTier": "QUALITY",
+        "dataRegion": "US",
+        "retentionPolicy": "No training; provider retention follows the published agreement.",
+        "enabled": true
+      }
+    },
+    {
+      "id": "ai-model-mapping-anthropic-request",
+      "operationId": "createAdminAiModelMapping",
+      "kind": "request",
+      "value": {
+        "logicalModelId": "reply_quality",
+        "providerId": "prv_anthropic_fallback",
+        "providerModelName": "provider-model-b",
+        "inputModalities": ["TEXT"],
+        "outputModalities": ["TEXT"],
+        "contextWindowTokens": 200000,
+        "maxOutputTokens": 4096,
+        "inputCostMicrounitsPerMillionTokens": 3000000,
+        "outputCostMicrounitsPerMillionTokens": 15000000,
+        "currency": "USD",
+        "qualityTier": "QUALITY",
+        "dataRegion": "US",
+        "retentionPolicy": "No training; provider retention follows the published agreement.",
+        "enabled": true
+      }
+    },
+    {
+      "id": "ai-model-mapping-gemini-request",
+      "operationId": "createAdminAiModelMapping",
+      "kind": "request",
+      "value": {
+        "logicalModelId": "reply_quality",
+        "providerId": "prv_gemini_fallback",
+        "providerModelName": "provider-model-c",
+        "inputModalities": ["TEXT"],
+        "outputModalities": ["TEXT"],
+        "contextWindowTokens": 1000000,
+        "maxOutputTokens": 4096,
+        "inputCostMicrounitsPerMillionTokens": 1000000,
+        "outputCostMicrounitsPerMillionTokens": 4000000,
+        "currency": "USD",
+        "qualityTier": "QUALITY",
+        "dataRegion": "US",
+        "retentionPolicy": "No training; provider retention follows the published agreement.",
+        "enabled": true
+      }
+    },
+    {
+      "id": "ai-model-mapping-success",
+      "operationId": "createAdminAiModelMapping",
+      "kind": "response",
+      "statusCode": 201,
+      "value": {
+        "code": "OK",
+        "message": "success",
+        "data": {
+          "modelMappingId": "aimap_reply_quality_openai",
+          "logicalModelId": "reply_quality",
+          "providerId": "prv_openai_primary",
+          "providerModelName": "provider-model-a",
+          "inputModalities": ["TEXT"],
+          "outputModalities": ["TEXT"],
+          "contextWindowTokens": 128000,
+          "maxOutputTokens": 4096,
+          "inputCostMicrounitsPerMillionTokens": 2000000,
+          "outputCostMicrounitsPerMillionTokens": 8000000,
+          "currency": "USD",
+          "qualityTier": "QUALITY",
+          "dataRegion": "US",
+          "retentionPolicy": "No training; provider retention follows the published agreement.",
+          "status": "DRAFT",
+          "enabled": true,
+          "resourceVersion": 1,
+          "createdAt": "2026-08-09T20:00:00Z",
+          "updatedAt": "2026-08-09T20:00:00Z"
+        },
+        "requestId": "req_ai_map_01",
+        "timestamp": "2026-08-09T20:00:00Z"
+      }
+    },
+    {
+      "id": "ai-model-mapping-provider-error",
+      "operationId": "createAdminAiModelMapping",
+      "kind": "response",
+      "statusCode": 409,
+      "value": {
+        "code": "AI_PROVIDER_NOT_PUBLISHED",
+        "message": "provider is not available for model mapping",
+        "data": null,
+        "error": {"retryable": false, "fieldErrors": [], "details": {}},
+        "requestId": "req_ai_map_02",
+        "timestamp": "2026-08-09T20:00:01Z"
+      }
+    },
+    {
+      "id": "ai-route-bounded-request",
+      "operationId": "createAdminAiRoute",
+      "kind": "request",
+      "value": {
+        "scenario": "REPLY_GENERATION",
+        "logicalModelId": "reply_quality",
+        "targets": [
+          {"modelMappingId": "aimap_reply_quality_openai", "priority": 300, "timeoutMs": 20000, "retryLimit": 1},
+          {"modelMappingId": "aimap_reply_quality_anthropic", "priority": 200, "timeoutMs": 25000, "retryLimit": 0},
+          {"modelMappingId": "aimap_reply_quality_gemini", "priority": 100, "timeoutMs": 20000, "retryLimit": 0}
+        ],
+        "maxInputTokens": 12000,
+        "maxOutputTokens": 1600,
+        "budgetCeilingMicrounits": 60000,
+        "totalAttemptLimit": 3,
+        "safetyPolicyId": "airisk_default_reply"
+      }
+    },
+    {
+      "id": "ai-route-success",
+      "operationId": "createAdminAiRoute",
+      "kind": "response",
+      "statusCode": 201,
+      "value": {
+        "code": "OK",
+        "message": "success",
+        "data": {
+          "routeId": "airoute_reply_quality",
+          "version": 1,
+          "scenario": "REPLY_GENERATION",
+          "logicalModelId": "reply_quality",
+          "targets": [
+            {"modelMappingId": "aimap_reply_quality_openai", "priority": 300, "timeoutMs": 20000, "retryLimit": 1},
+            {"modelMappingId": "aimap_reply_quality_anthropic", "priority": 200, "timeoutMs": 25000, "retryLimit": 0},
+            {"modelMappingId": "aimap_reply_quality_gemini", "priority": 100, "timeoutMs": 20000, "retryLimit": 0}
+          ],
+          "maxInputTokens": 12000,
+          "maxOutputTokens": 1600,
+          "budgetCeilingMicrounits": 60000,
+          "totalAttemptLimit": 3,
+          "safetyPolicyId": "airisk_default_reply",
+          "status": "DRAFT",
+          "rolloutPercentage": 0,
+          "effectiveAt": null,
+          "resourceVersion": 1,
+          "createdAt": "2026-08-09T20:01:00Z",
+          "updatedAt": "2026-08-09T20:01:00Z"
+        },
+        "requestId": "req_ai_route_01",
+        "timestamp": "2026-08-09T20:01:00Z"
+      }
+    },
+    {
+      "id": "ai-route-budget-error",
+      "operationId": "createAdminAiRoute",
+      "kind": "response",
+      "statusCode": 409,
+      "value": {
+        "code": "AI_ROUTE_BUDGET_EXCEEDED",
+        "message": "route worst-case cost exceeds its published ceiling",
+        "data": null,
+        "error": {"retryable": false, "fieldErrors": [], "details": {}},
+        "requestId": "req_ai_route_02",
+        "timestamp": "2026-08-09T20:01:01Z"
+      }
+    },
+    {
+      "id": "ai-prompt-publish-request",
+      "operationId": "publishAdminAiPrompt",
+      "kind": "request",
+      "value": {
+        "rolloutPercentage": 100,
+        "effectiveAt": "2026-08-10T00:00:00Z",
+        "evaluationRunId": "aievrun_reply_quality_01",
+        "auditReason": "Publish prompt after schema, quality, cost, and safety evaluation passed."
+      }
+    },
+    {
+      "id": "ai-prompt-evaluation-gate-error",
+      "operationId": "publishAdminAiPrompt",
+      "kind": "response",
+      "statusCode": 409,
+      "value": {
+        "code": "AI_EVALUATION_GATE_FAILED",
+        "message": "a matching successful evaluation is required",
+        "data": null,
+        "error": {"retryable": false, "fieldErrors": [], "details": {}},
+        "requestId": "req_ai_prompt_publish_02",
+        "timestamp": "2026-08-09T20:02:01Z"
+      }
+    },
+    {
+      "id": "ai-route-rollback-request",
+      "operationId": "rollbackAdminAiRoute",
+      "kind": "request",
+      "value": {
+        "targetVersion": 1,
+        "auditReason": "Restore the last evaluated route after upstream regression."
+      }
+    },
+    {
+      "id": "ai-risk-rollback-request",
+      "operationId": "rollbackAdminAiRiskPolicy",
+      "kind": "request",
+      "value": {
+        "targetVersion": 2,
+        "auditReason": "Restore the previously evaluated safety policy."
+      }
+    }
+  ]
+}

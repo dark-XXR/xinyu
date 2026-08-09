@@ -231,8 +231,8 @@ items:
   - taskId: CONTRACT-ADMIN-AI-001
     title: Define configurable model gateway prompt evaluation and risk admin operations
     moduleCode: AI_GATEWAY
-    owner: unassigned
-    status: planned
+    owner: codex-root
+    status: done
     allowedPaths:
       - contracts/openapi/admin/model-gateway.yaml
       - contracts/openapi/admin/prompts.yaml
@@ -246,7 +246,7 @@ items:
       - openai_compatible_anthropic_and_gemini_adapters_share_logical_models
       - prompt_publish_requires_evaluation_gate
       - route_and_policy_rollback_are_defined
-    handoffNotes: ""
+    handoffNotes: "Complete. Administrator contracts now define logical-to-provider model mappings for OpenAI-compatible, OpenAI, Anthropic, and Gemini adapters; versioned scenario routes with per-target timeout/retry, total attempts, token limits, budget ceilings, rollout, and fallback order; declarative prompt versions; bounded evaluation runs; versioned risk policies; evaluation-gated publication; and atomic rollback. Upstream model names remain administrator-only. Twelve risk-focused fixtures validate cross-provider logical models, bounded costs, evaluation gates, and rollback. OpenAPI lint, Kotlin compilation, and TypeScript compilation pass."
 
   - taskId: CONTRACT-ADMIN-BUSINESS-001
     title: Define user support content operations and finance admin operations

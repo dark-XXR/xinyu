@@ -1,0 +1,745 @@
+AiResourceStatus:
+  type: string
+  enum: [DRAFT, READY, ACTIVE, DISABLED, SUPERSEDED]
+
+AiScenario:
+  type: string
+  enum: [REPLY_GENERATION, REPLY_REFINEMENT, SCREENSHOT_OCR, SAFETY_EVALUATION]
+
+AiModality:
+  type: string
+  enum: [TEXT, IMAGE]
+
+AiModelMapping:
+  type: object
+  additionalProperties: false
+  required:
+    - modelMappingId
+    - logicalModelId
+    - providerId
+    - providerModelName
+    - inputModalities
+    - outputModalities
+    - contextWindowTokens
+    - maxOutputTokens
+    - inputCostMicrounitsPerMillionTokens
+    - outputCostMicrounitsPerMillionTokens
+    - currency
+    - status
+    - enabled
+    - resourceVersion
+    - createdAt
+    - updatedAt
+  properties:
+    modelMappingId:
+      type: string
+    logicalModelId:
+      type: string
+      pattern: ^[a-z][a-z0-9_]{1,63}$
+    providerId:
+      type: string
+    providerModelName:
+      type: string
+      minLength: 1
+      maxLength: 256
+      description: Administrator-only upstream model identifier; never returned to clients.
+    inputModalities:
+      type: array
+      minItems: 1
+      uniqueItems: true
+      items:
+        $ref: "#/AiModality"
+    outputModalities:
+      type: array
+      minItems: 1
+      uniqueItems: true
+      items:
+        $ref: "#/AiModality"
+    contextWindowTokens:
+      type: integer
+      minimum: 1
+      maximum: 10000000
+    maxOutputTokens:
+      type: integer
+      minimum: 1
+      maximum: 1000000
+    inputCostMicrounitsPerMillionTokens:
+      type: integer
+      minimum: 0
+    outputCostMicrounitsPerMillionTokens:
+      type: integer
+      minimum: 0
+    currency:
+      type: string
+      pattern: ^[A-Z]{3}$
+    qualityTier:
+      type: [string, "null"]
+      maxLength: 64
+    dataRegion:
+      type: [string, "null"]
+      maxLength: 64
+    retentionPolicy:
+      type: [string, "null"]
+      maxLength: 500
+    status:
+      $ref: "#/AiResourceStatus"
+    enabled:
+      type: boolean
+    resourceVersion:
+      type: integer
+      minimum: 1
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: string
+      format: date-time
+
+AiModelMappingWriteRequest:
+  type: object
+  additionalProperties: false
+  required:
+    - logicalModelId
+    - providerId
+    - providerModelName
+    - inputModalities
+    - outputModalities
+    - contextWindowTokens
+    - maxOutputTokens
+    - inputCostMicrounitsPerMillionTokens
+    - outputCostMicrounitsPerMillionTokens
+    - currency
+    - enabled
+  properties:
+    logicalModelId:
+      type: string
+      pattern: ^[a-z][a-z0-9_]{1,63}$
+    providerId:
+      type: string
+    providerModelName:
+      type: string
+      minLength: 1
+      maxLength: 256
+    inputModalities:
+      type: array
+      minItems: 1
+      uniqueItems: true
+      items:
+        $ref: "#/AiModality"
+    outputModalities:
+      type: array
+      minItems: 1
+      uniqueItems: true
+      items:
+        $ref: "#/AiModality"
+    contextWindowTokens:
+      type: integer
+      minimum: 1
+      maximum: 10000000
+    maxOutputTokens:
+      type: integer
+      minimum: 1
+      maximum: 1000000
+    inputCostMicrounitsPerMillionTokens:
+      type: integer
+      minimum: 0
+    outputCostMicrounitsPerMillionTokens:
+      type: integer
+      minimum: 0
+    currency:
+      type: string
+      pattern: ^[A-Z]{3}$
+    qualityTier:
+      type: [string, "null"]
+      maxLength: 64
+    dataRegion:
+      type: [string, "null"]
+      maxLength: 64
+    retentionPolicy:
+      type: [string, "null"]
+      maxLength: 500
+    enabled:
+      type: boolean
+
+AiRouteTarget:
+  type: object
+  additionalProperties: false
+  required: [modelMappingId, priority, timeoutMs, retryLimit]
+  properties:
+    modelMappingId:
+      type: string
+    priority:
+      type: integer
+      minimum: 0
+      maximum: 1000
+    timeoutMs:
+      type: integer
+      minimum: 1000
+      maximum: 120000
+    retryLimit:
+      type: integer
+      minimum: 0
+      maximum: 3
+
+AiRoute:
+  type: object
+  additionalProperties: false
+  required:
+    - routeId
+    - version
+    - scenario
+    - logicalModelId
+    - targets
+    - maxInputTokens
+    - maxOutputTokens
+    - budgetCeilingMicrounits
+    - totalAttemptLimit
+    - safetyPolicyId
+    - status
+    - rolloutPercentage
+    - resourceVersion
+    - createdAt
+    - updatedAt
+  properties:
+    routeId:
+      type: string
+    version:
+      type: integer
+      minimum: 1
+    scenario:
+      $ref: "#/AiScenario"
+    logicalModelId:
+      type: string
+      pattern: ^[a-z][a-z0-9_]{1,63}$
+    targets:
+      type: array
+      minItems: 1
+      maxItems: 16
+      items:
+        $ref: "#/AiRouteTarget"
+    maxInputTokens:
+      type: integer
+      minimum: 1
+      maximum: 10000000
+    maxOutputTokens:
+      type: integer
+      minimum: 1
+      maximum: 1000000
+    budgetCeilingMicrounits:
+      type: integer
+      minimum: 0
+    totalAttemptLimit:
+      type: integer
+      minimum: 1
+      maximum: 16
+    safetyPolicyId:
+      type: string
+    status:
+      $ref: "#/AiResourceStatus"
+    rolloutPercentage:
+      type: integer
+      minimum: 0
+      maximum: 100
+    effectiveAt:
+      type: [string, "null"]
+      format: date-time
+    resourceVersion:
+      type: integer
+      minimum: 1
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: string
+      format: date-time
+
+AiRouteWriteRequest:
+  type: object
+  additionalProperties: false
+  required:
+    - scenario
+    - logicalModelId
+    - targets
+    - maxInputTokens
+    - maxOutputTokens
+    - budgetCeilingMicrounits
+    - totalAttemptLimit
+    - safetyPolicyId
+  properties:
+    scenario:
+      $ref: "#/AiScenario"
+    logicalModelId:
+      type: string
+      pattern: ^[a-z][a-z0-9_]{1,63}$
+    targets:
+      type: array
+      minItems: 1
+      maxItems: 16
+      items:
+        $ref: "#/AiRouteTarget"
+    maxInputTokens:
+      type: integer
+      minimum: 1
+      maximum: 10000000
+    maxOutputTokens:
+      type: integer
+      minimum: 1
+      maximum: 1000000
+    budgetCeilingMicrounits:
+      type: integer
+      minimum: 0
+    totalAttemptLimit:
+      type: integer
+      minimum: 1
+      maximum: 16
+    safetyPolicyId:
+      type: string
+
+AiPromptTemplate:
+  type: object
+  additionalProperties: false
+  required:
+    - promptId
+    - version
+    - promptCode
+    - scenario
+    - systemTemplate
+    - userTemplate
+    - allowedInputFields
+    - outputSchema
+    - status
+    - resourceVersion
+    - createdAt
+    - updatedAt
+  properties:
+    promptId:
+      type: string
+    version:
+      type: integer
+      minimum: 1
+    promptCode:
+      type: string
+      pattern: ^[A-Z][A-Z0-9_]{1,63}$
+    scenario:
+      $ref: "#/AiScenario"
+    systemTemplate:
+      type: string
+      minLength: 1
+      maxLength: 50000
+    userTemplate:
+      type: string
+      minLength: 1
+      maxLength: 50000
+    allowedInputFields:
+      type: array
+      minItems: 1
+      uniqueItems: true
+      items:
+        type: string
+        pattern: ^[a-z][A-Za-z0-9]{0,63}$
+    outputSchema:
+      type: object
+      description: Declarative JSON Schema only; executable expressions are forbidden.
+    safetyPolicyId:
+      type: [string, "null"]
+    status:
+      $ref: "#/AiResourceStatus"
+    effectiveAt:
+      type: [string, "null"]
+      format: date-time
+    resourceVersion:
+      type: integer
+      minimum: 1
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: string
+      format: date-time
+
+AiPromptWriteRequest:
+  type: object
+  additionalProperties: false
+  required:
+    - promptCode
+    - scenario
+    - systemTemplate
+    - userTemplate
+    - allowedInputFields
+    - outputSchema
+  properties:
+    promptCode:
+      type: string
+      pattern: ^[A-Z][A-Z0-9_]{1,63}$
+    scenario:
+      $ref: "#/AiScenario"
+    systemTemplate:
+      type: string
+      minLength: 1
+      maxLength: 50000
+    userTemplate:
+      type: string
+      minLength: 1
+      maxLength: 50000
+    allowedInputFields:
+      type: array
+      minItems: 1
+      uniqueItems: true
+      items:
+        type: string
+        pattern: ^[a-z][A-Za-z0-9]{0,63}$
+    outputSchema:
+      type: object
+    safetyPolicyId:
+      type: [string, "null"]
+
+AiEvaluationRunRequest:
+  type: object
+  additionalProperties: false
+  required: [promptId, routeId, suiteIds, evaluatorLogicalModelId, maxCostMicrounits]
+  properties:
+    promptId:
+      type: string
+    routeId:
+      type: string
+    suiteIds:
+      type: array
+      minItems: 1
+      maxItems: 50
+      uniqueItems: true
+      items:
+        type: string
+    evaluatorLogicalModelId:
+      type: string
+      pattern: ^[a-z][a-z0-9_]{1,63}$
+    maxCostMicrounits:
+      type: integer
+      minimum: 0
+
+AiEvaluationRun:
+  type: object
+  additionalProperties: false
+  required:
+    - evaluationRunId
+    - promptId
+    - routeId
+    - suiteIds
+    - status
+    - passed
+    - totalCases
+    - completedCases
+    - score
+    - safetyPassed
+    - costMicrounits
+    - createdAt
+    - updatedAt
+  properties:
+    evaluationRunId:
+      type: string
+    promptId:
+      type: string
+    routeId:
+      type: string
+    suiteIds:
+      type: array
+      items:
+        type: string
+    status:
+      type: string
+      enum: [QUEUED, RUNNING, SUCCEEDED, FAILED, CANCELLED]
+    passed:
+      type: boolean
+    totalCases:
+      type: integer
+      minimum: 0
+    completedCases:
+      type: integer
+      minimum: 0
+    score:
+      type: number
+      minimum: 0
+      maximum: 1
+    safetyPassed:
+      type: boolean
+    costMicrounits:
+      type: integer
+      minimum: 0
+    failureCode:
+      type: [string, "null"]
+      pattern: ^[A-Z][A-Z0-9_]*$
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: string
+      format: date-time
+
+AiRiskPolicy:
+  type: object
+  additionalProperties: false
+  required:
+    - riskPolicyId
+    - version
+    - policyCode
+    - blockedCategories
+    - reviewCategories
+    - inputModerationEnabled
+    - outputModerationEnabled
+    - promptInjectionAction
+    - minimumSafetyScore
+    - allowAppeals
+    - status
+    - resourceVersion
+    - createdAt
+    - updatedAt
+  properties:
+    riskPolicyId:
+      type: string
+    version:
+      type: integer
+      minimum: 1
+    policyCode:
+      type: string
+      pattern: ^[A-Z][A-Z0-9_]{1,63}$
+    blockedCategories:
+      type: array
+      uniqueItems: true
+      items:
+        type: string
+        pattern: ^[A-Z][A-Z0-9_]*$
+    reviewCategories:
+      type: array
+      uniqueItems: true
+      items:
+        type: string
+        pattern: ^[A-Z][A-Z0-9_]*$
+    inputModerationEnabled:
+      type: boolean
+    outputModerationEnabled:
+      type: boolean
+    promptInjectionAction:
+      type: string
+      enum: [BLOCK, REVIEW, ALLOW_WITH_WARNING]
+    minimumSafetyScore:
+      type: number
+      minimum: 0
+      maximum: 1
+    allowAppeals:
+      type: boolean
+    status:
+      $ref: "#/AiResourceStatus"
+    effectiveAt:
+      type: [string, "null"]
+      format: date-time
+    resourceVersion:
+      type: integer
+      minimum: 1
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: string
+      format: date-time
+
+AiRiskPolicyWriteRequest:
+  type: object
+  additionalProperties: false
+  required:
+    - policyCode
+    - blockedCategories
+    - reviewCategories
+    - inputModerationEnabled
+    - outputModerationEnabled
+    - promptInjectionAction
+    - minimumSafetyScore
+    - allowAppeals
+  properties:
+    policyCode:
+      type: string
+      pattern: ^[A-Z][A-Z0-9_]{1,63}$
+    blockedCategories:
+      type: array
+      uniqueItems: true
+      items:
+        type: string
+        pattern: ^[A-Z][A-Z0-9_]*$
+    reviewCategories:
+      type: array
+      uniqueItems: true
+      items:
+        type: string
+        pattern: ^[A-Z][A-Z0-9_]*$
+    inputModerationEnabled:
+      type: boolean
+    outputModerationEnabled:
+      type: boolean
+    promptInjectionAction:
+      type: string
+      enum: [BLOCK, REVIEW, ALLOW_WITH_WARNING]
+    minimumSafetyScore:
+      type: number
+      minimum: 0
+      maximum: 1
+    allowAppeals:
+      type: boolean
+
+AiPublishRequest:
+  type: object
+  additionalProperties: false
+  required: [rolloutPercentage, effectiveAt, evaluationRunId, auditReason]
+  properties:
+    rolloutPercentage:
+      type: integer
+      minimum: 1
+      maximum: 100
+    effectiveAt:
+      type: string
+      format: date-time
+    evaluationRunId:
+      type: string
+      description: A successful run is mandatory and must match the published resource version.
+    auditReason:
+      type: string
+      minLength: 8
+      maxLength: 500
+
+AiRollbackRequest:
+  type: object
+  additionalProperties: false
+  required: [targetVersion, auditReason]
+  properties:
+    targetVersion:
+      type: integer
+      minimum: 1
+    auditReason:
+      type: string
+      minLength: 8
+      maxLength: 500
+
+AiModelMappingResponse:
+  allOf:
+    - $ref: ../components/schemas/common.yaml#/BaseSuccessEnvelope
+    - type: object
+      properties:
+        data:
+          $ref: "#/AiModelMapping"
+
+AiModelMappingListData:
+  type: object
+  additionalProperties: false
+  required: [items, nextCursor, hasMore]
+  properties:
+    items:
+      type: array
+      items:
+        $ref: "#/AiModelMapping"
+    nextCursor:
+      type: [string, "null"]
+    hasMore:
+      type: boolean
+
+AiModelMappingListResponse:
+  allOf:
+    - $ref: ../components/schemas/common.yaml#/BaseSuccessEnvelope
+    - type: object
+      properties:
+        data:
+          $ref: "#/AiModelMappingListData"
+
+AiRouteResponse:
+  allOf:
+    - $ref: ../components/schemas/common.yaml#/BaseSuccessEnvelope
+    - type: object
+      properties:
+        data:
+          $ref: "#/AiRoute"
+
+AiRouteListData:
+  type: object
+  additionalProperties: false
+  required: [items, nextCursor, hasMore]
+  properties:
+    items:
+      type: array
+      items:
+        $ref: "#/AiRoute"
+    nextCursor:
+      type: [string, "null"]
+    hasMore:
+      type: boolean
+
+AiRouteListResponse:
+  allOf:
+    - $ref: ../components/schemas/common.yaml#/BaseSuccessEnvelope
+    - type: object
+      properties:
+        data:
+          $ref: "#/AiRouteListData"
+
+AiPromptResponse:
+  allOf:
+    - $ref: ../components/schemas/common.yaml#/BaseSuccessEnvelope
+    - type: object
+      properties:
+        data:
+          $ref: "#/AiPromptTemplate"
+
+AiPromptListData:
+  type: object
+  additionalProperties: false
+  required: [items, nextCursor, hasMore]
+  properties:
+    items:
+      type: array
+      items:
+        $ref: "#/AiPromptTemplate"
+    nextCursor:
+      type: [string, "null"]
+    hasMore:
+      type: boolean
+
+AiPromptListResponse:
+  allOf:
+    - $ref: ../components/schemas/common.yaml#/BaseSuccessEnvelope
+    - type: object
+      properties:
+        data:
+          $ref: "#/AiPromptListData"
+
+AiEvaluationRunResponse:
+  allOf:
+    - $ref: ../components/schemas/common.yaml#/BaseSuccessEnvelope
+    - type: object
+      properties:
+        data:
+          $ref: "#/AiEvaluationRun"
+
+AiRiskPolicyResponse:
+  allOf:
+    - $ref: ../components/schemas/common.yaml#/BaseSuccessEnvelope
+    - type: object
+      properties:
+        data:
+          $ref: "#/AiRiskPolicy"
+
+AiRiskPolicyListData:
+  type: object
+  additionalProperties: false
+  required: [items, nextCursor, hasMore]
+  properties:
+    items:
+      type: array
+      items:
+        $ref: "#/AiRiskPolicy"
+    nextCursor:
+      type: [string, "null"]
+    hasMore:
+      type: boolean
+
+AiRiskPolicyListResponse:
+  allOf:
+    - $ref: ../components/schemas/common.yaml#/BaseSuccessEnvelope
+    - type: object
+      properties:
+        data:
+          $ref: "#/AiRiskPolicyListData"

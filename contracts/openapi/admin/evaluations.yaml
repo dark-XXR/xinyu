@@ -1,0 +1,64 @@
+runs:
+  post:
+    operationId: createAdminAiEvaluationRun
+    summary: Start a bounded-cost prompt and route evaluation
+    tags: [ADMIN_AI]
+    security: [{ adminBearerAuth: [] }]
+    parameters:
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+      - $ref: ../components/parameters.yaml#/IdempotencyKey
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/admin-ai.yaml#/AiEvaluationRunRequest
+    responses:
+      "202":
+        description: Evaluation queued within the supplied cost ceiling.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/admin-ai.yaml#/AiEvaluationRunResponse
+      "400": { $ref: ../components/responses.yaml#/BadRequest }
+      "401": { $ref: ../components/responses.yaml#/Unauthorized }
+      "403": { $ref: ../components/responses.yaml#/Forbidden }
+      "409": { $ref: ../components/responses.yaml#/Conflict }
+      "500": { $ref: ../components/responses.yaml#/InternalError }
+
+run:
+  get:
+    operationId: getAdminAiEvaluationRun
+    summary: Read evaluation progress and gate result
+    tags: [ADMIN_AI]
+    security: [{ adminBearerAuth: [] }]
+    parameters:
+      - $ref: "#/components/evaluationRunId"
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+    responses:
+      "200":
+        description: Evaluation progress and immutable result.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/admin-ai.yaml#/AiEvaluationRunResponse
+      "401": { $ref: ../components/responses.yaml#/Unauthorized }
+      "403": { $ref: ../components/responses.yaml#/Forbidden }
+      "404": { $ref: ../components/responses.yaml#/NotFound }
+      "500": { $ref: ../components/responses.yaml#/InternalError }
+
+components:
+  evaluationRunId:
+    name: evaluationRunId
+    in: path
+    required: true
+    schema:
+      type: string
+      minLength: 8
+      maxLength: 128
