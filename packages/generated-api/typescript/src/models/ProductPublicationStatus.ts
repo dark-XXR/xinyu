@@ -18,6 +18,7 @@
  * @export
  */
 export const ProductPublicationStatus = {
+    Draft: 'DRAFT',
     Active: 'ACTIVE',
     Retired: 'RETIRED'
 } as const;

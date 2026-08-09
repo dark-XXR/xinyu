@@ -174,7 +174,7 @@ ProductType:
 
 ProductPublicationStatus:
   type: string
-  enum: [ACTIVE, RETIRED]
+  enum: [DRAFT, ACTIVE, RETIRED]
 
 SalesChannel:
   type: string

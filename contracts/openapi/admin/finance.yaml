@@ -1,0 +1,315 @@
+products:
+  get:
+    operationId: listAdminProducts
+    summary: List all product drafts and published versions
+    tags: [ADMIN_COMMERCE]
+    security: [{adminBearerAuth: []}]
+    parameters:
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+      - $ref: ../components/parameters.yaml#/Cursor
+      - $ref: ../components/parameters.yaml#/Limit
+    responses:
+      "200": {description: Product versions., content: {application/json: {schema: {$ref: ../schemas/admin-business.yaml#/AdminProductListResponse}}}}
+      "401": {$ref: ../components/responses.yaml#/Unauthorized}
+      "403": {$ref: ../components/responses.yaml#/Forbidden}
+      "500": {$ref: ../components/responses.yaml#/InternalError}
+  post:
+    operationId: createAdminProduct
+    summary: Create a new immutable product draft version
+    tags: [ADMIN_COMMERCE]
+    security: [{adminBearerAuth: []}]
+    parameters:
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+      - $ref: ../components/parameters.yaml#/IdempotencyKey
+    requestBody: {required: true, content: {application/json: {schema: {$ref: ../schemas/admin-business.yaml#/AdminProductWriteRequest}}}}
+    responses:
+      "201": {description: Draft version created., content: {application/json: {schema: {$ref: ../schemas/admin-business.yaml#/AdminProductResponse}}}}
+      "400": {$ref: ../components/responses.yaml#/BadRequest}
+      "401": {$ref: ../components/responses.yaml#/Unauthorized}
+      "403": {$ref: ../components/responses.yaml#/Forbidden}
+      "409": {$ref: ../components/responses.yaml#/Conflict}
+      "500": {$ref: ../components/responses.yaml#/InternalError}
+
+product:
+  get:
+    operationId: getAdminProduct
+    summary: Read one product version
+    tags: [ADMIN_COMMERCE]
+    security: [{adminBearerAuth: []}]
+    parameters:
+      - $ref: "#/components/productVersionId"
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+    responses:
+      "200": {description: Product version., content: {application/json: {schema: {$ref: ../schemas/admin-business.yaml#/AdminProductResponse}}}}
+      "401": {$ref: ../components/responses.yaml#/Unauthorized}
+      "403": {$ref: ../components/responses.yaml#/Forbidden}
+      "404": {$ref: ../components/responses.yaml#/NotFound}
+      "500": {$ref: ../components/responses.yaml#/InternalError}
+  patch:
+    operationId: updateAdminProduct
+    summary: Replace a draft with a new immutable product version
+    tags: [ADMIN_COMMERCE]
+    security: [{adminBearerAuth: []}]
+    parameters:
+      - $ref: "#/components/productVersionId"
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+      - $ref: ../components/parameters.yaml#/IdempotencyKey
+      - $ref: ../components/parameters.yaml#/IfMatch
+    requestBody: {required: true, content: {application/json: {schema: {$ref: ../schemas/admin-business.yaml#/AdminProductWriteRequest}}}}
+    responses:
+      "200": {description: New draft version., content: {application/json: {schema: {$ref: ../schemas/admin-business.yaml#/AdminProductResponse}}}}
+      "400": {$ref: ../components/responses.yaml#/BadRequest}
+      "401": {$ref: ../components/responses.yaml#/Unauthorized}
+      "403": {$ref: ../components/responses.yaml#/Forbidden}
+      "404": {$ref: ../components/responses.yaml#/NotFound}
+      "409": {$ref: ../components/responses.yaml#/Conflict}
+      "500": {$ref: ../components/responses.yaml#/InternalError}
+
+productPublish:
+  post:
+    operationId: publishAdminProduct
+    summary: Publish a product version with maker-checker approval
+    tags: [ADMIN_COMMERCE]
+    security: [{adminBearerAuth: []}]
+    parameters:
+      - $ref: "#/components/productVersionId"
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+      - $ref: ../components/parameters.yaml#/IdempotencyKey
+      - $ref: ../components/parameters.yaml#/IfMatch
+    requestBody: {required: true, content: {application/json: {schema: {$ref: ../schemas/admin-business.yaml#/AdminProductPublishRequest}}}}
+    responses:
+      "200": {description: Product version published., content: {application/json: {schema: {$ref: ../schemas/admin-business.yaml#/AdminProductResponse}}}}
+      "400": {$ref: ../components/responses.yaml#/BadRequest}
+      "401": {$ref: ../components/responses.yaml#/Unauthorized}
+      "403": {$ref: ../components/responses.yaml#/Forbidden}
+      "404": {$ref: ../components/responses.yaml#/NotFound}
+      "409": {$ref: ../components/responses.yaml#/Conflict}
+      "500": {$ref: ../components/responses.yaml#/InternalError}
+
+productRollback:
+  post:
+    operationId: rollbackAdminProduct
+    summary: Re-publish a previously published immutable version
+    tags: [ADMIN_COMMERCE]
+    security: [{adminBearerAuth: []}]
+    parameters:
+      - $ref: "#/components/productCode"
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+      - $ref: ../components/parameters.yaml#/IdempotencyKey
+    requestBody: {required: true, content: {application/json: {schema: {$ref: ../schemas/admin-business.yaml#/AdminProductRollbackRequest}}}}
+    responses:
+      "200": {description: Historical version re-published as a new immutable version., content: {application/json: {schema: {$ref: ../schemas/admin-business.yaml#/AdminProductResponse}}}}
+      "400": {$ref: ../components/responses.yaml#/BadRequest}
+      "401": {$ref: ../components/responses.yaml#/Unauthorized}
+      "403": {$ref: ../components/responses.yaml#/Forbidden}
+      "404": {$ref: ../components/responses.yaml#/NotFound}
+      "409": {$ref: ../components/responses.yaml#/Conflict}
+      "500": {$ref: ../components/responses.yaml#/InternalError}
+
+orders:
+  get:
+    operationId: listAdminOrders
+    summary: List immutable order and payment facts
+    tags: [ADMIN_COMMERCE]
+    security: [{adminBearerAuth: []}]
+    parameters:
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+      - $ref: ../components/parameters.yaml#/Cursor
+      - $ref: ../components/parameters.yaml#/Limit
+    responses:
+      "200": {description: Orders and payment attempts., content: {application/json: {schema: {$ref: ../schemas/admin-business.yaml#/AdminOrderListResponse}}}}
+      "401": {$ref: ../components/responses.yaml#/Unauthorized}
+      "403": {$ref: ../components/responses.yaml#/Forbidden}
+      "500": {$ref: ../components/responses.yaml#/InternalError}
+
+order:
+  get:
+    operationId: getAdminOrder
+    summary: Read one order and all payment attempts
+    tags: [ADMIN_COMMERCE]
+    security: [{adminBearerAuth: []}]
+    parameters:
+      - $ref: "#/components/orderId"
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+    responses:
+      "200": {description: Order and payment attempts., content: {application/json: {schema: {$ref: ../schemas/admin-business.yaml#/AdminOrderResponse}}}}
+      "401": {$ref: ../components/responses.yaml#/Unauthorized}
+      "403": {$ref: ../components/responses.yaml#/Forbidden}
+      "404": {$ref: ../components/responses.yaml#/NotFound}
+      "500": {$ref: ../components/responses.yaml#/InternalError}
+
+refunds:
+  get:
+    operationId: listAdminRefunds
+    summary: List refund requests and recovery status
+    tags: [ADMIN_COMMERCE]
+    security: [{adminBearerAuth: []}]
+    parameters:
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+      - $ref: ../components/parameters.yaml#/Cursor
+      - $ref: ../components/parameters.yaml#/Limit
+    responses:
+      "200": {description: Refund requests., content: {application/json: {schema: {$ref: ../schemas/admin-business.yaml#/AdminRefundListResponse}}}}
+      "401": {$ref: ../components/responses.yaml#/Unauthorized}
+      "403": {$ref: ../components/responses.yaml#/Forbidden}
+      "500": {$ref: ../components/responses.yaml#/InternalError}
+
+refund:
+  get:
+    operationId: getAdminRefund
+    summary: Read one refund request
+    tags: [ADMIN_COMMERCE]
+    security: [{adminBearerAuth: []}]
+    parameters:
+      - $ref: "#/components/refundId"
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+    responses:
+      "200": {description: Refund request., content: {application/json: {schema: {$ref: ../schemas/admin-business.yaml#/AdminRefundResponse}}}}
+      "401": {$ref: ../components/responses.yaml#/Unauthorized}
+      "403": {$ref: ../components/responses.yaml#/Forbidden}
+      "404": {$ref: ../components/responses.yaml#/NotFound}
+      "500": {$ref: ../components/responses.yaml#/InternalError}
+
+refundDecision:
+  post:
+    operationId: decideAdminRefund
+    summary: Approve or reject a refund request
+    tags: [ADMIN_COMMERCE]
+    security: [{adminBearerAuth: []}]
+    parameters:
+      - $ref: "#/components/refundId"
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+      - $ref: ../components/parameters.yaml#/IdempotencyKey
+      - $ref: ../components/parameters.yaml#/IfMatch
+    requestBody: {required: true, content: {application/json: {schema: {$ref: ../schemas/admin-business.yaml#/AdminRefundDecisionRequest}}}}
+    responses:
+      "200": {description: Reviewed refund., content: {application/json: {schema: {$ref: ../schemas/admin-business.yaml#/AdminRefundResponse}}}}
+      "400": {$ref: ../components/responses.yaml#/BadRequest}
+      "401": {$ref: ../components/responses.yaml#/Unauthorized}
+      "403": {$ref: ../components/responses.yaml#/Forbidden}
+      "404": {$ref: ../components/responses.yaml#/NotFound}
+      "409": {$ref: ../components/responses.yaml#/Conflict}
+      "500": {$ref: ../components/responses.yaml#/InternalError}
+
+refundExecute:
+  post:
+    operationId: executeAdminRefund
+    summary: Execute an approved provider refund and recover eligible benefits
+    tags: [ADMIN_COMMERCE]
+    security: [{adminBearerAuth: []}]
+    parameters:
+      - $ref: "#/components/refundId"
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+      - $ref: ../components/parameters.yaml#/IdempotencyKey
+      - $ref: ../components/parameters.yaml#/IfMatch
+    requestBody: {required: true, content: {application/json: {schema: {$ref: ../schemas/admin-business.yaml#/AdminRefundExecuteRequest}}}}
+    responses:
+      "200": {description: Provider refund result and benefit recovery status., content: {application/json: {schema: {$ref: ../schemas/admin-business.yaml#/AdminRefundResponse}}}}
+      "400": {$ref: ../components/responses.yaml#/BadRequest}
+      "401": {$ref: ../components/responses.yaml#/Unauthorized}
+      "403": {$ref: ../components/responses.yaml#/Forbidden}
+      "404": {$ref: ../components/responses.yaml#/NotFound}
+      "409": {$ref: ../components/responses.yaml#/Conflict}
+      "503": {$ref: ../components/responses.yaml#/ServiceUnavailable}
+      "500": {$ref: ../components/responses.yaml#/InternalError}
+
+reconciliations:
+  post:
+    operationId: runAdminPaymentReconciliation
+    summary: Reconcile stale payment attempts and recover interrupted grants
+    tags: [ADMIN_COMMERCE]
+    security: [{adminBearerAuth: []}]
+    parameters:
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+      - $ref: ../components/parameters.yaml#/IdempotencyKey
+    requestBody: {required: true, content: {application/json: {schema: {$ref: ../schemas/admin-business.yaml#/PaymentReconciliationRequest}}}}
+    responses:
+      "200": {description: Bounded reconciliation result., content: {application/json: {schema: {$ref: ../schemas/admin-business.yaml#/PaymentReconciliationResponse}}}}
+      "400": {$ref: ../components/responses.yaml#/BadRequest}
+      "401": {$ref: ../components/responses.yaml#/Unauthorized}
+      "403": {$ref: ../components/responses.yaml#/Forbidden}
+      "409": {$ref: ../components/responses.yaml#/Conflict}
+      "500": {$ref: ../components/responses.yaml#/InternalError}
+
+entitlementAdjustments:
+  post:
+    operationId: createAdminEntitlementAdjustment
+    summary: Apply one idempotent and audited manual benefit adjustment
+    tags: [ADMIN_COMMERCE]
+    security: [{adminBearerAuth: []}]
+    parameters:
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+      - $ref: ../components/parameters.yaml#/IdempotencyKey
+    requestBody: {required: true, content: {application/json: {schema: {$ref: ../schemas/admin-business.yaml#/EntitlementAdjustmentRequest}}}}
+    responses:
+      "201": {description: Applied adjustment or exact idempotent replay., content: {application/json: {schema: {$ref: ../schemas/admin-business.yaml#/EntitlementAdjustmentResponse}}}}
+      "400": {$ref: ../components/responses.yaml#/BadRequest}
+      "401": {$ref: ../components/responses.yaml#/Unauthorized}
+      "403": {$ref: ../components/responses.yaml#/Forbidden}
+      "404": {$ref: ../components/responses.yaml#/NotFound}
+      "409": {$ref: ../components/responses.yaml#/Conflict}
+      "500": {$ref: ../components/responses.yaml#/InternalError}
+
+components:
+  productVersionId:
+    name: productVersionId
+    in: path
+    required: true
+    schema: {type: string, minLength: 8, maxLength: 128}
+  productCode:
+    name: productCode
+    in: path
+    required: true
+    schema: {type: string, pattern: "^[A-Z][A-Z0-9_]{1,63}$"}
+  orderId:
+    name: orderId
+    in: path
+    required: true
+    schema: {type: string, minLength: 8, maxLength: 128}
+  refundId:
+    name: refundId
+    in: path
+    required: true
+    schema: {type: string, minLength: 8, maxLength: 128}

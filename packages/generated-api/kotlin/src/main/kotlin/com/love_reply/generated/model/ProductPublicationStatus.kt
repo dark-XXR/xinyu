@@ -30,11 +30,14 @@ import com.squareup.moshi.JsonClass
 /**
  *
  *
- * Values: ACTIVE,RETIRED
+ * Values: DRAFT,ACTIVE,RETIRED
  */
 
 @JsonClass(generateAdapter = false)
 enum class ProductPublicationStatus(val value: kotlin.String) {
+
+    @Json(name = "DRAFT")
+    DRAFT("DRAFT"),
 
     @Json(name = "ACTIVE")
     ACTIVE("ACTIVE"),

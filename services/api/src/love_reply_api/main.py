@@ -19,6 +19,7 @@ from love_reply_api.transport.http.errors import api_error_handler, validation_e
 from love_reply_api.transport.http.idempotency import IdempotencyMiddleware
 from love_reply_api.transport.http.routes.admin_ai import router as admin_ai_router
 from love_reply_api.transport.http.routes.admin_auth import router as admin_auth_router
+from love_reply_api.transport.http.routes.admin_commerce import router as admin_commerce_router
 from love_reply_api.transport.http.routes.admin_providers import router as admin_provider_router
 from love_reply_api.transport.http.routes.app import router as app_router
 from love_reply_api.transport.http.routes.auth import router as auth_router
@@ -56,6 +57,7 @@ app.add_exception_handler(ApiError, api_error_handler)  # type: ignore[arg-type]
 app.add_exception_handler(RequestValidationError, validation_error_handler)  # type: ignore[arg-type]
 app.include_router(app_router)
 app.include_router(admin_auth_router)
+app.include_router(admin_commerce_router)
 app.include_router(admin_ai_router)
 app.include_router(admin_provider_router)
 app.include_router(auth_router)

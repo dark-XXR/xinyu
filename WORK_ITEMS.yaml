@@ -251,8 +251,8 @@ items:
   - taskId: CONTRACT-ADMIN-BUSINESS-001
     title: Define user support content operations and finance admin operations
     moduleCode: ADMIN_RBAC
-    owner: unassigned
-    status: planned
+    owner: codex-root
+    status: in_progress
     allowedPaths:
       - contracts/openapi/admin/users.yaml
       - contracts/openapi/admin/support.yaml
@@ -265,7 +265,7 @@ items:
       - entitlement_adjustment_is_idempotent_and_audited
       - editor_cannot_self_approve_content
       - refund_and_reconciliation_operations_are_complete
-    handoffNotes: ""
+    handoffNotes: "Finance scope complete. Fourteen administrator commerce operations define immutable product drafts, maker-checker publication, published-only rollback, order and payment-attempt readback, refund decisions and provider execution, bounded reconciliation, and idempotent audited entitlement adjustment. User support and content administration remain."
 
   - taskId: CONTRACT-ADMIN-PLATFORM-001
     title: Define dynamic operations system risk data governance RBAC and audit
@@ -514,7 +514,7 @@ items:
     title: Implement products subscriptions Epay orders callbacks refunds and reconciliation
     moduleCode: ORDER
     owner: codex-root
-    status: in_progress
+    status: done
     allowedPaths:
       - services/api/src/love_reply_api/application/**
       - services/api/src/love_reply_api/domain/**
@@ -529,7 +529,7 @@ items:
       - redirect_never_grants_entitlement
       - duplicate_or_conflicting_callbacks_do_not_double_settle
       - catalog_versions_preserve_completed_order_facts
-    handoffNotes: "In progress. Versioned product records, immutable order snapshots, payment attempts, unique provider events, subscriptions, refunds, and a reversible migration are implemented. All public product/order/payment-sync/subscription/refund operations plus the Epay webhook are routed. Verified callbacks and provider queries settle atomically with entitlement or energy grants; identical callbacks ACK without double grants and conflicting facts fail closed. Refund requests currently enter review. Product administration publication, automatic provider refund execution, entitlement recovery, and scheduled reconciliation remain."
+    handoffNotes: "Complete. Public commerce, immutable order snapshots, signed Epay callback/query settlement, product draft/version administration, maker-checker publication, published-only rollback, refund approval and provider execution, conservative unspent-benefit recovery, bounded reconciliation, and idempotent audited entitlement adjustment are implemented. Fifty-five backend tests pass; the commerce administration migration passed downgrade and upgrade. Real Epay sandbox credentials remain an external deployment input."
 
   - taskId: FRONTEND-ADMIN-CONSOLE-001
     title: Build provider AI commerce subscription and audit administration console

@@ -17,6 +17,7 @@ from love_reply_api.application.ai_admin import AiGatewayAdminService
 from love_reply_api.application.ai_gateway import AiHttpTransport, RegistryAiProvider
 from love_reply_api.application.auth import AuthService, EmailSender, SmsSender
 from love_reply_api.application.commerce import CommerceService
+from love_reply_api.application.commerce_admin import CommerceAdminService
 from love_reply_api.application.delivery_adapters import EmailApiTransport, SmsApiTransport
 from love_reply_api.application.errors import ApiError
 from love_reply_api.application.generation import AiProvider, GenerationService
@@ -236,6 +237,19 @@ def get_commerce_service(
         epay_transport=cast(EpayTransport, request.app.state.epay_transport),
     )
     return CommerceService(session=session, gateway=gateway)
+
+
+def get_commerce_admin_service(
+    request: Request,
+    session: Annotated[AsyncSession, Depends(get_session)],
+    settings: Annotated[Settings, Depends(get_settings)],
+) -> CommerceAdminService:
+    gateway = RegistryPaymentGateway(
+        session=session,
+        settings=settings,
+        epay_transport=cast(EpayTransport, request.app.state.epay_transport),
+    )
+    return CommerceAdminService(session=session, gateway=gateway)
 
 
 def get_ai_provider(

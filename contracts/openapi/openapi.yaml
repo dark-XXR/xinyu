@@ -203,6 +203,30 @@ paths:
     $ref: ./admin/providers.yaml#/publish
   /admin/v1/providers/{providerId}/rollback:
     $ref: ./admin/providers.yaml#/rollback
+  /admin/v1/products:
+    $ref: ./admin/finance.yaml#/products
+  /admin/v1/products/{productVersionId}:
+    $ref: ./admin/finance.yaml#/product
+  /admin/v1/products/{productVersionId}/publish:
+    $ref: ./admin/finance.yaml#/productPublish
+  /admin/v1/products/{productCode}/rollback:
+    $ref: ./admin/finance.yaml#/productRollback
+  /admin/v1/orders:
+    $ref: ./admin/finance.yaml#/orders
+  /admin/v1/orders/{orderId}:
+    $ref: ./admin/finance.yaml#/order
+  /admin/v1/refunds:
+    $ref: ./admin/finance.yaml#/refunds
+  /admin/v1/refunds/{refundId}:
+    $ref: ./admin/finance.yaml#/refund
+  /admin/v1/refunds/{refundId}/decision:
+    $ref: ./admin/finance.yaml#/refundDecision
+  /admin/v1/refunds/{refundId}/execute:
+    $ref: ./admin/finance.yaml#/refundExecute
+  /admin/v1/payment-reconciliations:
+    $ref: ./admin/finance.yaml#/reconciliations
+  /admin/v1/entitlement-adjustments:
+    $ref: ./admin/finance.yaml#/entitlementAdjustments
   /admin/v1/ai/model-mappings:
     $ref: ./admin/model-gateway.yaml#/modelMappings
   /admin/v1/ai/model-mappings/{modelMappingId}:

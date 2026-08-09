@@ -17,6 +17,7 @@ from love_reply_api.application.errors import ApiError
 from love_reply_api.application.payment_adapters import EpayVerifiedCallback
 from love_reply_api.application.provider_runtime import RegistryPaymentGateway
 from love_reply_api.infrastructure.commerce_records import (
+    CommerceGrantRecord,
     CommerceOrderRecord,
     PaymentAttemptRecord,
     PaymentEventRecord,
@@ -185,6 +186,56 @@ class CommerceService:
             )
         await self._session.commit()
         return order
+
+    async def reconcile_order(self, *, order: CommerceOrderRecord) -> str:
+        """在管理员限定的批次内核对单笔订单，不自行提交外层事务。"""
+
+        now = datetime.now(UTC)
+        if order.status in {"PAID", "PARTIALLY_REFUNDED"} and not order.entitlement_granted:
+            # 支付事实已经由回调或查询确认时，只恢复被中断的本地权益事务。
+            await self._grant(order=order, now=now)
+            order.entitlement_granted = True
+            order.resource_version += 1
+            order.updated_at = now
+            return "RECOVERED"
+        if order.status not in {"CREATED", "PENDING_PAYMENT", "FAILED"}:
+            return "SKIPPED"
+        attempt = await self._latest_attempt(order.order_id)
+        provider = await self._gateway.resolve_by_id(
+            provider_id=attempt.provider_id, routing_key=order.order_id
+        )
+        state = await self._gateway.transport.query(
+            configuration=provider.configuration,
+            credentials=provider.credentials,
+            order_id=order.order_id,
+        )
+        attempt.last_synced_at = now
+        attempt.updated_at = now
+        if state.status != "SUCCEEDED":
+            return "PENDING"
+        if (
+            state.amount_minor != order.amount_minor
+            or state.payment_method != attempt.payment_method
+        ):
+            raise ApiError(
+                status_code=409,
+                code="PAYMENT_QUERY_CONFLICT",
+                message="Provider payment facts do not match the order.",
+            )
+        await self._settle(
+            order=order,
+            attempt=attempt,
+            provider_id=provider.provider_id,
+            provider_transaction_id=state.provider_transaction_id or f"query_{order.order_id}",
+            fingerprint=self._fingerprint(
+                {
+                    "source": "ADMIN_RECONCILIATION",
+                    "orderId": order.order_id,
+                    "amount": state.amount_minor,
+                }
+            ),
+        )
+        return "SETTLED"
 
     async def receive_callback(self, *, provider_id: str, form: dict[str, str]) -> str:
         provider = await self._gateway.resolve_by_id(
@@ -428,6 +479,7 @@ class CommerceService:
         assert entitlement is not None and wallet is not None
         if product["productType"] == "ENERGY_PACK":
             amount = int(benefits["energyAmount"])
+            before_balance = wallet.energy_balance
             wallet.energy_balance += amount
             wallet.resource_version += 1
             wallet.updated_at = now
@@ -445,7 +497,35 @@ class CommerceService:
                     created_at=now,
                 )
             )
+            self._session.add(
+                CommerceGrantRecord(
+                    grant_id=f"cgr_{uuid4().hex}",
+                    order_id=order.order_id,
+                    user_id=order.user_id,
+                    product_type="ENERGY_PACK",
+                    grant_snapshot={
+                        "amount": amount,
+                        "beforeBalance": before_balance,
+                        "afterBalance": wallet.energy_balance,
+                    },
+                    recovery_status="AVAILABLE",
+                    recovered_at=None,
+                    created_at=now,
+                )
+            )
             return
+        before = {
+            "planCode": entitlement.plan_code,
+            "planExpiresAt": (
+                entitlement.plan_expires_at.isoformat()
+                if entitlement.plan_expires_at is not None
+                else None
+            ),
+            "textRemaining": entitlement.text_remaining,
+            "visionRemaining": entitlement.vision_remaining,
+            "allowedModelIds": list(entitlement.allowed_model_ids),
+            "allowedStyleIds": list(entitlement.allowed_style_ids),
+        }
         term_days = int(product["termDays"])
         start = max(now, entitlement.plan_expires_at or now)
         end = start + timedelta(days=term_days)
@@ -461,6 +541,14 @@ class CommerceService:
         )
         entitlement.resource_version += 1
         entitlement.updated_at = now
+        after = {
+            "planCode": entitlement.plan_code,
+            "planExpiresAt": end.isoformat(),
+            "textRemaining": entitlement.text_remaining,
+            "visionRemaining": entitlement.vision_remaining,
+            "allowedModelIds": list(entitlement.allowed_model_ids),
+            "allowedStyleIds": list(entitlement.allowed_style_ids),
+        }
         self._session.add(
             SubscriptionRecord(
                 subscription_id=f"sub_{uuid4().hex}",
@@ -477,6 +565,18 @@ class CommerceService:
                 resource_version=1,
                 created_at=now,
                 updated_at=now,
+            )
+        )
+        self._session.add(
+            CommerceGrantRecord(
+                grant_id=f"cgr_{uuid4().hex}",
+                order_id=order.order_id,
+                user_id=order.user_id,
+                product_type="PLAN",
+                grant_snapshot={"before": before, "after": after},
+                recovery_status="AVAILABLE",
+                recovered_at=None,
+                created_at=now,
             )
         )
 

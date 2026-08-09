@@ -4,10 +4,10 @@ Last updated: 2026-08-09
 
 ## Current checkpoint
 
-- Active task: `BACKEND-COMMERCE-001`
-- State: `in_progress`
+- Active task: `BACKEND-REFERRAL-001`
+- State: `planned`
 - Contract version: `1.0.0`
-- Current phase: commerce order settlement is complete; administration and refund recovery are next
+- Current phase: commerce backend is complete; referral runtime and administration UI are next
 
 ## Completed
 
@@ -66,6 +66,14 @@ Last updated: 2026-08-09
   provider events, subscriptions, and refund requests. All contracted public commerce routes and the
   Epay webhook are registered. Callback/query settlement locks the order and entitlement accounts in
   one transaction; identical callbacks ACK without duplicate grants while conflicting callbacks fail.
+- Administrator commerce now exposes 14 MFA permission-scoped operations for product drafts,
+  maker-checker publication, published-only rollback, order/payment readback, refund review and
+  execution, bounded reconciliation, and idempotent manual entitlement adjustment. Prices, quotas,
+  benefits, effective windows and batch limits are administrator inputs rather than client constants.
+- Successful refunds use the payment attempt's immutable provider facts. Full energy-pack refunds
+  recover only available balance; plan benefits are restored only when the complete current
+  entitlement still equals the recorded post-grant snapshot. Consumed or changed benefits enter
+  explicit manual review instead of being guessed or forced negative.
 - A Chinese file/page catalog and code-comment guide now map Android screens, UI parameters,
   backend routes, business services, data tables, contracts, and planned administration pages for
   non-developer maintenance.
@@ -111,10 +119,11 @@ Android Lint, and Debug APK assembly all passed.
 Identity contract validation now covers 46 fixtures across 19 tagged operations. Generated
 Kotlin and TypeScript clients both compile with the new email/channel models and operations.
 
-Backend verification now covers 51 PostgreSQL integration and transport tests. The email/auth,
+Backend verification now covers 55 PostgreSQL integration and transport tests. The email/auth,
 administrator authentication, provider-registry, and AI-gateway migrations passed
-upgrade, downgrade, and re-upgrade; Ruff, strict MyPy, TypeScript, Android unit tests, Android Lint,
-and Debug APK assembly also pass.
+upgrade, downgrade, and re-upgrade. The commerce administration migration also passed its own
+downgrade/upgrade loop. Ruff, strict MyPy across 58 source files, OpenAPI lint/bundle, generated
+TypeScript build, generated Kotlin build, Android unit tests, Android Lint, and Debug APK assembly pass.
 
 ## External inputs
 
@@ -143,8 +152,7 @@ browser/emulator output rather than IDE automation.
 
 ## Next exact actions
 
-1. Add administrator product/price publication and rollback APIs.
-2. Implement automatic provider refunds, entitlement recovery, and scheduled reconciliation.
-3. Complete referral reward runtime behavior.
-4. Build the administration console through Antigravity CLI only.
-5. Redesign the Android UI through Antigravity CLI and verify it on emulator viewports.
+1. Complete referral campaign, binding, risk, milestone, reward and reversal runtime behavior.
+2. Build the administration console through Antigravity CLI only, starting with providers and commerce.
+3. Add contract fixtures for the new administrator commerce operations.
+4. Redesign the Android UI through Antigravity CLI and verify it on emulator viewports.

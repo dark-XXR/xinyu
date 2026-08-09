@@ -2264,6 +2264,494 @@ paths:
           $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalError'
+  /admin/v1/products:
+    get:
+      operationId: listAdminProducts
+      summary: List all product drafts and published versions
+      tags:
+        - ADMIN_COMMERCE
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Product versions.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminProductListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    post:
+      operationId: createAdminProduct
+      summary: Create a new immutable product draft version
+      tags:
+        - ADMIN_COMMERCE
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminProductWriteRequest'
+      responses:
+        '201':
+          description: Draft version created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminProductResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /admin/v1/products/{productVersionId}:
+    get:
+      operationId: getAdminProduct
+      summary: Read one product version
+      tags:
+        - ADMIN_COMMERCE
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/productVersionId'
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+      responses:
+        '200':
+          description: Product version.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminProductResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    patch:
+      operationId: updateAdminProduct
+      summary: Replace a draft with a new immutable product version
+      tags:
+        - ADMIN_COMMERCE
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/productVersionId'
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminProductWriteRequest'
+      responses:
+        '200':
+          description: New draft version.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminProductResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /admin/v1/products/{productVersionId}/publish:
+    post:
+      operationId: publishAdminProduct
+      summary: Publish a product version with maker-checker approval
+      tags:
+        - ADMIN_COMMERCE
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/productVersionId'
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminProductPublishRequest'
+      responses:
+        '200':
+          description: Product version published.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminProductResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /admin/v1/products/{productCode}/rollback:
+    post:
+      operationId: rollbackAdminProduct
+      summary: Re-publish a previously published immutable version
+      tags:
+        - ADMIN_COMMERCE
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/productCode'
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminProductRollbackRequest'
+      responses:
+        '200':
+          description: Historical version re-published as a new immutable version.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminProductResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /admin/v1/orders:
+    get:
+      operationId: listAdminOrders
+      summary: List immutable order and payment facts
+      tags:
+        - ADMIN_COMMERCE
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Orders and payment attempts.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminOrderListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /admin/v1/orders/{orderId}:
+    get:
+      operationId: getAdminOrder
+      summary: Read one order and all payment attempts
+      tags:
+        - ADMIN_COMMERCE
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/orderId'
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+      responses:
+        '200':
+          description: Order and payment attempts.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminOrderResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /admin/v1/refunds:
+    get:
+      operationId: listAdminRefunds
+      summary: List refund requests and recovery status
+      tags:
+        - ADMIN_COMMERCE
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Refund requests.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminRefundListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /admin/v1/refunds/{refundId}:
+    get:
+      operationId: getAdminRefund
+      summary: Read one refund request
+      tags:
+        - ADMIN_COMMERCE
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/refundId'
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+      responses:
+        '200':
+          description: Refund request.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminRefundResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /admin/v1/refunds/{refundId}/decision:
+    post:
+      operationId: decideAdminRefund
+      summary: Approve or reject a refund request
+      tags:
+        - ADMIN_COMMERCE
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/refundId'
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminRefundDecisionRequest'
+      responses:
+        '200':
+          description: Reviewed refund.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminRefundResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /admin/v1/refunds/{refundId}/execute:
+    post:
+      operationId: executeAdminRefund
+      summary: Execute an approved provider refund and recover eligible benefits
+      tags:
+        - ADMIN_COMMERCE
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/refundId'
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminRefundExecuteRequest'
+      responses:
+        '200':
+          description: Provider refund result and benefit recovery status.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminRefundResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /admin/v1/payment-reconciliations:
+    post:
+      operationId: runAdminPaymentReconciliation
+      summary: Reconcile stale payment attempts and recover interrupted grants
+      tags:
+        - ADMIN_COMMERCE
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentReconciliationRequest'
+      responses:
+        '200':
+          description: Bounded reconciliation result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentReconciliationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /admin/v1/entitlement-adjustments:
+    post:
+      operationId: createAdminEntitlementAdjustment
+      summary: Apply one idempotent and audited manual benefit adjustment
+      tags:
+        - ADMIN_COMMERCE
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EntitlementAdjustmentRequest'
+      responses:
+        '201':
+          description: Applied adjustment or exact idempotent replay.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntitlementAdjustmentResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
   /admin/v1/ai/model-mappings:
     get:
       operationId: listAdminAiModelMappings
@@ -3443,6 +3931,29 @@ components:
         type: string
         minLength: 8
         maxLength: 128
+    productVersionId:
+      name: productVersionId
+      in: path
+      required: true
+      schema:
+        type: string
+        minLength: 8
+        maxLength: 128
+    productCode:
+      name: productCode
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: ^[A-Z][A-Z0-9_]{1,63}$
+    refundId:
+      name: refundId
+      in: path
+      required: true
+      schema:
+        type: string
+        minLength: 8
+        maxLength: 128
     modelMappingId:
       name: modelMappingId
       in: path
@@ -4540,6 +5051,7 @@ components:
     ProductPublicationStatus:
       type: string
       enum:
+        - DRAFT
         - ACTIVE
         - RETIRED
     ProductVersion:
@@ -6980,6 +7492,425 @@ components:
           type: string
           minLength: 8
           maxLength: 500
+    AdminProductVersion:
+      allOf:
+        - $ref: '#/components/schemas/ProductVersion'
+        - type: object
+          required:
+            - resourceVersion
+            - createdByAdminId
+            - createdAt
+            - updatedAt
+          properties:
+            resourceVersion:
+              type: integer
+              minimum: 1
+            createdByAdminId:
+              type: string
+            publishedByAdminId:
+              type:
+                - string
+                - 'null'
+            publishedAt:
+              type:
+                - string
+                - 'null'
+              format: date-time
+            createdAt:
+              type: string
+              format: date-time
+            updatedAt:
+              type: string
+              format: date-time
+    AdminProductListData:
+      type: object
+      additionalProperties: false
+      required:
+        - items
+        - nextCursor
+        - hasMore
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/AdminProductVersion'
+        nextCursor:
+          type:
+            - string
+            - 'null'
+        hasMore:
+          type: boolean
+    AdminProductListResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/AdminProductListData'
+    AdminProductWriteRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - productCode
+        - productType
+        - displayName
+        - currency
+        - amountMinor
+        - region
+        - salesChannels
+        - renewalType
+        - benefitWindowDays
+        - benefits
+        - auditReason
+      properties:
+        productCode:
+          type: string
+          pattern: ^[A-Z][A-Z0-9_]{1,63}$
+        productType:
+          $ref: '#/components/schemas/ProductType'
+        displayName:
+          type: string
+          minLength: 1
+          maxLength: 128
+        description:
+          type:
+            - string
+            - 'null'
+          maxLength: 500
+        currency:
+          type: string
+          pattern: ^[A-Z]{3}$
+        amountMinor:
+          type: integer
+          minimum: 0
+        region:
+          type: string
+          minLength: 2
+          maxLength: 16
+        salesChannels:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items:
+            $ref: '#/components/schemas/SalesChannel'
+        renewalType:
+          $ref: '#/components/schemas/RenewalType'
+        termDays:
+          type:
+            - integer
+            - 'null'
+          minimum: 1
+        benefitWindowDays:
+          type: integer
+          minimum: 1
+        benefits:
+          $ref: '#/components/schemas/BenefitGrant'
+        auditReason:
+          type: string
+          minLength: 8
+          maxLength: 500
+    AdminProductResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/AdminProductVersion'
+    AdminProductPublishRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - effectiveAt
+        - auditReason
+      properties:
+        effectiveAt:
+          type: string
+          format: date-time
+        expiresAt:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        auditReason:
+          type: string
+          minLength: 8
+          maxLength: 500
+    AdminProductRollbackRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - targetProductVersionId
+        - effectiveAt
+        - auditReason
+      properties:
+        targetProductVersionId:
+          type: string
+        effectiveAt:
+          type: string
+          format: date-time
+        auditReason:
+          type: string
+          minLength: 8
+          maxLength: 500
+    AdminOrder:
+      type: object
+      additionalProperties: false
+      required:
+        - userId
+        - order
+      properties:
+        userId:
+          type: string
+        order:
+          $ref: '#/components/schemas/Order'
+    AdminOrderListData:
+      type: object
+      additionalProperties: false
+      required:
+        - items
+        - nextCursor
+        - hasMore
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/AdminOrder'
+        nextCursor:
+          type:
+            - string
+            - 'null'
+        hasMore:
+          type: boolean
+    AdminOrderListResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/AdminOrderListData'
+    AdminOrderResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/AdminOrder'
+    AdminRefund:
+      allOf:
+        - $ref: '#/components/schemas/Refund'
+        - type: object
+          required:
+            - userId
+          properties:
+            userId:
+              type: string
+            providerRefundId:
+              type:
+                - string
+                - 'null'
+            reviewedByAdminId:
+              type:
+                - string
+                - 'null'
+            executedByAdminId:
+              type:
+                - string
+                - 'null'
+    AdminRefundListData:
+      type: object
+      additionalProperties: false
+      required:
+        - items
+        - nextCursor
+        - hasMore
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/AdminRefund'
+        nextCursor:
+          type:
+            - string
+            - 'null'
+        hasMore:
+          type: boolean
+    AdminRefundListResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/AdminRefundListData'
+    AdminRefundResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/AdminRefund'
+    AdminRefundDecisionRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - decision
+        - auditReason
+      properties:
+        decision:
+          type: string
+          enum:
+            - APPROVE
+            - REJECT
+        rejectionReasonCode:
+          type:
+            - string
+            - 'null'
+          pattern: ^[A-Z][A-Z0-9_]*$
+        auditReason:
+          type: string
+          minLength: 8
+          maxLength: 500
+    AdminRefundExecuteRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - auditReason
+      properties:
+        auditReason:
+          type: string
+          minLength: 8
+          maxLength: 500
+    PaymentReconciliationRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - staleBefore
+        - maxOrders
+        - auditReason
+      properties:
+        staleBefore:
+          type: string
+          format: date-time
+          description: Only attempts not synchronized after this administrator-selected boundary are queried.
+        maxOrders:
+          type: integer
+          minimum: 1
+          maximum: 500
+        auditReason:
+          type: string
+          minLength: 8
+          maxLength: 500
+    PaymentReconciliation:
+      type: object
+      additionalProperties: false
+      required:
+        - reconciliationId
+        - scannedCount
+        - settledCount
+        - recoveredCount
+        - conflictCount
+        - startedAt
+        - completedAt
+      properties:
+        reconciliationId:
+          type: string
+        scannedCount:
+          type: integer
+          minimum: 0
+        settledCount:
+          type: integer
+          minimum: 0
+        recoveredCount:
+          type: integer
+          minimum: 0
+        conflictCount:
+          type: integer
+          minimum: 0
+        startedAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+    PaymentReconciliationResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/PaymentReconciliation'
+    EntitlementAdjustmentRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - userId
+        - unit
+        - delta
+        - reasonCode
+        - auditReason
+      properties:
+        userId:
+          type: string
+        unit:
+          type: string
+          enum:
+            - ENERGY
+            - TEXT_QUOTA
+            - VISION_QUOTA
+            - PLAN_DAYS
+        delta:
+          type: integer
+          not:
+            const: 0
+        reasonCode:
+          type: string
+          pattern: ^[A-Z][A-Z0-9_]*$
+        auditReason:
+          type: string
+          minLength: 8
+          maxLength: 500
+    EntitlementAdjustment:
+      type: object
+      additionalProperties: false
+      required:
+        - adjustmentId
+        - userId
+        - unit
+        - delta
+        - reasonCode
+        - createdByAdminId
+        - createdAt
+      properties:
+        adjustmentId:
+          type: string
+        userId:
+          type: string
+        unit:
+          type: string
+          enum:
+            - ENERGY
+            - TEXT_QUOTA
+            - VISION_QUOTA
+            - PLAN_DAYS
+        delta:
+          type: integer
+        reasonCode:
+          type: string
+        createdByAdminId:
+          type: string
+        walletLedgerEntryId:
+          type:
+            - string
+            - 'null'
+        createdAt:
+          type: string
+          format: date-time
+    EntitlementAdjustmentResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/EntitlementAdjustment'
     AiModality:
       type: string
       enum:

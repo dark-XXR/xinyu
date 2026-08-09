@@ -88,6 +88,20 @@ All URIs are relative to *http://localhost:8000*
 *ADMINAIApi* | [**updateAdminAiPrompt**](docs/ADMINAIApi.md#updateadminaiprompt) | **PATCH** /admin/v1/ai/prompts/{promptId} | Replace a prompt template draft
 *ADMINAIApi* | [**updateAdminAiRiskPolicy**](docs/ADMINAIApi.md#updateadminairiskpolicy) | **PATCH** /admin/v1/ai/risk-policies/{riskPolicyId} | Replace an AI risk policy draft
 *ADMINAIApi* | [**updateAdminAiRoute**](docs/ADMINAIApi.md#updateadminairoute) | **PATCH** /admin/v1/ai/routes/{routeId} | Replace an AI route draft configuration
+*ADMINCOMMERCEApi* | [**createAdminEntitlementAdjustment**](docs/ADMINCOMMERCEApi.md#createadminentitlementadjustment) | **POST** /admin/v1/entitlement-adjustments | Apply one idempotent and audited manual benefit adjustment
+*ADMINCOMMERCEApi* | [**createAdminProduct**](docs/ADMINCOMMERCEApi.md#createadminproduct) | **POST** /admin/v1/products | Create a new immutable product draft version
+*ADMINCOMMERCEApi* | [**decideAdminRefund**](docs/ADMINCOMMERCEApi.md#decideadminrefund) | **POST** /admin/v1/refunds/{refundId}/decision | Approve or reject a refund request
+*ADMINCOMMERCEApi* | [**executeAdminRefund**](docs/ADMINCOMMERCEApi.md#executeadminrefund) | **POST** /admin/v1/refunds/{refundId}/execute | Execute an approved provider refund and recover eligible benefits
+*ADMINCOMMERCEApi* | [**getAdminOrder**](docs/ADMINCOMMERCEApi.md#getadminorder) | **GET** /admin/v1/orders/{orderId} | Read one order and all payment attempts
+*ADMINCOMMERCEApi* | [**getAdminProduct**](docs/ADMINCOMMERCEApi.md#getadminproduct) | **GET** /admin/v1/products/{productVersionId} | Read one product version
+*ADMINCOMMERCEApi* | [**getAdminRefund**](docs/ADMINCOMMERCEApi.md#getadminrefund) | **GET** /admin/v1/refunds/{refundId} | Read one refund request
+*ADMINCOMMERCEApi* | [**listAdminOrders**](docs/ADMINCOMMERCEApi.md#listadminorders) | **GET** /admin/v1/orders | List immutable order and payment facts
+*ADMINCOMMERCEApi* | [**listAdminProducts**](docs/ADMINCOMMERCEApi.md#listadminproducts) | **GET** /admin/v1/products | List all product drafts and published versions
+*ADMINCOMMERCEApi* | [**listAdminRefunds**](docs/ADMINCOMMERCEApi.md#listadminrefunds) | **GET** /admin/v1/refunds | List refund requests and recovery status
+*ADMINCOMMERCEApi* | [**publishAdminProduct**](docs/ADMINCOMMERCEApi.md#publishadminproduct) | **POST** /admin/v1/products/{productVersionId}/publish | Publish a product version with maker-checker approval
+*ADMINCOMMERCEApi* | [**rollbackAdminProduct**](docs/ADMINCOMMERCEApi.md#rollbackadminproduct) | **POST** /admin/v1/products/{productCode}/rollback | Re-publish a previously published immutable version
+*ADMINCOMMERCEApi* | [**runAdminPaymentReconciliation**](docs/ADMINCOMMERCEApi.md#runadminpaymentreconciliation) | **POST** /admin/v1/payment-reconciliations | Reconcile stale payment attempts and recover interrupted grants
+*ADMINCOMMERCEApi* | [**updateAdminProduct**](docs/ADMINCOMMERCEApi.md#updateadminproduct) | **PATCH** /admin/v1/products/{productVersionId} | Replace a draft with a new immutable product version
 *ADMINPROVIDERApi* | [**checkAdminProviderHealth**](docs/ADMINPROVIDERApi.md#checkadminproviderhealth) | **POST** /admin/v1/providers/{providerId}/health-checks | Execute an audited redacted provider health check
 *ADMINPROVIDERApi* | [**createAdminProvider**](docs/ADMINPROVIDERApi.md#createadminprovider) | **POST** /admin/v1/providers | Create a provider draft
 *ADMINPROVIDERApi* | [**getAdminProvider**](docs/ADMINPROVIDERApi.md#getadminprovider) | **GET** /admin/v1/providers/{providerId} | Read one redacted provider configuration
@@ -183,8 +197,25 @@ All URIs are relative to *http://localhost:8000*
 - [AdminMfaMethod](docs/AdminMfaMethod.md)
 - [AdminMfaStatus](docs/AdminMfaStatus.md)
 - [AdminMfaVerifyRequest](docs/AdminMfaVerifyRequest.md)
+- [AdminOrder](docs/AdminOrder.md)
+- [AdminOrderListData](docs/AdminOrderListData.md)
+- [AdminOrderListResponse](docs/AdminOrderListResponse.md)
+- [AdminOrderResponse](docs/AdminOrderResponse.md)
 - [AdminPermissionCode](docs/AdminPermissionCode.md)
+- [AdminProductListData](docs/AdminProductListData.md)
+- [AdminProductListResponse](docs/AdminProductListResponse.md)
+- [AdminProductPublishRequest](docs/AdminProductPublishRequest.md)
+- [AdminProductResponse](docs/AdminProductResponse.md)
+- [AdminProductRollbackRequest](docs/AdminProductRollbackRequest.md)
+- [AdminProductVersion](docs/AdminProductVersion.md)
+- [AdminProductWriteRequest](docs/AdminProductWriteRequest.md)
 - [AdminRefreshRequest](docs/AdminRefreshRequest.md)
+- [AdminRefund](docs/AdminRefund.md)
+- [AdminRefundDecisionRequest](docs/AdminRefundDecisionRequest.md)
+- [AdminRefundExecuteRequest](docs/AdminRefundExecuteRequest.md)
+- [AdminRefundListData](docs/AdminRefundListData.md)
+- [AdminRefundListResponse](docs/AdminRefundListResponse.md)
+- [AdminRefundResponse](docs/AdminRefundResponse.md)
 - [AdminRoleSummary](docs/AdminRoleSummary.md)
 - [AdminSessionSummary](docs/AdminSessionSummary.md)
 - [AdminTokenData](docs/AdminTokenData.md)
@@ -275,6 +306,9 @@ All URIs are relative to *http://localhost:8000*
 - [EmailSendRequest](docs/EmailSendRequest.md)
 - [EmptyResponse](docs/EmptyResponse.md)
 - [Entitlement](docs/Entitlement.md)
+- [EntitlementAdjustment](docs/EntitlementAdjustment.md)
+- [EntitlementAdjustmentRequest](docs/EntitlementAdjustmentRequest.md)
+- [EntitlementAdjustmentResponse](docs/EntitlementAdjustmentResponse.md)
 - [EntitlementResponse](docs/EntitlementResponse.md)
 - [EpayConfiguration](docs/EpayConfiguration.md)
 - [ErrorDetail](docs/ErrorDetail.md)
@@ -310,6 +344,9 @@ All URIs are relative to *http://localhost:8000*
 - [PaymentAttempt](docs/PaymentAttempt.md)
 - [PaymentAttemptStatus](docs/PaymentAttemptStatus.md)
 - [PaymentMethod](docs/PaymentMethod.md)
+- [PaymentReconciliation](docs/PaymentReconciliation.md)
+- [PaymentReconciliationRequest](docs/PaymentReconciliationRequest.md)
+- [PaymentReconciliationResponse](docs/PaymentReconciliationResponse.md)
 - [PendingConsent](docs/PendingConsent.md)
 - [ProductListData](docs/ProductListData.md)
 - [ProductListResponse](docs/ProductListResponse.md)
