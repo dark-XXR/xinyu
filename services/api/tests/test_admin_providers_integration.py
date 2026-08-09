@@ -1,4 +1,5 @@
 import os
+import re
 from collections.abc import AsyncIterator
 from datetime import UTC, datetime, timedelta
 
@@ -6,6 +7,11 @@ import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from love_reply_api.application.admin_auth import AdminAuthService
+from love_reply_api.application.provider_runtime import (
+    ProviderAdapterHealthChecker,
+    PublishedProviderResolver,
+    SmtpTransport,
+)
 from love_reply_api.application.providers import (
     ProviderHealthResult,
     UnavailableProviderHealthChecker,
@@ -18,7 +24,7 @@ from love_reply_api.infrastructure.admin_records import (
     AdminUserRecord,
 )
 from love_reply_api.infrastructure.database import engine, session_factory
-from love_reply_api.infrastructure.identity_records import IdempotencyRecord
+from love_reply_api.infrastructure.identity_records import EmailChallengeRecord, IdempotencyRecord
 from love_reply_api.infrastructure.provider_records import (
     ProviderAuditRecord,
     ProviderCredentialVersionRecord,
@@ -68,6 +74,32 @@ class HealthyProviderChecker:
         )
 
 
+class CapturingSmtpTransport:
+    def __init__(self) -> None:
+        self.messages: list[dict[str, object]] = []
+
+    async def send(
+        self,
+        *,
+        configuration: dict[str, object],
+        credentials: dict[str, str],
+        destination: str,
+        subject: str,
+        text_body: str,
+        html_body: str | None,
+    ) -> None:
+        self.messages.append(
+            {
+                "configuration": configuration,
+                "credentials": credentials,
+                "destination": destination,
+                "subject": subject,
+                "text_body": text_body,
+                "html_body": html_body,
+            }
+        )
+
+
 @pytest.fixture
 def provider_settings() -> Settings:
     return Settings(
@@ -88,6 +120,9 @@ async def clean_provider_tables() -> AsyncIterator[None]:
     await engine.dispose()
     yield
     app.dependency_overrides.pop(get_settings, None)
+    app.state.email_sender = None
+    app.state.smtp_transport = SmtpTransport()
+    app.state.provider_health_checker = ProviderAdapterHealthChecker()
     async with session_factory() as session:
         await _delete_provider_data(session)
     await engine.dispose()
@@ -96,6 +131,7 @@ async def clean_provider_tables() -> AsyncIterator[None]:
 async def _delete_provider_data(session: AsyncSession) -> None:
     for record in (
         IdempotencyRecord,
+        EmailChallengeRecord,
         ProviderAuditRecord,
         ProviderHealthCheckRecord,
         ProviderVersionRecord,
@@ -174,7 +210,10 @@ async def test_provider_registry_encrypts_versions_publishes_and_rolls_back(
     provider_settings: Settings,
 ) -> None:
     checker = HealthyProviderChecker()
+    smtp_transport = CapturingSmtpTransport()
     app.state.provider_health_checker = checker
+    app.state.email_sender = None
+    app.state.smtp_transport = smtp_transport
     app.dependency_overrides[get_settings] = lambda: provider_settings
     access_token = await _admin_access_token(provider_settings)
 
@@ -316,7 +355,7 @@ async def test_provider_registry_encrypts_versions_publishes_and_rolls_back(
             ),
             json={
                 "rolloutPercentage": 10,
-                "effectiveAt": (datetime.now(UTC) + timedelta(minutes=5)).isoformat(),
+                "effectiveAt": (datetime.now(UTC) - timedelta(seconds=1)).isoformat(),
                 "auditReason": "Begin controlled production rollout",
             },
         )
@@ -340,6 +379,29 @@ async def test_provider_registry_encrypts_versions_publishes_and_rolls_back(
         assert updated["status"] == "DRAFT"
         assert updated["configuration"]["port"] == 465
         assert updated["resourceVersion"] == 5
+
+        async with session_factory() as session:
+            resolver = PublishedProviderResolver(
+                session=session,
+                settings=provider_settings,
+            )
+            routing_key = next(
+                f"rollout-user-{index}@example.com"
+                for index in range(1000)
+                if resolver.in_rollout(
+                    provider_id=provider_id,
+                    routing_key=f"rollout-user-{index}@example.com",
+                    percentage=10,
+                )
+            )
+            resolved = await resolver.resolve(
+                kind="EMAIL",
+                routing_key=routing_key,
+                adapter_types={"SMTP"},
+            )
+            assert resolved is not None
+            assert resolved.resource_version == 3
+            assert resolved.configuration["port"] == 587
 
         invalid_rollback = await client.post(
             f"/admin/v1/providers/{provider_id}/rollback",
@@ -388,6 +450,48 @@ async def test_provider_registry_encrypts_versions_publishes_and_rolls_back(
         assert rolled_back["configuration"]["port"] == 587
         assert rolled_back["rolloutPercentage"] == 100
         assert rolled_back["resourceVersion"] == 6
+
+        user_headers = {
+            "X-Request-Id": "req-registry-email-auth",
+            "X-Client-Version": "1.0.0",
+            "X-Platform": "ANDROID",
+            "X-Device-Id": "device-registry-email-auth",
+            "Accept-Language": "zh-CN",
+        }
+        channels = await client.get("/v1/auth/channels", headers=user_headers)
+        assert channels.status_code == 200
+        email_channel = next(
+            item
+            for item in channels.json()["data"]["channels"]
+            if item["channel"] == "EMAIL"
+        )
+        assert email_channel["available"] is True
+
+        sent_email = await client.post(
+            "/v1/auth/email/send",
+            headers={
+                **user_headers,
+                "Idempotency-Key": "idem-registry-email-auth",
+            },
+            json={"email": "published-user@example.com", "purpose": "LOGIN"},
+        )
+        assert sent_email.status_code == 200
+        assert len(smtp_transport.messages) == 1
+        captured_message = smtp_transport.messages[0]
+        assert captured_message["destination"] == "published-user@example.com"
+        assert captured_message["configuration"]["port"] == 587  # type: ignore[index]
+        assert captured_message["credentials"] == {
+            "username": "smtp-user",
+            "password": "smtp-password-secret",
+        }
+        challenge_id = sent_email.json()["data"]["challengeId"]
+        async with session_factory() as session:
+            challenge = await session.get(EmailChallengeRecord, challenge_id)
+            assert challenge is not None
+            code_match = re.search(r"\b[0-9]{6}\b", str(captured_message["text_body"]))
+            assert code_match is not None
+            assert challenge.code_hash != code_match.group(0)
+            assert code_match.group(0) not in challenge.code_hash
 
         app.state.provider_health_checker = UnavailableProviderHealthChecker()
         failed_health = await client.post(

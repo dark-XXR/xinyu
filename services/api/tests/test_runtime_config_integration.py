@@ -107,6 +107,18 @@ async def test_published_config_controls_new_entitlement_and_generation_quote() 
                 },
             },
         },
+        auth_templates={
+            "email_login": {
+                "default_locale": "en",
+                "locales": {
+                    "en": {
+                        "subject": "Runtime login code",
+                        "text_template": "Your code is {code}.",
+                        "html_template": None,
+                    }
+                },
+            }
+        },
         feature_flags={"runtimeTest": True},
         published_at=now,
         created_at=now,

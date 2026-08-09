@@ -59,6 +59,13 @@ class SmtpConfiguration(StrictApiModel):
     reply_to_address: EmailStr | None = None
     timeout_ms: int = Field(ge=1000, le=60_000)
 
+    @field_validator("sender_name")
+    @classmethod
+    def reject_header_injection(cls, value: str) -> str:
+        if "\r" in value or "\n" in value:
+            raise ValueError("sender name cannot contain line breaks")
+        return value
+
 
 class EmailApiConfiguration(StrictApiModel):
     adapter_type: Literal["SES_API", "SENDGRID_API", "RESEND_API", "MAILGUN_API"]

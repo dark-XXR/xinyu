@@ -12,6 +12,7 @@ from love_reply_api.application.auth import AuthService, EmailSender, SmsSender
 from love_reply_api.application.errors import ApiError
 from love_reply_api.application.generation import AiProvider, GenerationService
 from love_reply_api.application.identity import IdentityService
+from love_reply_api.application.provider_runtime import RegistryEmailSender, SmtpTransport
 from love_reply_api.application.providers import ProviderHealthChecker, ProviderService
 from love_reply_api.application.tokens import TokenService
 from love_reply_api.config import Settings, get_settings
@@ -92,8 +93,20 @@ def get_sms_sender(request: Request) -> SmsSender:
     return cast(SmsSender, request.app.state.sms_sender)
 
 
-def get_email_sender(request: Request) -> EmailSender:
-    return cast(EmailSender, request.app.state.email_sender)
+def get_email_sender(
+    request: Request,
+    session: Annotated[AsyncSession, Depends(get_session)],
+    settings: Annotated[Settings, Depends(get_settings)],
+) -> EmailSender:
+    override = request.app.state.email_sender
+    if override is not None:
+        return cast(EmailSender, override)
+    smtp_transport = cast(SmtpTransport, request.app.state.smtp_transport)
+    return RegistryEmailSender(
+        session=session,
+        settings=settings,
+        smtp_transport=smtp_transport,
+    )
 
 
 def get_auth_service(

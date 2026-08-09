@@ -7,7 +7,7 @@ Last updated: 2026-08-09
 - Active task: `BACKEND-PROVIDER-REGISTRY-001`
 - State: `ready`
 - Contract version: `1.0.0`
-- Current phase: encrypted provider registry and administration are implemented; real adapters and runtime routing are next
+- Current phase: SMTP-backed email authentication is complete; Android email-first UI and AI adapters are next
 
 ## Completed
 
@@ -32,6 +32,10 @@ Last updated: 2026-08-09
   redacted health checks, immutable configuration snapshots, publication pointers, gray rollout,
   atomic rollback, and audit events. Editing a published provider cannot change its online snapshot.
   Keyed credential fingerprints resist offline guessing and secrets are never returned by the API.
+- Published providers are now resolved from immutable snapshots by effective time, priority, adapter,
+  and a server-keyed stable rollout bucket. SMTP uses authenticated TLS, database-published localized
+  templates, encrypted credentials, and a real synthetic-delivery health check. The auth channel
+  endpoint automatically reflects whether an effective SMTP publication exists.
 - Versioned products and prices, immutable order benefit snapshots, payment attempts, active
   provider-query reconciliation, subscription cancellation, refunds, entitlement recovery, and
   signed Epay-compatible callbacks are now defined. Twenty-seven commerce fixtures validate
@@ -71,7 +75,7 @@ Android Lint, and Debug APK assembly all passed.
 Identity contract validation now covers 46 fixtures across 19 tagged operations. Generated
 Kotlin and TypeScript clients both compile with the new email/channel models and operations.
 
-Backend verification now covers 17 PostgreSQL integration tests. The email/auth, administrator
+Backend verification now covers 19 PostgreSQL integration and transport tests. The email/auth, administrator
 authentication, and provider-registry migrations passed
 upgrade, downgrade, and re-upgrade; Ruff, strict MyPy, TypeScript, Android unit tests, Android Lint,
 and Debug APK assembly also pass.
@@ -103,8 +107,8 @@ not being represented as a completed interactive Antigravity design workflow.
 
 ## Next exact actions
 
-1. Resolve effective published providers by kind, priority, rollout, and effective time.
-2. Connect the SMTP email sender and real SMTP health check to encrypted provider credentials.
-3. Change Android to email-first login and expose SMS only when the channel policy allows it.
-4. Add real AI provider routing, then implement Epay and catalog persistence.
+1. Change Android to email-first login and expose SMS only when the channel policy allows it.
+2. Verify the updated login flow in Antigravity and on compact/default Android viewports.
+3. Add real AI provider routing with bounded retry, timeout, and cost controls.
+4. Implement Epay and catalog persistence, then referral rewards.
 5. Build the administration console, followed by the full Antigravity Android UI redesign.

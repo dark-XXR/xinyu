@@ -90,10 +90,11 @@ async def send_email_challenge(
     idempotency_key: Annotated[str, Header(alias="Idempotency-Key")],
     service: Annotated[AuthService, Depends(get_auth_service)],
 ) -> EmailChallengeResponse:
-    del client, idempotency_key
+    del idempotency_key
     result = await service.send_email_challenge(
         email_normalized=str(body.email),
         purpose=body.purpose,
+        locale=client.accept_language,
     )
     return SuccessEnvelope(
         data=EmailChallengeData.model_validate(result, from_attributes=True),

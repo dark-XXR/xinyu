@@ -18,6 +18,7 @@ class RuntimeConfigVersionRecord(Base):
     generation_policy: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
     free_entitlement: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
     auth_policy: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
+    auth_templates: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
     feature_flags: Mapped[dict[str, bool]] = mapped_column(JSON, nullable=False)
     published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)

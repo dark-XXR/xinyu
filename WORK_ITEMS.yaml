@@ -472,7 +472,7 @@ items:
     title: Implement email OTP primary authentication and configurable SMS fallback
     moduleCode: AUTH
     owner: codex-root
-    status: in_progress
+    status: done
     allowedPaths:
       - services/api/src/love_reply_api/application/**
       - services/api/src/love_reply_api/domain/**
@@ -487,7 +487,7 @@ items:
       - email_login_refresh_and_revocation_pass_against_postgres
       - sms_fallback_is_policy_controlled_and_fail_closed
       - auth_provider_errors_do_not_reveal_account_existence
-    handoffNotes: "Email-first OTP persistence, public channel availability, policy-controlled EMAIL/SMS enablement, configurable TTL/resend/attempt limits, email-only users, and shared token/device/entitlement flows are implemented. Thirteen PostgreSQL integration tests pass and raw OTP values are never stored. The final SMTP/API delivery adapter will be supplied by BACKEND-PROVIDER-REGISTRY-001 so credentials remain encrypted and administrator-managed rather than environment-hardcoded."
+    handoffNotes: "Complete. Email-first OTP persistence, public channel availability, policy-controlled EMAIL/SMS enablement, configurable TTL/resend/attempt limits, email-only users, and shared token/device/entitlement flows are implemented. Published SMTP providers are resolved by effective time, priority, and stable rollout bucket; login templates come from published database configuration. SMTP uses authenticated TLS and raw OTP values are never stored."
 
   - taskId: BACKEND-PROVIDER-REGISTRY-001
     title: Implement encrypted configurable provider registry health checks and rollout
@@ -508,7 +508,7 @@ items:
       - health_checks_redact_credentials_and_sensitive_payloads
       - active_configuration_can_roll_back_atomically
       - ai_routes_fail_over_with_bounded_retry_and_cost
-    handoffNotes: "Encrypted provider persistence and all 8 administrator operations are implemented behind MFA-backed permissions. Configuration validation covers AI, SMTP/API email, Aliyun/Tencent SMS, and EPAY_COMPAT presets. Write-only credentials use authenticated encryption and keyed fingerprints; health results and audit reasons are redacted. Immutable versions preserve published snapshots while edits remain drafts, and rollback is atomic. Seventeen PostgreSQL tests pass. Real SMTP/API/AI health adapters and runtime routing remain before completion."
+    handoffNotes: "Encrypted provider persistence and all 8 administrator operations are implemented behind MFA-backed permissions. Configuration validation covers AI, SMTP/API email, Aliyun/Tencent SMS, and EPAY_COMPAT presets. Write-only credentials use authenticated encryption and keyed fingerprints; health results and audit reasons are redacted. Immutable versions preserve published snapshots while edits remain drafts, and rollback is atomic. Effective-time, priority, and stable gray-rollout resolution plus real authenticated-TLS SMTP delivery and health checks are complete. Nineteen backend tests pass. API email, SMS, payment, and AI failover adapters remain."
 
   - taskId: BACKEND-COMMERCE-001
     title: Implement products subscriptions Epay orders callbacks refunds and reconciliation
@@ -551,7 +551,7 @@ items:
     title: Upgrade Android to email-first authentication with explicit SMS fallback
     moduleCode: AUTH
     owner: codex-root
-    status: planned
+    status: ready
     allowedPaths:
       - apps/android/**
     dependsOn: [BACKEND-AUTH-CHANNELS-001, CONTRACT-CODEGEN-001]

@@ -54,7 +54,14 @@ class CapturingEmailSender:
         self.code: str | None = None
         self.destination: str | None = None
 
-    async def send_login_code(self, *, email_normalized: str, code: str) -> None:
+    async def send_login_code(
+        self,
+        *,
+        email_normalized: str,
+        code: str,
+        locale: str,
+    ) -> None:
+        assert locale == "zh-CN"
         self.destination = email_normalized
         self.code = code
 

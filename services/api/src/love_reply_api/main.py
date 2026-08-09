@@ -3,10 +3,13 @@ from uuid import uuid4
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 
-from love_reply_api.application.auth import UnavailableEmailSender, UnavailableSmsSender
+from love_reply_api.application.auth import UnavailableSmsSender
 from love_reply_api.application.errors import ApiError
 from love_reply_api.application.generation import UnavailableAiProvider
-from love_reply_api.application.providers import UnavailableProviderHealthChecker
+from love_reply_api.application.provider_runtime import (
+    ProviderAdapterHealthChecker,
+    SmtpTransport,
+)
 from love_reply_api.config import get_settings
 from love_reply_api.schemas import HealthData, SuccessEnvelope
 from love_reply_api.transport.http.errors import api_error_handler, validation_error_handler
@@ -31,9 +34,10 @@ app = FastAPI(
     openapi_url="/internal/openapi.json" if settings.app_env != "production" else None,
 )
 app.state.sms_sender = UnavailableSmsSender()
-app.state.email_sender = UnavailableEmailSender()
+app.state.email_sender = None
+app.state.smtp_transport = SmtpTransport()
 app.state.ai_provider = UnavailableAiProvider()
-app.state.provider_health_checker = UnavailableProviderHealthChecker()
+app.state.provider_health_checker = ProviderAdapterHealthChecker()
 app.add_exception_handler(ApiError, api_error_handler)  # type: ignore[arg-type]
 app.add_exception_handler(RequestValidationError, validation_error_handler)  # type: ignore[arg-type]
 app.include_router(app_router)

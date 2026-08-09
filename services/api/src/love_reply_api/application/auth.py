@@ -3,6 +3,7 @@ from datetime import UTC, datetime, timedelta
 from hashlib import sha256
 from hmac import compare_digest
 from hmac import new as new_hmac
+from inspect import isawaitable
 from math import ceil
 from random import SystemRandom
 from typing import Protocol
@@ -36,7 +37,13 @@ from love_reply_api.infrastructure.identity_records import (
 
 
 class EmailSender(Protocol):
-    async def send_login_code(self, *, email_normalized: str, code: str) -> None: ...
+    async def send_login_code(
+        self,
+        *,
+        email_normalized: str,
+        code: str,
+        locale: str,
+    ) -> None: ...
 
 
 class SmsSender(Protocol):
@@ -46,8 +53,14 @@ class SmsSender(Protocol):
 class UnavailableEmailSender:
     is_available = False
 
-    async def send_login_code(self, *, email_normalized: str, code: str) -> None:
-        del email_normalized, code
+    async def send_login_code(
+        self,
+        *,
+        email_normalized: str,
+        code: str,
+        locale: str,
+    ) -> None:
+        del email_normalized, code, locale
         raise ApiError(
             status_code=503,
             code="EMAIL_PROVIDER_UNAVAILABLE",
@@ -127,7 +140,13 @@ class AuthService:
         return digest.hexdigest()
 
     @staticmethod
-    def _is_provider_available(sender: object) -> bool:
+    async def _is_provider_available(sender: object) -> bool:
+        available = getattr(sender, "available", None)
+        if callable(available):
+            result = available()
+            if isawaitable(result):
+                return bool(await result)
+            return bool(result)
         return bool(getattr(sender, "is_available", True))
 
     async def _auth_policy(self) -> AuthPolicyConfig:
@@ -151,9 +170,8 @@ class AuthService:
         *,
         channel: AuthChannel,
         enabled: bool,
-        sender: object,
+        provider_available: bool,
     ) -> AuthChannelAvailabilityResult:
-        provider_available = self._is_provider_available(sender)
         if not enabled:
             unavailable_reason = "CHANNEL_DISABLED"
         elif not provider_available:
@@ -191,6 +209,8 @@ class AuthService:
 
     async def get_auth_channels(self) -> AuthChannelPolicyResult:
         policy = await self._auth_policy()
+        email_available = await self._is_provider_available(self._email_sender)
+        sms_available = await self._is_provider_available(self._sms_sender)
         return AuthChannelPolicyResult(
             primary_channel=policy.primary_channel,
             fallback_channels=policy.fallback_channels,
@@ -198,12 +218,12 @@ class AuthService:
                 self._channel_availability(
                     channel="EMAIL",
                     enabled=policy.channels["EMAIL"].enabled,
-                    sender=self._email_sender,
+                    provider_available=email_available,
                 ),
                 self._channel_availability(
                     channel="SMS",
                     enabled=policy.channels["SMS"].enabled,
-                    sender=self._sms_sender,
+                    provider_available=sms_available,
                 ),
             ],
             policy_version=policy.policy_version,
@@ -214,9 +234,10 @@ class AuthService:
         *,
         email_normalized: str,
         purpose: str,
+        locale: str,
     ) -> EmailChallengeResult:
         channel_policy = await self._channel_policy("EMAIL")
-        if not self._is_provider_available(self._email_sender):
+        if not await self._is_provider_available(self._email_sender):
             raise ApiError(
                 status_code=503,
                 code="EMAIL_PROVIDER_UNAVAILABLE",
@@ -257,6 +278,7 @@ class AuthService:
             await self._email_sender.send_login_code(
                 email_normalized=normalized,
                 code=code,
+                locale=locale,
             )
             await self._session.commit()
         except ApiError:
@@ -284,7 +306,7 @@ class AuthService:
         purpose: str,
     ) -> ChallengeResult:
         channel_policy = await self._channel_policy("SMS")
-        if not self._is_provider_available(self._sms_sender):
+        if not await self._is_provider_available(self._sms_sender):
             raise ApiError(
                 status_code=503,
                 code="SMS_PROVIDER_UNAVAILABLE",

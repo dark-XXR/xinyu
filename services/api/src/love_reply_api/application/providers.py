@@ -165,6 +165,8 @@ class ProviderService:
             rollout_percentage=0,
             active_credential_version_id=None,
             published_resource_version=None,
+            published_rollout_percentage=0,
+            published_effective_at=None,
             last_health_status=None,
             effective_at=None,
             resource_version=1,
@@ -476,6 +478,8 @@ class ProviderService:
         provider.rollout_percentage = rollout_percentage
         provider.effective_at = effective_at
         provider.published_resource_version = source_version
+        provider.published_rollout_percentage = rollout_percentage
+        provider.published_effective_at = effective_at
         await self._advance(
             provider=provider,
             admin_id=admin_id,
@@ -541,6 +545,8 @@ class ProviderService:
         provider.rollout_percentage = 100
         provider.effective_at = datetime.now(UTC)
         provider.published_resource_version = target_resource_version
+        provider.published_rollout_percentage = 100
+        provider.published_effective_at = provider.effective_at
         await self._advance(
             provider=provider,
             admin_id=admin_id,

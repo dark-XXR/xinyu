@@ -32,6 +32,8 @@ class ProviderRecord(Base):
     rollout_percentage: Mapped[int] = mapped_column(Integer, nullable=False)
     active_credential_version_id: Mapped[str | None] = mapped_column(String(64))
     published_resource_version: Mapped[int | None] = mapped_column(BigInteger)
+    published_rollout_percentage: Mapped[int] = mapped_column(Integer, nullable=False)
+    published_effective_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     last_health_status: Mapped[str | None] = mapped_column(String(32))
     effective_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     resource_version: Mapped[int] = mapped_column(BigInteger, nullable=False)

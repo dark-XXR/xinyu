@@ -1,7 +1,8 @@
 from datetime import datetime
+from string import Formatter
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -74,6 +75,67 @@ class AuthPolicyConfig(BaseModel):
         return self
 
 
+class EmailTemplateVariantConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    subject: str = Field(min_length=1, max_length=200)
+    text_template: str = Field(min_length=1, max_length=10_000)
+    html_template: str | None = Field(default=None, max_length=50_000)
+
+    @field_validator("subject")
+    @classmethod
+    def reject_header_injection(cls, value: str) -> str:
+        if "\r" in value or "\n" in value:
+            raise ValueError("email subject cannot contain line breaks")
+        return value
+
+    @model_validator(mode="after")
+    def validate_placeholders(self) -> "EmailTemplateVariantConfig":
+        formatter = Formatter()
+        values = [self.subject, self.text_template]
+        if self.html_template is not None:
+            values.append(self.html_template)
+        fields: list[str] = []
+        try:
+            for value in values:
+                fields.extend(
+                    field_name
+                    for _, field_name, _, _ in formatter.parse(value)
+                    if field_name is not None
+                )
+        except ValueError as exc:
+            raise ValueError("email template contains invalid formatting") from exc
+        if not fields or "code" not in fields or set(fields) != {"code"}:
+            raise ValueError("email template may contain only the required {code} placeholder")
+        return self
+
+
+class LocalizedEmailTemplateConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    default_locale: str = Field(min_length=2, max_length=35)
+    locales: dict[str, EmailTemplateVariantConfig] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def validate_default_locale(self) -> "LocalizedEmailTemplateConfig":
+        if self.default_locale not in self.locales:
+            raise ValueError("default email template locale is missing")
+        return self
+
+    def for_locale(self, locale: str) -> EmailTemplateVariantConfig:
+        exact = self.locales.get(locale)
+        if exact is not None:
+            return exact
+        language = locale.split("-", 1)[0]
+        return self.locales.get(language, self.locales[self.default_locale])
+
+
+class AuthTemplatesConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    email_login: LocalizedEmailTemplateConfig
+
+
 class PublishedRuntimeConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -84,6 +146,7 @@ class PublishedRuntimeConfig(BaseModel):
     generation_policy: GenerationPolicyConfig
     free_entitlement: FreeEntitlementConfig
     auth_policy: AuthPolicyConfig
+    auth_templates: AuthTemplatesConfig
     feature_flags: dict[str, bool]
 
     @model_validator(mode="after")
@@ -137,6 +200,7 @@ class RuntimeConfigService:
                 generation_policy=record.generation_policy,
                 free_entitlement=record.free_entitlement,
                 auth_policy=record.auth_policy,
+                auth_templates=record.auth_templates,
                 feature_flags=record.feature_flags,
             )
         except ValueError as exc:
