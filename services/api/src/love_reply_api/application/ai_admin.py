@@ -1,3 +1,9 @@
+"""AI 管理后台业务服务。
+
+负责模型映射、路由、提示词、评测和风控策略的草稿、发布快照与回滚。
+线上运行值必须来自已发布的不可变快照，管理员编辑草稿不能直接改变线上行为。
+"""
+
 from __future__ import annotations
 
 from base64 import urlsafe_b64decode, urlsafe_b64encode

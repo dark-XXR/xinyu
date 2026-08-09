@@ -1,3 +1,8 @@
+"""AI 管理后台 HTTP 路由。
+
+所有写操作都要求管理员 MFA 会话、独立 AI 权限、幂等键和资源版本控制。
+"""
+
 from typing import Annotated, TypeVar, cast
 
 from fastapi import APIRouter, Depends, Header, Path, Query, Request, status

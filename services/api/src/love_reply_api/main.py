@@ -1,10 +1,12 @@
+"""FastAPI 应用入口，负责装配路由、异常处理和可替换的供应商运行时。"""
+
 from uuid import uuid4
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 
 from love_reply_api.application.ai_gateway import AiHttpTransport
-from love_reply_api.application.auth import UnavailableSmsSender
+from love_reply_api.application.delivery_adapters import EmailApiTransport, SmsApiTransport
 from love_reply_api.application.errors import ApiError
 from love_reply_api.application.provider_runtime import (
     ProviderAdapterHealthChecker,
@@ -34,12 +36,18 @@ app = FastAPI(
     docs_url="/internal/docs" if settings.app_env != "production" else None,
     openapi_url="/internal/openapi.json" if settings.app_env != "production" else None,
 )
-app.state.sms_sender = UnavailableSmsSender()
+app.state.sms_sender = None
 app.state.email_sender = None
 app.state.smtp_transport = SmtpTransport()
+app.state.email_api_transport = EmailApiTransport()
+app.state.sms_api_transport = SmsApiTransport()
 app.state.ai_provider = None
 app.state.ai_transport = AiHttpTransport()
-app.state.provider_health_checker = ProviderAdapterHealthChecker()
+app.state.provider_health_checker = ProviderAdapterHealthChecker(
+    smtp_transport=app.state.smtp_transport,
+    email_api_transport=app.state.email_api_transport,
+    sms_api_transport=app.state.sms_api_transport,
+)
 app.add_exception_handler(ApiError, api_error_handler)  # type: ignore[arg-type]
 app.add_exception_handler(RequestValidationError, validation_error_handler)  # type: ignore[arg-type]
 app.include_router(app_router)

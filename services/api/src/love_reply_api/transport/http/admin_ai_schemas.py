@@ -1,3 +1,5 @@
+"""AI 管理接口的请求校验与响应模型。"""
+
 from datetime import datetime
 from string import Formatter
 from typing import Any, Literal

@@ -115,7 +115,7 @@ EXPECTED_CREDENTIAL_NAMES = {
     "ANTHROPIC": {"apiKey"},
     "GEMINI": {"apiKey"},
     "SMTP": {"username", "password"},
-    "SES_API": {"apiKey"},
+    "SES_API": {"accessKeyId", "accessKeySecret"},
     "SENDGRID_API": {"apiKey"},
     "RESEND_API": {"apiKey"},
     "MAILGUN_API": {"apiKey"},

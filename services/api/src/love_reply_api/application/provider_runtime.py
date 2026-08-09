@@ -1,3 +1,8 @@
+"""已发布外部供应商的运行时解析、邮件/短信发送和健康检查。
+
+所有线上调用都读取不可变发布快照；管理员修改草稿不会改变正在使用的地址、模板或密钥版本。
+"""
+
 from asyncio import to_thread
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -13,6 +18,7 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from love_reply_api.application.delivery_adapters import EmailApiTransport, SmsApiTransport
 from love_reply_api.application.errors import ApiError
 from love_reply_api.application.providers import ProviderHealthResult
 from love_reply_api.application.runtime_config import RuntimeConfigService
@@ -257,13 +263,24 @@ class RegistryEmailSender:
         session: AsyncSession,
         settings: Settings,
         smtp_transport: SmtpTransport | None = None,
+        email_api_transport: EmailApiTransport | None = None,
     ) -> None:
         self._session = session
         self._resolver = PublishedProviderResolver(session=session, settings=settings)
         self._smtp = smtp_transport or SmtpTransport()
+        self._email_api = email_api_transport or EmailApiTransport()
 
     async def available(self) -> bool:
-        return await self._resolver.has_effective(kind="EMAIL", adapter_types={"SMTP"})
+        return await self._resolver.has_effective(
+            kind="EMAIL",
+            adapter_types={
+                "SMTP",
+                "SES_API",
+                "SENDGRID_API",
+                "RESEND_API",
+                "MAILGUN_API",
+            },
+        )
 
     async def send_login_code(
         self,
@@ -275,7 +292,13 @@ class RegistryEmailSender:
         provider = await self._resolver.resolve(
             kind="EMAIL",
             routing_key=email_normalized,
-            adapter_types={"SMTP"},
+            adapter_types={
+                "SMTP",
+                "SES_API",
+                "SENDGRID_API",
+                "RESEND_API",
+                "MAILGUN_API",
+            },
         )
         if provider is None:
             raise ApiError(
@@ -286,23 +309,80 @@ class RegistryEmailSender:
             )
         runtime_config = await RuntimeConfigService(self._session).get_published()
         template = runtime_config.auth_templates.email_login.for_locale(locale)
-        await self._smtp.send(
+        subject = template.subject.format(code=code)
+        text_body = template.text_template.format(code=code)
+        html_body = (
+            template.html_template.format(code=code) if template.html_template is not None else None
+        )
+        if provider.configuration["adapterType"] == "SMTP":
+            await self._smtp.send(
+                configuration=provider.configuration,
+                credentials=provider.credentials,
+                destination=email_normalized,
+                subject=subject,
+                text_body=text_body,
+                html_body=html_body,
+            )
+            return
+        await self._email_api.send(
             configuration=provider.configuration,
             credentials=provider.credentials,
             destination=email_normalized,
-            subject=template.subject.format(code=code),
-            text_body=template.text_template.format(code=code),
-            html_body=(
-                template.html_template.format(code=code)
-                if template.html_template is not None
-                else None
-            ),
+            subject=subject,
+            text_body=text_body,
+            html_body=html_body,
+        )
+
+
+class RegistrySmsSender:
+    """按后台优先级和灰度配置选择阿里云或腾讯云短信。"""
+
+    def __init__(
+        self,
+        *,
+        session: AsyncSession,
+        settings: Settings,
+        sms_api_transport: SmsApiTransport | None = None,
+    ) -> None:
+        self._resolver = PublishedProviderResolver(session=session, settings=settings)
+        self._sms_api = sms_api_transport or SmsApiTransport()
+
+    async def available(self) -> bool:
+        return await self._resolver.has_effective(
+            kind="SMS", adapter_types={"ALIYUN_SMS", "TENCENT_SMS"}
+        )
+
+    async def send_login_code(self, *, phone_e164: str, code: str) -> None:
+        provider = await self._resolver.resolve(
+            kind="SMS",
+            routing_key=phone_e164,
+            adapter_types={"ALIYUN_SMS", "TENCENT_SMS"},
+        )
+        if provider is None:
+            raise ApiError(
+                status_code=503,
+                code="SMS_PROVIDER_UNAVAILABLE",
+                message="SMS delivery is temporarily unavailable.",
+                retryable=True,
+            )
+        await self._sms_api.send_login_code(
+            configuration=provider.configuration,
+            credentials=provider.credentials,
+            phone_e164=phone_e164,
+            code=code,
         )
 
 
 class ProviderAdapterHealthChecker:
-    def __init__(self, smtp_transport: SmtpTransport | None = None) -> None:
+    def __init__(
+        self,
+        smtp_transport: SmtpTransport | None = None,
+        email_api_transport: EmailApiTransport | None = None,
+        sms_api_transport: SmsApiTransport | None = None,
+    ) -> None:
         self._smtp = smtp_transport or SmtpTransport()
+        self._email_api = email_api_transport or EmailApiTransport()
+        self._sms_api = sms_api_transport or SmsApiTransport()
 
     async def check(
         self,
@@ -313,7 +393,16 @@ class ProviderAdapterHealthChecker:
         administrator_test_destination: str | None,
     ) -> ProviderHealthResult:
         adapter_type = configuration.get("adapterType")
-        if kind != "EMAIL" or adapter_type != "SMTP":
+        supported = {
+            "SMTP",
+            "SES_API",
+            "SENDGRID_API",
+            "RESEND_API",
+            "MAILGUN_API",
+            "ALIYUN_SMS",
+            "TENCENT_SMS",
+        }
+        if adapter_type not in supported:
             raise ApiError(
                 status_code=503,
                 code="PROVIDER_ADAPTER_UNAVAILABLE",
@@ -326,15 +415,40 @@ class ProviderAdapterHealthChecker:
                 code="ADMIN_TEST_DESTINATION_REQUIRED",
                 message="An administrator test destination is required.",
             )
-        await self._smtp.send(
-            configuration=configuration,
-            credentials=credentials,
-            destination=administrator_test_destination,
-            subject="Love Reply provider health check",
-            text_body="The configured SMTP provider accepted this health-check message.",
-            html_body=None,
-        )
+        if kind == "EMAIL" and adapter_type == "SMTP":
+            await self._smtp.send(
+                configuration=configuration,
+                credentials=credentials,
+                destination=administrator_test_destination,
+                subject="Love Reply provider health check",
+                text_body="The configured SMTP provider accepted this health-check message.",
+                html_body=None,
+            )
+        elif kind == "EMAIL":
+            await self._email_api.send(
+                configuration=configuration,
+                credentials=credentials,
+                destination=administrator_test_destination,
+                subject="Love Reply provider health check",
+                text_body="The configured email API accepted this health-check message.",
+                html_body=None,
+            )
+        elif kind == "SMS":
+            # 健康检查会真实发送一次测试验证码，因此目标号码必须由管理员明确提供。
+            await self._sms_api.send_login_code(
+                configuration=configuration,
+                credentials=credentials,
+                phone_e164=administrator_test_destination,
+                code="000000",
+            )
+        else:
+            raise ApiError(
+                status_code=503,
+                code="PROVIDER_ADAPTER_UNAVAILABLE",
+                message="Provider health adapter is not implemented.",
+                retryable=False,
+            )
         return ProviderHealthResult(
             status="HEALTHY",
-            redacted_summary="TLS authentication and synthetic delivery succeeded.",
+            redacted_summary="Authenticated synthetic delivery succeeded.",
         )

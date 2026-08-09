@@ -1,3 +1,8 @@
+"""HTTP 依赖装配。
+
+测试可通过 app.state 注入替身；生产请求默认从数据库解析管理员已经发布的供应商配置。
+"""
+
 from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Annotated, cast
@@ -11,10 +16,15 @@ from love_reply_api.application.admin_auth import AdminAuthService
 from love_reply_api.application.ai_admin import AiGatewayAdminService
 from love_reply_api.application.ai_gateway import AiHttpTransport, RegistryAiProvider
 from love_reply_api.application.auth import AuthService, EmailSender, SmsSender
+from love_reply_api.application.delivery_adapters import EmailApiTransport, SmsApiTransport
 from love_reply_api.application.errors import ApiError
 from love_reply_api.application.generation import AiProvider, GenerationService
 from love_reply_api.application.identity import IdentityService
-from love_reply_api.application.provider_runtime import RegistryEmailSender, SmtpTransport
+from love_reply_api.application.provider_runtime import (
+    RegistryEmailSender,
+    RegistrySmsSender,
+    SmtpTransport,
+)
 from love_reply_api.application.providers import ProviderHealthChecker, ProviderService
 from love_reply_api.application.tokens import TokenService
 from love_reply_api.config import Settings, get_settings
@@ -91,8 +101,19 @@ def get_admin_client_context(
     )
 
 
-def get_sms_sender(request: Request) -> SmsSender:
-    return cast(SmsSender, request.app.state.sms_sender)
+def get_sms_sender(
+    request: Request,
+    session: Annotated[AsyncSession, Depends(get_session)],
+    settings: Annotated[Settings, Depends(get_settings)],
+) -> SmsSender:
+    override = request.app.state.sms_sender
+    if override is not None:
+        return cast(SmsSender, override)
+    return RegistrySmsSender(
+        session=session,
+        settings=settings,
+        sms_api_transport=cast(SmsApiTransport, request.app.state.sms_api_transport),
+    )
 
 
 def get_email_sender(
@@ -108,6 +129,7 @@ def get_email_sender(
         session=session,
         settings=settings,
         smtp_transport=smtp_transport,
+        email_api_transport=cast(EmailApiTransport, request.app.state.email_api_transport),
     )
 
 
@@ -166,9 +188,7 @@ async def get_admin_context(
             code="TOKEN_EXPIRED",
             message="Administrator bearer token is required.",
         )
-    admin, session = await service.authenticate_access(
-        access_token=credentials.credentials
-    )
+    admin, session = await service.authenticate_access(access_token=credentials.credentials)
     return AdminContext(admin=admin, session=session)
 
 

@@ -1,3 +1,9 @@
+"""真实 AI 模型网关与已发布路由运行时。
+
+本模块只读取管理员发布的模型、提示词和路由快照，并限制令牌、预算、重试和故障转移。
+供应商密钥和原始错误响应不得进入面向用户的错误信息。
+"""
+
 import json
 from collections.abc import Callable
 from dataclasses import dataclass

@@ -1,3 +1,5 @@
+"""AI 网关、管理配置、评测、版本和审计的数据表映射。"""
+
 from datetime import datetime
 from typing import Any
 

@@ -1,3 +1,5 @@
+"""外部供应商管理接口的请求校验、适配器配置和响应模型。"""
+
 from datetime import datetime
 from typing import Any, Literal
 
@@ -84,6 +86,15 @@ class EmailApiConfiguration(StrictApiModel):
             raise ValueError("provider URLs cannot contain credentials")
         return value
 
+    @model_validator(mode="after")
+    def require_adapter_fields(self) -> "EmailApiConfiguration":
+        # SES 签名必须知道区域；Mailgun 的基础地址还包含管理员已验证的发送域名。
+        if self.adapter_type == "SES_API" and not self.region:
+            raise ValueError("SES API requires a region")
+        if self.adapter_type == "MAILGUN_API" and self.base_url is None:
+            raise ValueError("Mailgun API requires a base URL with the sending domain")
+        return self
+
 
 class SmsConfiguration(StrictApiModel):
     adapter_type: Literal["ALIYUN_SMS", "TENCENT_SMS"]
@@ -92,6 +103,13 @@ class SmsConfiguration(StrictApiModel):
     signature_id: str = Field(min_length=1, max_length=128)
     template_id: str = Field(min_length=1, max_length=128)
     timeout_ms: int = Field(ge=1000, le=60_000)
+
+    @model_validator(mode="after")
+    def require_application_id(self) -> "SmsConfiguration":
+        # 腾讯云发送接口要求 SmsSdkAppId；阿里云不使用此字段。
+        if self.adapter_type == "TENCENT_SMS" and not self.application_id:
+            raise ValueError("Tencent SMS requires an application ID")
+        return self
 
 
 class EpayConfiguration(StrictApiModel):

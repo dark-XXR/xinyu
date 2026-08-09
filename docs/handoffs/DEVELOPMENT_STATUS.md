@@ -7,7 +7,7 @@ Last updated: 2026-08-09
 - Active task: `BACKEND-PROVIDER-REGISTRY-001`
 - State: `in_progress`
 - Contract version: `1.0.0`
-- Current phase: AI runtime and administrator publication APIs are complete; provider adapters are next
+- Current phase: AI, email, and SMS provider runtimes are complete; Epay runtime is next
 
 ## Completed
 
@@ -52,6 +52,14 @@ Last updated: 2026-08-09
   budget, and freezes mappings, upstream model names, costs, prompts, and safety policies in an
   immutable runtime snapshot. Draft edits cannot change the online version, and rollback accepts
   only a previously published immutable version.
+- Published email providers now support authenticated SMTP, Amazon SES v2 with AWS Signature V4,
+  SendGrid, Resend, and Mailgun. Published SMS providers support Aliyun RPC HMAC-SHA1 and Tencent
+  Cloud TC3-HMAC-SHA256. Login-channel availability is derived from effective publications, health
+  checks perform explicit administrator-addressed synthetic delivery, and transport failures never
+  return provider bodies, credentials, or verification codes.
+- A Chinese file/page catalog and code-comment guide now map Android screens, UI parameters,
+  backend routes, business services, data tables, contracts, and planned administration pages for
+  non-developer maintenance.
 - Versioned products and prices, immutable order benefit snapshots, payment attempts, active
   provider-query reconciliation, subscription cancellation, refunds, entitlement recovery, and
   signed Epay-compatible callbacks are now defined. Twenty-seven commerce fixtures validate
@@ -94,15 +102,16 @@ Android Lint, and Debug APK assembly all passed.
 Identity contract validation now covers 46 fixtures across 19 tagged operations. Generated
 Kotlin and TypeScript clients both compile with the new email/channel models and operations.
 
-Backend verification now covers 34 PostgreSQL integration and transport tests. The email/auth,
+Backend verification now covers 41 PostgreSQL integration and transport tests. The email/auth,
 administrator authentication, provider-registry, and AI-gateway migrations passed
 upgrade, downgrade, and re-upgrade; Ruff, strict MyPy, TypeScript, Android unit tests, Android Lint,
 and Debug APK assembly also pass.
 
 ## External inputs
 
-- Real email/SMTP credentials and verified sender domain are not configured.
-- Real SMS credentials and sender registration are not configured; SMS is now the fallback channel.
+- Real email/SMTP/API credentials and verified sender domain are not configured.
+- Real Aliyun/Tencent SMS credentials, signatures, templates, and sender registration are not configured;
+  SMS remains the fallback channel.
 - Real AI provider credentials and production model mapping are not configured.
 - Epay gateway URL, merchant ID/key, enabled payment types, and callback domain are not configured.
 
@@ -125,7 +134,8 @@ browser/emulator output rather than IDE automation.
 
 ## Next exact actions
 
-1. Implement configurable email API and Aliyun/Tencent SMS runtime adapters.
-2. Implement Epay runtime integration and catalog persistence, then referral rewards.
-3. Build the administration console through Antigravity CLI only.
-4. Redesign the Android UI through Antigravity CLI and verify it on emulator viewports.
+1. Implement Epay runtime integration and signed callback verification.
+2. Implement catalog, price, subscription, refund, and reconciliation persistence.
+3. Complete referral reward runtime behavior.
+4. Build the administration console through Antigravity CLI only.
+5. Redesign the Android UI through Antigravity CLI and verify it on emulator viewports.
