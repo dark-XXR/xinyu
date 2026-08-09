@@ -1,0 +1,13 @@
+{
+  "schemaVersion": "1.0",
+  "openapi": "contracts/openapi/openapi.yaml",
+  "targetTags": ["ADMIN_PROVIDER"],
+  "fixtureFiles": [
+    "contracts/examples/admin/providers/providers.json"
+  ],
+  "coverage": {
+    "requireSuccessResponsePerOperation": true,
+    "requireErrorResponsePerOperation": true,
+    "requireRequestFixtureForRequestBody": true
+  }
+}

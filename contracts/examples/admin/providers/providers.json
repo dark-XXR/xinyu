@@ -1,0 +1,463 @@
+{
+  "fixtures": [
+    {
+      "id": "admin-provider-list-success",
+      "operationId": "listAdminProviders",
+      "kind": "response",
+      "statusCode": 200,
+      "value": {
+        "code": "OK",
+        "message": "success",
+        "data": {
+          "items": [],
+          "nextCursor": null,
+          "hasMore": false
+        },
+        "requestId": "req_admin_provider_list_01",
+        "timestamp": "2026-08-08T18:00:00Z"
+      }
+    },
+    {
+      "id": "admin-provider-list-error",
+      "operationId": "listAdminProviders",
+      "kind": "response",
+      "statusCode": 403,
+      "value": {
+        "code": "PERMISSION_DENIED",
+        "message": "permission denied",
+        "data": null,
+        "error": {"retryable": false, "fieldErrors": [], "details": {}},
+        "requestId": "req_admin_provider_list_02",
+        "timestamp": "2026-08-08T18:00:01Z"
+      }
+    },
+    {
+      "id": "admin-provider-create-request",
+      "operationId": "createAdminProvider",
+      "kind": "request",
+      "value": {
+        "providerName": "Transactional email primary",
+        "kind": "EMAIL",
+        "configuration": {
+          "adapterType": "SMTP",
+          "host": "smtp.example.test",
+          "port": 587,
+          "tlsMode": "STARTTLS",
+          "senderAddress": "noreply@example.test",
+          "senderName": "Love Reply",
+          "replyToAddress": null,
+          "timeoutMs": 10000
+        },
+        "dataRegion": "CN",
+        "retentionStatement": "Delivery metadata retained for 30 days.",
+        "retryLimit": 1,
+        "priority": 100
+      }
+    },
+    {
+      "id": "admin-provider-create-success",
+      "operationId": "createAdminProvider",
+      "kind": "response",
+      "statusCode": 201,
+      "value": {
+        "code": "OK",
+        "message": "success",
+        "data": {
+          "providerId": "prv_email_primary_01",
+          "providerName": "Transactional email primary",
+          "kind": "EMAIL",
+          "status": "DRAFT",
+          "configuration": {
+            "adapterType": "SMTP",
+            "host": "smtp.example.test",
+            "port": 587,
+            "tlsMode": "STARTTLS",
+            "senderAddress": "noreply@example.test",
+            "senderName": "Love Reply",
+            "replyToAddress": null,
+            "timeoutMs": 10000
+          },
+          "dataRegion": "CN",
+          "retentionStatement": "Delivery metadata retained for 30 days.",
+          "retryLimit": 1,
+          "priority": 100,
+          "rolloutPercentage": 0,
+          "credentialConfigured": false,
+          "credentialFingerprint": null,
+          "credentialRotatedAt": null,
+          "lastHealthStatus": null,
+          "effectiveAt": null,
+          "resourceVersion": 1,
+          "createdAt": "2026-08-08T18:01:00Z",
+          "updatedAt": "2026-08-08T18:01:00Z"
+        },
+        "requestId": "req_admin_provider_create_01",
+        "timestamp": "2026-08-08T18:01:00Z"
+      }
+    },
+    {
+      "id": "admin-provider-create-error",
+      "operationId": "createAdminProvider",
+      "kind": "response",
+      "statusCode": 400,
+      "value": {
+        "code": "INVALID_ARGUMENT",
+        "message": "invalid provider configuration",
+        "data": null,
+        "error": {"retryable": false, "fieldErrors": [], "details": {}},
+        "requestId": "req_admin_provider_create_02",
+        "timestamp": "2026-08-08T18:01:01Z"
+      }
+    },
+    {
+      "id": "admin-provider-get-success",
+      "operationId": "getAdminProvider",
+      "kind": "response",
+      "statusCode": 200,
+      "value": {
+        "code": "OK",
+        "message": "success",
+        "data": {
+          "providerId": "prv_email_primary_01",
+          "providerName": "Transactional email primary",
+          "kind": "EMAIL",
+          "status": "READY",
+          "configuration": {
+            "adapterType": "SMTP",
+            "host": "smtp.example.test",
+            "port": 587,
+            "tlsMode": "STARTTLS",
+            "senderAddress": "noreply@example.test",
+            "senderName": "Love Reply",
+            "replyToAddress": null,
+            "timeoutMs": 10000
+          },
+          "dataRegion": "CN",
+          "retentionStatement": "Delivery metadata retained for 30 days.",
+          "retryLimit": 1,
+          "priority": 100,
+          "rolloutPercentage": 0,
+          "credentialConfigured": true,
+          "credentialFingerprint": "sha256:fixturefingerprint",
+          "credentialRotatedAt": "2026-08-08T18:02:00Z",
+          "lastHealthStatus": "HEALTHY",
+          "effectiveAt": null,
+          "resourceVersion": 3,
+          "createdAt": "2026-08-08T18:01:00Z",
+          "updatedAt": "2026-08-08T18:03:00Z"
+        },
+        "requestId": "req_admin_provider_get_01",
+        "timestamp": "2026-08-08T18:03:00Z"
+      }
+    },
+    {
+      "id": "admin-provider-get-error",
+      "operationId": "getAdminProvider",
+      "kind": "response",
+      "statusCode": 404,
+      "value": {
+        "code": "PROVIDER_NOT_FOUND",
+        "message": "provider was not found",
+        "data": null,
+        "error": {"retryable": false, "fieldErrors": [], "details": {}},
+        "requestId": "req_admin_provider_get_02",
+        "timestamp": "2026-08-08T18:03:01Z"
+      }
+    },
+    {
+      "id": "admin-provider-update-request",
+      "operationId": "updateAdminProvider",
+      "kind": "request",
+      "value": {
+        "providerName": "Transactional email primary",
+        "kind": "EMAIL",
+        "configuration": {
+          "adapterType": "SMTP",
+          "host": "smtp.example.test",
+          "port": 465,
+          "tlsMode": "IMPLICIT",
+          "senderAddress": "noreply@example.test",
+          "senderName": "Love Reply",
+          "replyToAddress": null,
+          "timeoutMs": 12000
+        },
+        "dataRegion": "CN",
+        "retentionStatement": "Delivery metadata retained for 30 days.",
+        "retryLimit": 2,
+        "priority": 100
+      }
+    },
+    {
+      "id": "admin-provider-update-success",
+      "operationId": "updateAdminProvider",
+      "kind": "response",
+      "statusCode": 200,
+      "value": {
+        "code": "OK",
+        "message": "success",
+        "data": {
+          "providerId": "prv_email_primary_01",
+          "providerName": "Transactional email primary",
+          "kind": "EMAIL",
+          "status": "DRAFT",
+          "configuration": {
+            "adapterType": "SMTP",
+            "host": "smtp.example.test",
+            "port": 465,
+            "tlsMode": "IMPLICIT",
+            "senderAddress": "noreply@example.test",
+            "senderName": "Love Reply",
+            "replyToAddress": null,
+            "timeoutMs": 12000
+          },
+          "dataRegion": "CN",
+          "retentionStatement": "Delivery metadata retained for 30 days.",
+          "retryLimit": 2,
+          "priority": 100,
+          "rolloutPercentage": 0,
+          "credentialConfigured": true,
+          "credentialFingerprint": "sha256:fixturefingerprint",
+          "credentialRotatedAt": "2026-08-08T18:02:00Z",
+          "lastHealthStatus": null,
+          "effectiveAt": null,
+          "resourceVersion": 4,
+          "createdAt": "2026-08-08T18:01:00Z",
+          "updatedAt": "2026-08-08T18:04:00Z"
+        },
+        "requestId": "req_admin_provider_update_01",
+        "timestamp": "2026-08-08T18:04:00Z"
+      }
+    },
+    {
+      "id": "admin-provider-update-error",
+      "operationId": "updateAdminProvider",
+      "kind": "response",
+      "statusCode": 409,
+      "value": {
+        "code": "RESOURCE_VERSION_CONFLICT",
+        "message": "provider version changed",
+        "data": null,
+        "error": {"retryable": false, "fieldErrors": [], "details": {}},
+        "requestId": "req_admin_provider_update_02",
+        "timestamp": "2026-08-08T18:04:01Z"
+      }
+    },
+    {
+      "id": "admin-provider-credentials-request",
+      "operationId": "rotateAdminProviderCredentials",
+      "kind": "request",
+      "value": {
+        "secrets": [
+          {"name": "username", "value": "fixture-user"},
+          {"name": "password", "value": "synthetic-fixture-value"}
+        ],
+        "auditReason": "Initial SMTP credential configuration"
+      }
+    },
+    {
+      "id": "admin-provider-credentials-success",
+      "operationId": "rotateAdminProviderCredentials",
+      "kind": "response",
+      "statusCode": 201,
+      "value": {
+        "code": "OK",
+        "message": "success",
+        "data": {
+          "credentialVersionId": "cred_fixture_version_01",
+          "fingerprint": "sha256:fixturefingerprint",
+          "rotatedAt": "2026-08-08T18:05:00Z",
+          "resourceVersion": 5
+        },
+        "requestId": "req_admin_provider_cred_01",
+        "timestamp": "2026-08-08T18:05:00Z"
+      }
+    },
+    {
+      "id": "admin-provider-credentials-error",
+      "operationId": "rotateAdminProviderCredentials",
+      "kind": "response",
+      "statusCode": 400,
+      "value": {
+        "code": "CREDENTIAL_FIELDS_INVALID",
+        "message": "credential fields do not match the adapter",
+        "data": null,
+        "error": {"retryable": false, "fieldErrors": [], "details": {}},
+        "requestId": "req_admin_provider_cred_02",
+        "timestamp": "2026-08-08T18:05:01Z"
+      }
+    },
+    {
+      "id": "admin-provider-health-request",
+      "operationId": "checkAdminProviderHealth",
+      "kind": "request",
+      "value": {
+        "administratorTestDestination": "admin-test@example.test",
+        "auditReason": "Validate provider before publication"
+      }
+    },
+    {
+      "id": "admin-provider-health-success",
+      "operationId": "checkAdminProviderHealth",
+      "kind": "response",
+      "statusCode": 200,
+      "value": {
+        "code": "OK",
+        "message": "success",
+        "data": {
+          "healthCheckId": "health_fixture_01",
+          "status": "HEALTHY",
+          "startedAt": "2026-08-08T18:06:00Z",
+          "completedAt": "2026-08-08T18:06:01Z",
+          "latencyMs": 540,
+          "redactedSummary": "TLS connection and synthetic delivery succeeded.",
+          "providerRequestId": "provider-fixture-request"
+        },
+        "requestId": "req_admin_provider_health_01",
+        "timestamp": "2026-08-08T18:06:01Z"
+      }
+    },
+    {
+      "id": "admin-provider-health-error",
+      "operationId": "checkAdminProviderHealth",
+      "kind": "response",
+      "statusCode": 503,
+      "value": {
+        "code": "PROVIDER_UNAVAILABLE",
+        "message": "provider health check failed",
+        "data": null,
+        "error": {"retryable": true, "fieldErrors": [], "details": {}},
+        "requestId": "req_admin_provider_health_02",
+        "timestamp": "2026-08-08T18:06:02Z"
+      }
+    },
+    {
+      "id": "admin-provider-publish-request",
+      "operationId": "publishAdminProvider",
+      "kind": "request",
+      "value": {
+        "rolloutPercentage": 10,
+        "effectiveAt": "2026-08-08T19:00:00Z",
+        "auditReason": "Begin controlled production rollout"
+      }
+    },
+    {
+      "id": "admin-provider-publish-success",
+      "operationId": "publishAdminProvider",
+      "kind": "response",
+      "statusCode": 200,
+      "value": {
+        "code": "OK",
+        "message": "success",
+        "data": {
+          "providerId": "prv_email_primary_01",
+          "providerName": "Transactional email primary",
+          "kind": "EMAIL",
+          "status": "ACTIVE",
+          "configuration": {
+            "adapterType": "SMTP",
+            "host": "smtp.example.test",
+            "port": 465,
+            "tlsMode": "IMPLICIT",
+            "senderAddress": "noreply@example.test",
+            "senderName": "Love Reply",
+            "replyToAddress": null,
+            "timeoutMs": 12000
+          },
+          "dataRegion": "CN",
+          "retentionStatement": "Delivery metadata retained for 30 days.",
+          "retryLimit": 2,
+          "priority": 100,
+          "rolloutPercentage": 10,
+          "credentialConfigured": true,
+          "credentialFingerprint": "sha256:fixturefingerprint",
+          "credentialRotatedAt": "2026-08-08T18:05:00Z",
+          "lastHealthStatus": "HEALTHY",
+          "effectiveAt": "2026-08-08T19:00:00Z",
+          "resourceVersion": 6,
+          "createdAt": "2026-08-08T18:01:00Z",
+          "updatedAt": "2026-08-08T18:07:00Z"
+        },
+        "requestId": "req_admin_provider_publish_01",
+        "timestamp": "2026-08-08T18:07:00Z"
+      }
+    },
+    {
+      "id": "admin-provider-publish-error",
+      "operationId": "publishAdminProvider",
+      "kind": "response",
+      "statusCode": 409,
+      "value": {
+        "code": "PROVIDER_NOT_READY",
+        "message": "provider must pass health checks before publication",
+        "data": null,
+        "error": {"retryable": false, "fieldErrors": [], "details": {}},
+        "requestId": "req_admin_provider_publish_02",
+        "timestamp": "2026-08-08T18:07:01Z"
+      }
+    },
+    {
+      "id": "admin-provider-rollback-request",
+      "operationId": "rollbackAdminProvider",
+      "kind": "request",
+      "value": {
+        "targetResourceVersion": 5,
+        "auditReason": "Rollback after elevated delivery failures"
+      }
+    },
+    {
+      "id": "admin-provider-rollback-success",
+      "operationId": "rollbackAdminProvider",
+      "kind": "response",
+      "statusCode": 200,
+      "value": {
+        "code": "OK",
+        "message": "success",
+        "data": {
+          "providerId": "prv_email_primary_01",
+          "providerName": "Transactional email primary",
+          "kind": "EMAIL",
+          "status": "ACTIVE",
+          "configuration": {
+            "adapterType": "SMTP",
+            "host": "smtp.example.test",
+            "port": 587,
+            "tlsMode": "STARTTLS",
+            "senderAddress": "noreply@example.test",
+            "senderName": "Love Reply",
+            "replyToAddress": null,
+            "timeoutMs": 10000
+          },
+          "dataRegion": "CN",
+          "retentionStatement": "Delivery metadata retained for 30 days.",
+          "retryLimit": 1,
+          "priority": 100,
+          "rolloutPercentage": 100,
+          "credentialConfigured": true,
+          "credentialFingerprint": "sha256:fixturefingerprint",
+          "credentialRotatedAt": "2026-08-08T18:05:00Z",
+          "lastHealthStatus": "HEALTHY",
+          "effectiveAt": "2026-08-08T18:08:00Z",
+          "resourceVersion": 7,
+          "createdAt": "2026-08-08T18:01:00Z",
+          "updatedAt": "2026-08-08T18:08:00Z"
+        },
+        "requestId": "req_admin_provider_rollback_01",
+        "timestamp": "2026-08-08T18:08:00Z"
+      }
+    },
+    {
+      "id": "admin-provider-rollback-error",
+      "operationId": "rollbackAdminProvider",
+      "kind": "response",
+      "statusCode": 409,
+      "value": {
+        "code": "ROLLBACK_TARGET_INVALID",
+        "message": "rollback target is not a published provider version",
+        "data": null,
+        "error": {"retryable": false, "fieldErrors": [], "details": {}},
+        "requestId": "req_admin_provider_rollback_02",
+        "timestamp": "2026-08-08T18:08:01Z"
+      }
+    }
+  ]
+}

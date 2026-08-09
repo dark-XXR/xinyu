@@ -58,6 +58,12 @@ AdminPermissionCode:
     - ADMIN_USER_WRITE
     - ADMIN_USER_MFA_RESET
     - AUDIT_LOG_READ
+    - PROVIDER_READ
+    - PROVIDER_WRITE
+    - PROVIDER_SECRET_ROTATE
+    - PROVIDER_HEALTH_CHECK
+    - PROVIDER_PUBLISH
+    - PROVIDER_ROLLBACK
 
 AdminAuthErrorCode:
   type: string

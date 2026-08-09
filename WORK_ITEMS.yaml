@@ -290,7 +290,7 @@ items:
     title: Define unified AI email SMS and payment provider administration contracts
     moduleCode: APP_CONFIG
     owner: codex-root
-    status: in_progress
+    status: done
     allowedPaths:
       - contracts/openapi/admin/providers.yaml
       - contracts/openapi/schemas/admin-providers.yaml
@@ -302,7 +302,7 @@ items:
       - provider_health_checks_are_redacted_and_audited
       - publish_gray_rollout_and_rollback_are_versioned
       - adapter_configuration_rejects_arbitrary_executable_content
-    handoffNotes: "Covers operator-managed adapters and credentials for AI, SMTP/API email, SMS, and EPAY_COMPAT or future payment providers."
+    handoffNotes: "Completed 8 administrator operations for list, create, read, update, credential rotation, redacted health checks, bounded publication, and rollback. Configuration is restricted to reviewed AI, SMTP/API email, Aliyun/Tencent SMS, and EPAY_COMPAT schemas; secrets are write-only. Twenty-two fixtures validate full success, error, and request coverage. Generated TypeScript and Kotlin clients compile."
 
   - taskId: CONTRACT-FIXTURES-001
     title: Build shared success error SSE and webhook fixtures
@@ -324,7 +324,7 @@ items:
       - every_operation_has_success_or_expected_error_fixture
       - fixtures_validate_against_openapi_and_event_schemas
       - fixtures_contain_no_real_personal_data
-    handoffNotes: "Identity has 38 fixtures across 16 operations. P0 generation and billing have 30 fixtures across 12 operations, including text/event-stream. Remaining P1 and platform modules still require fixtures."
+    handoffNotes: "Identity has 46 fixtures across 19 operations. P0 generation and billing have 30 fixtures across 12 operations, including text/event-stream. Admin providers have 22 fixtures across 8 operations. Remaining commerce, AI administration, business administration, and platform modules still require fixtures."
 
   - taskId: CONTRACT-CODEGEN-001
     title: Configure Android TypeScript and backend contract generation
@@ -546,7 +546,7 @@ items:
     title: Implement published runtime configuration and remove business defaults from code
     moduleCode: APP_CONFIG
     owner: codex-root
-    status: in_progress
+    status: done
     allowedPaths:
       - services/api/src/love_reply_api/application/**
       - services/api/src/love_reply_api/infrastructure/**
@@ -560,7 +560,7 @@ items:
       - free_entitlement_is_created_from_published_config
       - generation_model_style_and_quote_ttl_are_server_configured
       - bootstrap_returns_only_published_non_secret_values
-    handoffNotes: "Removes free quota, default model, style, and quote TTL business values from environment settings and Android assumptions. Initial values are editable database seed data, not runtime code defaults."
+    handoffNotes: "Published runtime configuration table, fail-closed typed loader, public app bootstrap endpoint, and generated clients are complete. New-user benefits and generation default model/quote TTL now come from the published database version. Android loads style labels and allowed selections from bootstrap plus entitlement. Migration downgrade/upgrade, 10 backend tests, TypeScript compilation, Android unit tests, Lint, and APK assembly pass."
 
   - taskId: FRONTEND-ANDROID-REDESIGN-001
     title: Redesign the Android experience in Antigravity after bootstrap integration

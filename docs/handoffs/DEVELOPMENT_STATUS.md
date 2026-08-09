@@ -4,10 +4,10 @@ Last updated: 2026-08-08
 
 ## Current checkpoint
 
-- Active task: `CONTRACT-ADMIN-PROVIDERS-001`
+- Active task: `CONTRACT-BILLING-001`
 - State: `in_progress`
 - Contract version: `1.0.0`
-- Current phase: Android P0 accepted; configurable provider, email auth, Epay, and commerce contracts are next
+- Current phase: runtime configuration and provider contracts complete; commerce and real adapters are next
 
 ## Completed
 
@@ -15,6 +15,12 @@ Last updated: 2026-08-08
   SSE, risk appeal, generated Kotlin client, and generated TypeScript client.
 - Additive email-first authentication contract with public channel policy, email OTP challenge,
   email login, stable provider-unavailable errors, and SMS compatibility.
+- Published runtime configuration now owns free benefits, logical models, reply styles, feature
+  switches, and quote lifetime. Android reads its style catalog from server bootstrap and
+  intersects it with the authenticated entitlement.
+- Unified administrator provider contract now covers AI, SMTP/API email, Aliyun/Tencent SMS,
+  and EPAY-compatible payment configuration, write-only credential rotation, redacted health
+  checks, bounded publication, and rollback. Twenty-two provider fixtures validate 8 operations.
 - Android Compose project with an app module and a read-only generated API module.
 - Encrypted access/refresh token persistence, atomic refresh retry, and installation ID.
 - SMS login, server-authoritative entitlement display, composer draft, relationship/goal/style
@@ -51,12 +57,13 @@ Kotlin and TypeScript clients both compile with the new email/channel models and
 - Real AI provider credentials and production model mapping are not configured.
 - Epay gateway URL, merchant ID/key, enabled payment types, and callback domain are not configured.
 
-## Final acceptance
+## UI acceptance
 
-The P0 Android acceptance criteria are complete. OS-level capture confirms Antigravity has the
-workspace and final source changes loaded. The `sky` activation/input methods still report
-`node_repl exec context not found`, but this no longer blocks IDE source synchronization,
-emulator verification, or screenshot review.
+The P0 Android flow acceptance criteria are complete, but the product owner has rejected the
+current visual direction as final UI. A full redesign is tracked separately after email-first
+auth and bootstrap integration. Antigravity detects the workspace window, while activation and
+input still report `node_repl exec context not found`; source synchronization works, but this is
+not being represented as a completed interactive Antigravity design workflow.
 
 ## Accepted provider and commerce direction
 
@@ -70,7 +77,7 @@ emulator verification, or screenshot review.
 
 ## Next exact actions
 
-1. Define unified admin provider contracts and finish product/order/subscription/refund contracts.
+1. Finish product, order, subscription, refund, Epay callback, and reconciliation contracts.
 2. Implement email auth, encrypted provider registry, AI routes, Epay, and catalog versioning.
 3. Build the administration console for provider, model, payment, product, and audit operations.
-4. Change Android to email-first login only after generated contracts and backend tests pass.
+4. Change Android to email-first login, then perform the full Antigravity UI redesign.

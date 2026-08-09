@@ -1,7 +1,9 @@
 import os
+from collections.abc import AsyncIterator
 from datetime import UTC, datetime
 
 import pytest
+import pytest_asyncio
 from love_reply_api.application.auth import AuthService
 from love_reply_api.application.errors import ApiError
 from love_reply_api.application.generation import GenerationService
@@ -17,6 +19,12 @@ pytestmark = pytest.mark.skipif(
     os.environ.get("RUN_INTEGRATION_TESTS") != "1",
     reason="requires the isolated project PostgreSQL container",
 )
+
+
+@pytest_asyncio.fixture(autouse=True)
+async def dispose_engine_after_test() -> AsyncIterator[None]:
+    yield
+    await engine.dispose()
 
 
 class CapturingSmsSender:

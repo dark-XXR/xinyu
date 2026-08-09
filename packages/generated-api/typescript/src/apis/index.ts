@@ -1,5 +1,6 @@
 /* tslint:disable */
 /* eslint-disable */
+export * from './ADMINPROVIDERApi';
 export * from './ADMINRBACApi';
 export * from './APPCONFIGApi';
 export * from './AUTHApi';

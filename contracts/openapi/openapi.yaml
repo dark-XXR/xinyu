@@ -39,6 +39,8 @@ tags:
     description: Safety blocks and user appeals.
   - name: ADMIN_RBAC
     description: Administrator authentication, roles, permissions, and audit access.
+  - name: ADMIN_PROVIDER
+    description: Versioned AI, email, SMS, and payment provider administration.
 paths:
   /health:
     get:
@@ -133,6 +135,18 @@ paths:
     $ref: ./admin/auth.yaml#/logout
   /admin/v1/me:
     $ref: ./admin/auth.yaml#/me
+  /admin/v1/providers:
+    $ref: ./admin/providers.yaml#/providers
+  /admin/v1/providers/{providerId}:
+    $ref: ./admin/providers.yaml#/provider
+  /admin/v1/providers/{providerId}/credentials:
+    $ref: ./admin/providers.yaml#/credentials
+  /admin/v1/providers/{providerId}/health-checks:
+    $ref: ./admin/providers.yaml#/healthChecks
+  /admin/v1/providers/{providerId}/publish:
+    $ref: ./admin/providers.yaml#/publish
+  /admin/v1/providers/{providerId}/rollback:
+    $ref: ./admin/providers.yaml#/rollback
 components:
   securitySchemes:
     bearerAuth:

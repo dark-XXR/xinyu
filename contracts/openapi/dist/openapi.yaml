@@ -39,6 +39,8 @@ tags:
     description: Safety blocks and user appeals.
   - name: ADMIN_RBAC
     description: Administrator authentication, roles, permissions, and audit access.
+  - name: ADMIN_PROVIDER
+    description: Versioned AI, email, SMS, and payment provider administration.
 paths:
   /health:
     get:
@@ -1334,6 +1336,304 @@ paths:
           $ref: '#/components/responses/RateLimited'
         '500':
           $ref: '#/components/responses/InternalError'
+  /admin/v1/providers:
+    get:
+      operationId: listAdminProviders
+      summary: List configured external providers
+      tags:
+        - ADMIN_PROVIDER
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Redacted provider configurations.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProviderListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    post:
+      operationId: createAdminProvider
+      summary: Create a provider draft
+      tags:
+        - ADMIN_PROVIDER
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProviderWriteRequest'
+      responses:
+        '201':
+          description: Provider draft created without credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProviderResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /admin/v1/providers/{providerId}:
+    get:
+      operationId: getAdminProvider
+      summary: Read one redacted provider configuration
+      tags:
+        - ADMIN_PROVIDER
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/providerId'
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+      responses:
+        '200':
+          description: Redacted provider configuration.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProviderResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    patch:
+      operationId: updateAdminProvider
+      summary: Update a provider draft configuration
+      tags:
+        - ADMIN_PROVIDER
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/providerId'
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProviderWriteRequest'
+      responses:
+        '200':
+          description: Draft updated and version advanced.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProviderResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /admin/v1/providers/{providerId}/credentials:
+    post:
+      operationId: rotateAdminProviderCredentials
+      summary: Create a write-only encrypted credential version
+      tags:
+        - ADMIN_PROVIDER
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/providerId'
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RotateCredentialsRequest'
+      responses:
+        '201':
+          description: Encrypted credential version created; secret values are never returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CredentialRotationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /admin/v1/providers/{providerId}/health-checks:
+    post:
+      operationId: checkAdminProviderHealth
+      summary: Execute an audited redacted provider health check
+      tags:
+        - ADMIN_PROVIDER
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/providerId'
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HealthCheckRequest'
+      responses:
+        '200':
+          description: Completed health check with redacted diagnostics.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProviderHealthCheckResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /admin/v1/providers/{providerId}/publish:
+    post:
+      operationId: publishAdminProvider
+      summary: Publish a validated provider with bounded rollout
+      tags:
+        - ADMIN_PROVIDER
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/providerId'
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PublishProviderRequest'
+      responses:
+        '200':
+          description: Provider publication scheduled or activated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProviderResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /admin/v1/providers/{providerId}/rollback:
+    post:
+      operationId: rollbackAdminProvider
+      summary: Atomically restore a previously published provider version
+      tags:
+        - ADMIN_PROVIDER
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/providerId'
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RollbackProviderRequest'
+      responses:
+        '200':
+          description: Previous provider version restored atomically.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProviderResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
 components:
   securitySchemes:
     bearerAuth:
@@ -1430,6 +1730,14 @@ components:
       in: header
       required: false
       description: Last fully processed SSE event ID used to resume a stream.
+      schema:
+        type: string
+        minLength: 8
+        maxLength: 128
+    providerId:
+      name: providerId
+      in: path
+      required: true
       schema:
         type: string
         minLength: 8
@@ -3152,6 +3460,12 @@ components:
         - ADMIN_USER_WRITE
         - ADMIN_USER_MFA_RESET
         - AUDIT_LOG_READ
+        - PROVIDER_READ
+        - PROVIDER_WRITE
+        - PROVIDER_SECRET_ROTATE
+        - PROVIDER_HEALTH_CHECK
+        - PROVIDER_PUBLISH
+        - PROVIDER_ROLLBACK
     AdminIdentitySummary:
       type: object
       additionalProperties: false
@@ -3317,6 +3631,579 @@ components:
           properties:
             data:
               $ref: '#/components/schemas/AdminMeData'
+    ProviderKind:
+      type: string
+      enum:
+        - AI
+        - EMAIL
+        - SMS
+        - PAYMENT
+    ProviderStatus:
+      type: string
+      enum:
+        - DRAFT
+        - VALIDATING
+        - READY
+        - ACTIVE
+        - DISABLED
+        - SUPERSEDED
+    OpenAiCompatibleConfiguration:
+      type: object
+      additionalProperties: false
+      required:
+        - adapterType
+        - baseUrl
+        - timeoutMs
+      properties:
+        adapterType:
+          type: string
+          const: OPENAI_COMPAT
+        baseUrl:
+          type: string
+          format: uri
+          pattern: ^https://
+        organization:
+          type:
+            - string
+            - 'null'
+          maxLength: 128
+        project:
+          type:
+            - string
+            - 'null'
+          maxLength: 128
+        timeoutMs:
+          type: integer
+          minimum: 1000
+          maximum: 120000
+    NativeAiConfiguration:
+      type: object
+      additionalProperties: false
+      required:
+        - adapterType
+        - timeoutMs
+      properties:
+        adapterType:
+          type: string
+          enum:
+            - OPENAI
+            - ANTHROPIC
+            - GEMINI
+        baseUrl:
+          type:
+            - string
+            - 'null'
+          format: uri
+          pattern: ^https://
+        timeoutMs:
+          type: integer
+          minimum: 1000
+          maximum: 120000
+    TlsMode:
+      type: string
+      enum:
+        - REQUIRED
+        - STARTTLS
+        - IMPLICIT
+    SmtpConfiguration:
+      type: object
+      additionalProperties: false
+      required:
+        - adapterType
+        - host
+        - port
+        - tlsMode
+        - senderAddress
+        - senderName
+        - timeoutMs
+      properties:
+        adapterType:
+          type: string
+          const: SMTP
+        host:
+          type: string
+          format: hostname
+        port:
+          type: integer
+          minimum: 1
+          maximum: 65535
+        tlsMode:
+          $ref: '#/components/schemas/TlsMode'
+        senderAddress:
+          type: string
+          format: email
+        senderName:
+          type: string
+          minLength: 1
+          maxLength: 128
+        replyToAddress:
+          type:
+            - string
+            - 'null'
+          format: email
+        timeoutMs:
+          type: integer
+          minimum: 1000
+          maximum: 60000
+    EmailApiConfiguration:
+      type: object
+      additionalProperties: false
+      required:
+        - adapterType
+        - senderAddress
+        - senderName
+        - timeoutMs
+      properties:
+        adapterType:
+          type: string
+          enum:
+            - SES_API
+            - SENDGRID_API
+            - RESEND_API
+            - MAILGUN_API
+        region:
+          type:
+            - string
+            - 'null'
+          maxLength: 64
+        baseUrl:
+          type:
+            - string
+            - 'null'
+          format: uri
+          pattern: ^https://
+        senderAddress:
+          type: string
+          format: email
+        senderName:
+          type: string
+          minLength: 1
+          maxLength: 128
+        timeoutMs:
+          type: integer
+          minimum: 1000
+          maximum: 60000
+    SmsConfiguration:
+      type: object
+      additionalProperties: false
+      required:
+        - adapterType
+        - region
+        - signatureId
+        - templateId
+        - timeoutMs
+      properties:
+        adapterType:
+          type: string
+          enum:
+            - ALIYUN_SMS
+            - TENCENT_SMS
+        region:
+          type: string
+          minLength: 1
+          maxLength: 64
+        applicationId:
+          type:
+            - string
+            - 'null'
+          maxLength: 128
+        signatureId:
+          type: string
+          minLength: 1
+          maxLength: 128
+        templateId:
+          type: string
+          minLength: 1
+          maxLength: 128
+        timeoutMs:
+          type: integer
+          minimum: 1000
+          maximum: 60000
+    EpayConfiguration:
+      type: object
+      additionalProperties: false
+      required:
+        - adapterType
+        - gatewayBaseUrl
+        - submitPath
+        - queryPath
+        - refundPath
+        - merchantId
+        - paymentTypes
+        - signingPreset
+        - callbackAckText
+        - timeoutMs
+      properties:
+        adapterType:
+          type: string
+          const: EPAY_COMPAT
+        gatewayBaseUrl:
+          type: string
+          format: uri
+          pattern: ^https://
+        submitPath:
+          type: string
+          pattern: ^/[A-Za-z0-9/_-]+$
+        queryPath:
+          type: string
+          pattern: ^/[A-Za-z0-9/_-]+$
+        refundPath:
+          type: string
+          pattern: ^/[A-Za-z0-9/_-]+$
+        merchantId:
+          type: string
+          minLength: 1
+          maxLength: 128
+        applicationId:
+          type:
+            - string
+            - 'null'
+          maxLength: 128
+        paymentTypes:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items:
+            type: string
+            enum:
+              - ALIPAY
+              - WECHAT_PAY
+        signingPreset:
+          type: string
+          enum:
+            - EPAY_MD5_CANONICAL
+        callbackAckText:
+          type: string
+          minLength: 1
+          maxLength: 32
+        timeoutMs:
+          type: integer
+          minimum: 1000
+          maximum: 60000
+    ProviderConfiguration:
+      oneOf:
+        - $ref: '#/components/schemas/OpenAiCompatibleConfiguration'
+        - $ref: '#/components/schemas/NativeAiConfiguration'
+        - $ref: '#/components/schemas/SmtpConfiguration'
+        - $ref: '#/components/schemas/EmailApiConfiguration'
+        - $ref: '#/components/schemas/SmsConfiguration'
+        - $ref: '#/components/schemas/EpayConfiguration'
+    Provider:
+      type: object
+      additionalProperties: false
+      required:
+        - providerId
+        - providerName
+        - kind
+        - status
+        - configuration
+        - retryLimit
+        - priority
+        - rolloutPercentage
+        - credentialConfigured
+        - resourceVersion
+        - createdAt
+        - updatedAt
+      properties:
+        providerId:
+          type: string
+        providerName:
+          type: string
+          minLength: 1
+          maxLength: 128
+        kind:
+          $ref: '#/components/schemas/ProviderKind'
+        status:
+          $ref: '#/components/schemas/ProviderStatus'
+        configuration:
+          $ref: '#/components/schemas/ProviderConfiguration'
+        dataRegion:
+          type:
+            - string
+            - 'null'
+          maxLength: 64
+        retentionStatement:
+          type:
+            - string
+            - 'null'
+          maxLength: 500
+        retryLimit:
+          type: integer
+          minimum: 0
+          maximum: 3
+        priority:
+          type: integer
+          minimum: 0
+          maximum: 1000
+        rolloutPercentage:
+          type: integer
+          minimum: 0
+          maximum: 100
+        credentialConfigured:
+          type: boolean
+        credentialFingerprint:
+          type:
+            - string
+            - 'null'
+          maxLength: 128
+        credentialRotatedAt:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        lastHealthStatus:
+          type:
+            - string
+            - 'null'
+          enum:
+            - HEALTHY
+            - DEGRADED
+            - UNHEALTHY
+            - null
+        effectiveAt:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        resourceVersion:
+          type: integer
+          minimum: 1
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    ProviderListData:
+      type: object
+      additionalProperties: false
+      required:
+        - items
+        - nextCursor
+        - hasMore
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Provider'
+        nextCursor:
+          type:
+            - string
+            - 'null'
+        hasMore:
+          type: boolean
+    ProviderListResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/ProviderListData'
+    ProviderWriteRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - providerName
+        - kind
+        - configuration
+        - retryLimit
+        - priority
+      properties:
+        providerName:
+          type: string
+          minLength: 1
+          maxLength: 128
+        kind:
+          $ref: '#/components/schemas/ProviderKind'
+        configuration:
+          $ref: '#/components/schemas/ProviderConfiguration'
+        dataRegion:
+          type:
+            - string
+            - 'null'
+          maxLength: 64
+        retentionStatement:
+          type:
+            - string
+            - 'null'
+          maxLength: 500
+        retryLimit:
+          type: integer
+          minimum: 0
+          maximum: 3
+        priority:
+          type: integer
+          minimum: 0
+          maximum: 1000
+    ProviderResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/Provider'
+    CredentialName:
+      type: string
+      enum:
+        - apiKey
+        - username
+        - password
+        - accessKeyId
+        - accessKeySecret
+        - secretId
+        - secretKey
+        - merchantKey
+    CredentialSecretInput:
+      type: object
+      additionalProperties: false
+      required:
+        - name
+        - value
+      properties:
+        name:
+          $ref: '#/components/schemas/CredentialName'
+        value:
+          type: string
+          minLength: 1
+          maxLength: 8192
+          writeOnly: true
+    RotateCredentialsRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - secrets
+        - auditReason
+      properties:
+        secrets:
+          type: array
+          minItems: 1
+          maxItems: 8
+          items:
+            $ref: '#/components/schemas/CredentialSecretInput'
+        auditReason:
+          type: string
+          minLength: 8
+          maxLength: 500
+    CredentialRotation:
+      type: object
+      additionalProperties: false
+      required:
+        - credentialVersionId
+        - fingerprint
+        - rotatedAt
+        - resourceVersion
+      properties:
+        credentialVersionId:
+          type: string
+        fingerprint:
+          type: string
+        rotatedAt:
+          type: string
+          format: date-time
+        resourceVersion:
+          type: integer
+          minimum: 1
+    CredentialRotationResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/CredentialRotation'
+    HealthCheckRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - auditReason
+      properties:
+        administratorTestDestination:
+          type:
+            - string
+            - 'null'
+          maxLength: 254
+          description: Required only for email or SMS delivery checks and never persisted in logs.
+        auditReason:
+          type: string
+          minLength: 8
+          maxLength: 500
+    ProviderHealthCheck:
+      type: object
+      additionalProperties: false
+      required:
+        - healthCheckId
+        - status
+        - startedAt
+        - completedAt
+        - redactedSummary
+      properties:
+        healthCheckId:
+          type: string
+        status:
+          type: string
+          enum:
+            - HEALTHY
+            - DEGRADED
+            - UNHEALTHY
+        startedAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+        latencyMs:
+          type:
+            - integer
+            - 'null'
+          minimum: 0
+        redactedSummary:
+          type: string
+          minLength: 1
+          maxLength: 500
+        providerRequestId:
+          type:
+            - string
+            - 'null'
+          maxLength: 128
+    ProviderHealthCheckResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/ProviderHealthCheck'
+    PublishProviderRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - rolloutPercentage
+        - effectiveAt
+        - auditReason
+      properties:
+        rolloutPercentage:
+          type: integer
+          minimum: 1
+          maximum: 100
+        effectiveAt:
+          type: string
+          format: date-time
+        auditReason:
+          type: string
+          minLength: 8
+          maxLength: 500
+    RollbackProviderRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - targetResourceVersion
+        - auditReason
+      properties:
+        targetResourceVersion:
+          type: integer
+          minimum: 1
+        auditReason:
+          type: string
+          minLength: 8
+          maxLength: 500
   examples:
     health-success:
       summary: Healthy service

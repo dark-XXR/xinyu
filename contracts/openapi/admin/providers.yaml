@@ -1,0 +1,305 @@
+providers:
+  get:
+    operationId: listAdminProviders
+    summary: List configured external providers
+    tags: [ADMIN_PROVIDER]
+    security:
+      - adminBearerAuth: []
+    parameters:
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+      - $ref: ../components/parameters.yaml#/Cursor
+      - $ref: ../components/parameters.yaml#/Limit
+    responses:
+      "200":
+        description: Redacted provider configurations.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/admin-providers.yaml#/ProviderListResponse
+      "401":
+        $ref: ../components/responses.yaml#/Unauthorized
+      "403":
+        $ref: ../components/responses.yaml#/Forbidden
+      "500":
+        $ref: ../components/responses.yaml#/InternalError
+  post:
+    operationId: createAdminProvider
+    summary: Create a provider draft
+    tags: [ADMIN_PROVIDER]
+    security:
+      - adminBearerAuth: []
+    parameters:
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+      - $ref: ../components/parameters.yaml#/IdempotencyKey
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/admin-providers.yaml#/ProviderWriteRequest
+    responses:
+      "201":
+        description: Provider draft created without credentials.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/admin-providers.yaml#/ProviderResponse
+      "400":
+        $ref: ../components/responses.yaml#/BadRequest
+      "401":
+        $ref: ../components/responses.yaml#/Unauthorized
+      "403":
+        $ref: ../components/responses.yaml#/Forbidden
+      "409":
+        $ref: ../components/responses.yaml#/Conflict
+      "500":
+        $ref: ../components/responses.yaml#/InternalError
+
+provider:
+  get:
+    operationId: getAdminProvider
+    summary: Read one redacted provider configuration
+    tags: [ADMIN_PROVIDER]
+    security:
+      - adminBearerAuth: []
+    parameters:
+      - $ref: "#/components/providerId"
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+    responses:
+      "200":
+        description: Redacted provider configuration.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/admin-providers.yaml#/ProviderResponse
+      "401":
+        $ref: ../components/responses.yaml#/Unauthorized
+      "403":
+        $ref: ../components/responses.yaml#/Forbidden
+      "404":
+        $ref: ../components/responses.yaml#/NotFound
+      "500":
+        $ref: ../components/responses.yaml#/InternalError
+  patch:
+    operationId: updateAdminProvider
+    summary: Update a provider draft configuration
+    tags: [ADMIN_PROVIDER]
+    security:
+      - adminBearerAuth: []
+    parameters:
+      - $ref: "#/components/providerId"
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+      - $ref: ../components/parameters.yaml#/IdempotencyKey
+      - $ref: ../components/parameters.yaml#/IfMatch
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/admin-providers.yaml#/ProviderWriteRequest
+    responses:
+      "200":
+        description: Draft updated and version advanced.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/admin-providers.yaml#/ProviderResponse
+      "400":
+        $ref: ../components/responses.yaml#/BadRequest
+      "401":
+        $ref: ../components/responses.yaml#/Unauthorized
+      "403":
+        $ref: ../components/responses.yaml#/Forbidden
+      "404":
+        $ref: ../components/responses.yaml#/NotFound
+      "409":
+        $ref: ../components/responses.yaml#/Conflict
+      "500":
+        $ref: ../components/responses.yaml#/InternalError
+
+credentials:
+  post:
+    operationId: rotateAdminProviderCredentials
+    summary: Create a write-only encrypted credential version
+    tags: [ADMIN_PROVIDER]
+    security:
+      - adminBearerAuth: []
+    parameters:
+      - $ref: "#/components/providerId"
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+      - $ref: ../components/parameters.yaml#/IdempotencyKey
+      - $ref: ../components/parameters.yaml#/IfMatch
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/admin-providers.yaml#/RotateCredentialsRequest
+    responses:
+      "201":
+        description: Encrypted credential version created; secret values are never returned.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/admin-providers.yaml#/CredentialRotationResponse
+      "400":
+        $ref: ../components/responses.yaml#/BadRequest
+      "401":
+        $ref: ../components/responses.yaml#/Unauthorized
+      "403":
+        $ref: ../components/responses.yaml#/Forbidden
+      "404":
+        $ref: ../components/responses.yaml#/NotFound
+      "409":
+        $ref: ../components/responses.yaml#/Conflict
+      "500":
+        $ref: ../components/responses.yaml#/InternalError
+
+healthChecks:
+  post:
+    operationId: checkAdminProviderHealth
+    summary: Execute an audited redacted provider health check
+    tags: [ADMIN_PROVIDER]
+    security:
+      - adminBearerAuth: []
+    parameters:
+      - $ref: "#/components/providerId"
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+      - $ref: ../components/parameters.yaml#/IdempotencyKey
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/admin-providers.yaml#/HealthCheckRequest
+    responses:
+      "200":
+        description: Completed health check with redacted diagnostics.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/admin-providers.yaml#/ProviderHealthCheckResponse
+      "400":
+        $ref: ../components/responses.yaml#/BadRequest
+      "401":
+        $ref: ../components/responses.yaml#/Unauthorized
+      "403":
+        $ref: ../components/responses.yaml#/Forbidden
+      "404":
+        $ref: ../components/responses.yaml#/NotFound
+      "409":
+        $ref: ../components/responses.yaml#/Conflict
+      "503":
+        $ref: ../components/responses.yaml#/ServiceUnavailable
+      "500":
+        $ref: ../components/responses.yaml#/InternalError
+
+publish:
+  post:
+    operationId: publishAdminProvider
+    summary: Publish a validated provider with bounded rollout
+    tags: [ADMIN_PROVIDER]
+    security:
+      - adminBearerAuth: []
+    parameters:
+      - $ref: "#/components/providerId"
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+      - $ref: ../components/parameters.yaml#/IdempotencyKey
+      - $ref: ../components/parameters.yaml#/IfMatch
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/admin-providers.yaml#/PublishProviderRequest
+    responses:
+      "200":
+        description: Provider publication scheduled or activated.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/admin-providers.yaml#/ProviderResponse
+      "400":
+        $ref: ../components/responses.yaml#/BadRequest
+      "401":
+        $ref: ../components/responses.yaml#/Unauthorized
+      "403":
+        $ref: ../components/responses.yaml#/Forbidden
+      "404":
+        $ref: ../components/responses.yaml#/NotFound
+      "409":
+        $ref: ../components/responses.yaml#/Conflict
+      "500":
+        $ref: ../components/responses.yaml#/InternalError
+
+rollback:
+  post:
+    operationId: rollbackAdminProvider
+    summary: Atomically restore a previously published provider version
+    tags: [ADMIN_PROVIDER]
+    security:
+      - adminBearerAuth: []
+    parameters:
+      - $ref: "#/components/providerId"
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+      - $ref: ../components/parameters.yaml#/IdempotencyKey
+      - $ref: ../components/parameters.yaml#/IfMatch
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/admin-providers.yaml#/RollbackProviderRequest
+    responses:
+      "200":
+        description: Previous provider version restored atomically.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/admin-providers.yaml#/ProviderResponse
+      "400":
+        $ref: ../components/responses.yaml#/BadRequest
+      "401":
+        $ref: ../components/responses.yaml#/Unauthorized
+      "403":
+        $ref: ../components/responses.yaml#/Forbidden
+      "404":
+        $ref: ../components/responses.yaml#/NotFound
+      "409":
+        $ref: ../components/responses.yaml#/Conflict
+      "500":
+        $ref: ../components/responses.yaml#/InternalError
+
+components:
+  providerId:
+    name: providerId
+    in: path
+    required: true
+    schema:
+      type: string
+      minLength: 8
+      maxLength: 128

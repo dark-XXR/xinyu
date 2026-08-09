@@ -62,7 +62,13 @@ export const AdminPermissionCode = {
     AdminUserRead: 'ADMIN_USER_READ',
     AdminUserWrite: 'ADMIN_USER_WRITE',
     AdminUserMfaReset: 'ADMIN_USER_MFA_RESET',
-    AuditLogRead: 'AUDIT_LOG_READ'
+    AuditLogRead: 'AUDIT_LOG_READ',
+    ProviderRead: 'PROVIDER_READ',
+    ProviderWrite: 'PROVIDER_WRITE',
+    ProviderSecretRotate: 'PROVIDER_SECRET_ROTATE',
+    ProviderHealthCheck: 'PROVIDER_HEALTH_CHECK',
+    ProviderPublish: 'PROVIDER_PUBLISH',
+    ProviderRollback: 'PROVIDER_ROLLBACK'
 } as const;
 export type AdminPermissionCode = typeof AdminPermissionCode[keyof typeof AdminPermissionCode];
 

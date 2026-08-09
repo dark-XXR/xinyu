@@ -16,9 +16,9 @@ Next, try it out.
 ```ts
 import {
   Configuration,
-  ADMINRBACApi,
+  ADMINPROVIDERApi,
 } from '@love-reply/generated-api';
-import type { GetCurrentAdminRequest } from '@love-reply/generated-api';
+import type { CheckAdminProviderHealthRequest } from '@love-reply/generated-api';
 
 async function example() {
   console.log("🚀 Testing @love-reply/generated-api SDK...");
@@ -26,21 +26,27 @@ async function example() {
     // Configure HTTP bearer authorization: adminBearerAuth
     accessToken: "YOUR BEARER TOKEN",
   });
-  const api = new ADMINRBACApi(config);
+  const api = new ADMINPROVIDERApi(config);
 
   const body = {
+    // string
+    providerId: providerId_example,
     // string | Semantic application version used for compatibility enforcement.
     xClientVersion: xClientVersion_example,
     // 'ANDROID' | 'ADMIN_WEB'
     xPlatform: xPlatform_example,
     // string
     acceptLanguage: acceptLanguage_example,
+    // string | Unique key scoped to authenticated actor, operation, and request fingerprint.
+    idempotencyKey: idempotencyKey_example,
+    // HealthCheckRequest
+    healthCheckRequest: ...,
     // string | Client correlation ID. The server returns the final accepted value. (optional)
     xRequestId: xRequestId_example,
-  } satisfies GetCurrentAdminRequest;
+  } satisfies CheckAdminProviderHealthRequest;
 
   try {
-    const data = await api.getCurrentAdmin(body);
+    const data = await api.checkAdminProviderHealth(body);
     console.log(data);
   } catch (error) {
     console.error(error);
@@ -60,6 +66,14 @@ All URIs are relative to *http://localhost:8000*
 
 | Class | Method | HTTP request | Description
 | ----- | ------ | ------------ | -------------
+*ADMINPROVIDERApi* | [**checkAdminProviderHealth**](docs/ADMINPROVIDERApi.md#checkadminproviderhealth) | **POST** /admin/v1/providers/{providerId}/health-checks | Execute an audited redacted provider health check
+*ADMINPROVIDERApi* | [**createAdminProvider**](docs/ADMINPROVIDERApi.md#createadminprovider) | **POST** /admin/v1/providers | Create a provider draft
+*ADMINPROVIDERApi* | [**getAdminProvider**](docs/ADMINPROVIDERApi.md#getadminprovider) | **GET** /admin/v1/providers/{providerId} | Read one redacted provider configuration
+*ADMINPROVIDERApi* | [**listAdminProviders**](docs/ADMINPROVIDERApi.md#listadminproviders) | **GET** /admin/v1/providers | List configured external providers
+*ADMINPROVIDERApi* | [**publishAdminProvider**](docs/ADMINPROVIDERApi.md#publishadminprovider) | **POST** /admin/v1/providers/{providerId}/publish | Publish a validated provider with bounded rollout
+*ADMINPROVIDERApi* | [**rollbackAdminProvider**](docs/ADMINPROVIDERApi.md#rollbackadminprovider) | **POST** /admin/v1/providers/{providerId}/rollback | Atomically restore a previously published provider version
+*ADMINPROVIDERApi* | [**rotateAdminProviderCredentials**](docs/ADMINPROVIDERApi.md#rotateadminprovidercredentials) | **POST** /admin/v1/providers/{providerId}/credentials | Create a write-only encrypted credential version
+*ADMINPROVIDERApi* | [**updateAdminProvider**](docs/ADMINPROVIDERApi.md#updateadminprovider) | **PATCH** /admin/v1/providers/{providerId} | Update a provider draft configuration
 *ADMINRBACApi* | [**getCurrentAdmin**](docs/ADMINRBACApi.md#getcurrentadmin) | **GET** /admin/v1/me | Read the current administrator and RBAC summary
 *ADMINRBACApi* | [**loginAdmin**](docs/ADMINRBACApi.md#loginadmin) | **POST** /admin/v1/auth/login | Verify administrator credentials
 *ADMINRBACApi* | [**logoutAdmin**](docs/ADMINRBACApi.md#logoutadmin) | **POST** /admin/v1/auth/logout | Revoke the current administrator session
@@ -151,6 +165,10 @@ All URIs are relative to *http://localhost:8000*
 - [ConsentResponse](docs/ConsentResponse.md)
 - [ConsentType](docs/ConsentType.md)
 - [CreateGenerationRequest](docs/CreateGenerationRequest.md)
+- [CredentialName](docs/CredentialName.md)
+- [CredentialRotation](docs/CredentialRotation.md)
+- [CredentialRotationResponse](docs/CredentialRotationResponse.md)
+- [CredentialSecretInput](docs/CredentialSecretInput.md)
 - [DataRequestBase](docs/DataRequestBase.md)
 - [DataRequestResponse](docs/DataRequestResponse.md)
 - [DataRequestStatus](docs/DataRequestStatus.md)
@@ -161,6 +179,7 @@ All URIs are relative to *http://localhost:8000*
 - [Device](docs/Device.md)
 - [DeviceListData](docs/DeviceListData.md)
 - [DeviceListResponse](docs/DeviceListResponse.md)
+- [EmailApiConfiguration](docs/EmailApiConfiguration.md)
 - [EmailChallenge](docs/EmailChallenge.md)
 - [EmailChallengeResponse](docs/EmailChallengeResponse.md)
 - [EmailLoginRequest](docs/EmailLoginRequest.md)
@@ -169,6 +188,7 @@ All URIs are relative to *http://localhost:8000*
 - [EmptyResponse](docs/EmptyResponse.md)
 - [Entitlement](docs/Entitlement.md)
 - [EntitlementResponse](docs/EntitlementResponse.md)
+- [EpayConfiguration](docs/EpayConfiguration.md)
 - [ErrorDetail](docs/ErrorDetail.md)
 - [ErrorResponse](docs/ErrorResponse.md)
 - [FieldError](docs/FieldError.md)
@@ -186,6 +206,7 @@ All URIs are relative to *http://localhost:8000*
 - [GenerationSnapshotUsage](docs/GenerationSnapshotUsage.md)
 - [GenerationStatus](docs/GenerationStatus.md)
 - [GenerationUsage](docs/GenerationUsage.md)
+- [HealthCheckRequest](docs/HealthCheckRequest.md)
 - [HealthData](docs/HealthData.md)
 - [HealthSuccessResponse](docs/HealthSuccessResponse.md)
 - [LedgerEntryType](docs/LedgerEntryType.md)
@@ -193,19 +214,37 @@ All URIs are relative to *http://localhost:8000*
 - [LoginData](docs/LoginData.md)
 - [LoginResponse](docs/LoginResponse.md)
 - [ModelQuoteOption](docs/ModelQuoteOption.md)
+- [NativeAiConfiguration](docs/NativeAiConfiguration.md)
+- [OpenAiCompatibleConfiguration](docs/OpenAiCompatibleConfiguration.md)
 - [PendingConsent](docs/PendingConsent.md)
+- [Provider](docs/Provider.md)
+- [ProviderConfiguration](docs/ProviderConfiguration.md)
+- [ProviderHealthCheck](docs/ProviderHealthCheck.md)
+- [ProviderHealthCheckResponse](docs/ProviderHealthCheckResponse.md)
+- [ProviderKind](docs/ProviderKind.md)
+- [ProviderListData](docs/ProviderListData.md)
+- [ProviderListResponse](docs/ProviderListResponse.md)
+- [ProviderResponse](docs/ProviderResponse.md)
+- [ProviderStatus](docs/ProviderStatus.md)
+- [ProviderWriteRequest](docs/ProviderWriteRequest.md)
+- [PublishProviderRequest](docs/PublishProviderRequest.md)
 - [RefineCandidateRequest](docs/RefineCandidateRequest.md)
 - [RefreshRequest](docs/RefreshRequest.md)
 - [RegenerateRequest](docs/RegenerateRequest.md)
 - [RelationshipStage](docs/RelationshipStage.md)
 - [ReplyStrategy](docs/ReplyStrategy.md)
 - [ReplyStyle](docs/ReplyStyle.md)
+- [RollbackProviderRequest](docs/RollbackProviderRequest.md)
+- [RotateCredentialsRequest](docs/RotateCredentialsRequest.md)
 - [SafetyStatus](docs/SafetyStatus.md)
 - [SmsChallenge](docs/SmsChallenge.md)
 - [SmsChallengeResponse](docs/SmsChallengeResponse.md)
+- [SmsConfiguration](docs/SmsConfiguration.md)
 - [SmsLoginRequest](docs/SmsLoginRequest.md)
 - [SmsPurpose](docs/SmsPurpose.md)
 - [SmsSendRequest](docs/SmsSendRequest.md)
+- [SmtpConfiguration](docs/SmtpConfiguration.md)
+- [TlsMode](docs/TlsMode.md)
 - [TokenPair](docs/TokenPair.md)
 - [TokenResponse](docs/TokenResponse.md)
 - [UpdateConsentRequest](docs/UpdateConsentRequest.md)
