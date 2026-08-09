@@ -8,6 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from love_reply_api.application.admin_auth import AdminAuthService
+from love_reply_api.application.ai_admin import AiGatewayAdminService
 from love_reply_api.application.ai_gateway import AiHttpTransport, RegistryAiProvider
 from love_reply_api.application.auth import AuthService, EmailSender, SmsSender
 from love_reply_api.application.errors import ApiError
@@ -145,6 +146,12 @@ def get_provider_service(
         settings=settings,
         health_checker=health_checker,
     )
+
+
+def get_ai_admin_service(
+    session: Annotated[AsyncSession, Depends(get_session)],
+) -> AiGatewayAdminService:
+    return AiGatewayAdminService(session=session)
 
 
 async def get_admin_context(

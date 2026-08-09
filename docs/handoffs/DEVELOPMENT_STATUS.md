@@ -7,7 +7,7 @@ Last updated: 2026-08-09
 - Active task: `BACKEND-PROVIDER-REGISTRY-001`
 - State: `in_progress`
 - Contract version: `1.0.0`
-- Current phase: AI runtime routing is complete; administrator AI publication APIs are next
+- Current phase: AI runtime and administrator publication APIs are complete; provider adapters are next
 
 ## Completed
 
@@ -45,6 +45,13 @@ Last updated: 2026-08-09
   per-target timeouts and retries, total attempts, input/output token limits, and request cost
   ceilings before cross-provider failover. Strict structured output validation and redacted attempt
   records prevent provider payloads or credentials from leaking into client errors.
+- All 22 administrator AI operations are implemented behind dedicated MFA-backed permissions.
+  Model mappings, routes, prompts, evaluation runs, and risk policies support optimistic
+  concurrency. Publication requires an exact successful evaluation version, validates published
+  providers and logical-model references, proves the worst-case retry cost fits the configured
+  budget, and freezes mappings, upstream model names, costs, prompts, and safety policies in an
+  immutable runtime snapshot. Draft edits cannot change the online version, and rollback accepts
+  only a previously published immutable version.
 - Versioned products and prices, immutable order benefit snapshots, payment attempts, active
   provider-query reconciliation, subscription cancellation, refunds, entitlement recovery, and
   signed Epay-compatible callbacks are now defined. Twenty-seven commerce fixtures validate
@@ -67,9 +74,9 @@ Last updated: 2026-08-09
 - Debug APK assembles successfully with compile SDK 35 and Java 17.
 - Real emulator-to-local-API SMS login, entitlement, quote, generation failure, and quota release
   flow verified. The default unavailable AI provider still fails closed without fake replies.
-- Antigravity CLI `1.107.0` successfully opens the workspace and creates a registered IDE window.
-  Computer-use state capture still fails with `node_repl exec context not found`, so CLI improves
-  launch reliability but does not repair the desktop control bridge.
+- Antigravity CLI `1.107.0` is installed. All future frontend implementation will use its CLI
+  agent/edit modes only; the IDE will not be launched or controlled. Browser and emulator
+  screenshots plus automated viewport tests remain the visual acceptance path.
 - Login, composer, quote, success, and failure states were exported and inspected at `1080x2400`
   and a compact `360x640dp` equivalent; no clipping, overlap, or unsafe-inset issues remain.
 
@@ -87,7 +94,7 @@ Android Lint, and Debug APK assembly all passed.
 Identity contract validation now covers 46 fixtures across 19 tagged operations. Generated
 Kotlin and TypeScript clients both compile with the new email/channel models and operations.
 
-Backend verification now covers 32 PostgreSQL integration and transport tests. The email/auth,
+Backend verification now covers 34 PostgreSQL integration and transport tests. The email/auth,
 administrator authentication, provider-registry, and AI-gateway migrations passed
 upgrade, downgrade, and re-upgrade; Ruff, strict MyPy, TypeScript, Android unit tests, Android Lint,
 and Debug APK assembly also pass.
@@ -102,10 +109,9 @@ and Debug APK assembly also pass.
 ## UI acceptance
 
 The P0 Android flow acceptance criteria are complete, but the product owner has rejected the
-current visual direction as final UI. A full redesign is tracked separately after email-first
-auth and bootstrap integration. Antigravity detects the workspace window, while activation and
-input still report `node_repl exec context not found`; source synchronization works, but this is
-not being represented as a completed interactive Antigravity design workflow.
+current visual direction as final UI. A full redesign remains tracked after backend provider and
+commerce work. It will be implemented through Antigravity CLI only and verified from actual
+browser/emulator output rather than IDE automation.
 
 ## Accepted provider and commerce direction
 
@@ -119,7 +125,7 @@ not being represented as a completed interactive Antigravity design workflow.
 
 ## Next exact actions
 
-1. Implement administrator AI model, route, prompt, evaluation, and risk-policy publication APIs.
-2. Implement Epay and catalog persistence, then referral rewards.
-3. Build the administration console, followed by the full Antigravity Android UI redesign.
-4. Repeat IDE visual review when the Antigravity control bridge can capture the CLI-opened window.
+1. Implement configurable email API and Aliyun/Tencent SMS runtime adapters.
+2. Implement Epay runtime integration and catalog persistence, then referral rewards.
+3. Build the administration console through Antigravity CLI only.
+4. Redesign the Android UI through Antigravity CLI and verify it on emulator viewports.

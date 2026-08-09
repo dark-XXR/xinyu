@@ -1,7 +1,18 @@
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import JSON, BigInteger, Boolean, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import (
+    JSON,
+    BigInteger,
+    Boolean,
+    DateTime,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import Mapped, mapped_column
 
 from love_reply_api.infrastructure.database import Base
@@ -54,6 +65,10 @@ class AiRouteRecord(Base):
     status: Mapped[str] = mapped_column(String(32), nullable=False, index=True)
     rollout_percentage: Mapped[int] = mapped_column(Integer, nullable=False)
     effective_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    published_version: Mapped[int | None] = mapped_column(Integer)
+    published_snapshot: Mapped[dict[str, Any] | None] = mapped_column(JSON)
+    published_rollout_percentage: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    published_effective_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     resource_version: Mapped[int] = mapped_column(BigInteger, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
@@ -73,9 +88,101 @@ class AiPromptRecord(Base):
     safety_policy_id: Mapped[str | None] = mapped_column(String(64))
     status: Mapped[str] = mapped_column(String(32), nullable=False, index=True)
     effective_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    published_version: Mapped[int | None] = mapped_column(Integer)
+    published_snapshot: Mapped[dict[str, Any] | None] = mapped_column(JSON)
+    published_rollout_percentage: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    published_effective_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     resource_version: Mapped[int] = mapped_column(BigInteger, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class AiRiskPolicyRecord(Base):
+    __tablename__ = "ai_risk_policies"
+
+    risk_policy_id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    version: Mapped[int] = mapped_column(Integer, nullable=False)
+    policy_code: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    blocked_categories: Mapped[list[str]] = mapped_column(JSON, nullable=False)
+    review_categories: Mapped[list[str]] = mapped_column(JSON, nullable=False)
+    input_moderation_enabled: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    output_moderation_enabled: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    prompt_injection_action: Mapped[str] = mapped_column(String(32), nullable=False)
+    minimum_safety_score: Mapped[float] = mapped_column(Float, nullable=False)
+    allow_appeals: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    status: Mapped[str] = mapped_column(String(32), nullable=False, index=True)
+    effective_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    published_version: Mapped[int | None] = mapped_column(Integer)
+    published_snapshot: Mapped[dict[str, Any] | None] = mapped_column(JSON)
+    published_rollout_percentage: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    published_effective_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    resource_version: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class AiResourceVersionRecord(Base):
+    __tablename__ = "ai_resource_versions"
+    __table_args__ = (
+        UniqueConstraint(
+            "resource_type",
+            "resource_id",
+            "version",
+            name="uq_ai_resource_version_number",
+        ),
+    )
+
+    resource_version_id: Mapped[str] = mapped_column(String(96), primary_key=True)
+    resource_type: Mapped[str] = mapped_column(String(32), nullable=False, index=True)
+    resource_id: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    version: Mapped[int] = mapped_column(Integer, nullable=False)
+    snapshot: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
+    was_published: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    rollout_percentage: Mapped[int | None] = mapped_column(Integer)
+    effective_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    action: Mapped[str] = mapped_column(String(32), nullable=False)
+    created_by_admin_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class AiEvaluationRunRecord(Base):
+    __tablename__ = "ai_evaluation_runs"
+
+    evaluation_run_id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    prompt_id: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    prompt_version: Mapped[int] = mapped_column(Integer, nullable=False)
+    prompt_resource_version: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    route_id: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    route_version: Mapped[int] = mapped_column(Integer, nullable=False)
+    route_resource_version: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    risk_policy_versions: Mapped[dict[str, int]] = mapped_column(JSON, nullable=False)
+    suite_ids: Mapped[list[str]] = mapped_column(JSON, nullable=False)
+    evaluator_logical_model_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    max_cost_microunits: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    status: Mapped[str] = mapped_column(String(32), nullable=False, index=True)
+    passed: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    total_cases: Mapped[int] = mapped_column(Integer, nullable=False)
+    completed_cases: Mapped[int] = mapped_column(Integer, nullable=False)
+    score: Mapped[float] = mapped_column(Float, nullable=False)
+    safety_passed: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    cost_microunits: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    failure_code: Mapped[str | None] = mapped_column(String(64))
+    created_by_admin_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class AiAuditRecord(Base):
+    __tablename__ = "ai_audit_records"
+
+    audit_id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    resource_type: Mapped[str] = mapped_column(String(32), nullable=False, index=True)
+    resource_id: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    admin_id: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    action: Mapped[str] = mapped_column(String(64), nullable=False)
+    audit_reason: Mapped[str] = mapped_column(String(500), nullable=False)
+    metadata_json: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
 
 class AiGatewayAttemptRecord(Base):

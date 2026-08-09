@@ -62,6 +62,44 @@ class AiTransportResult:
     provider_request_id: str | None = None
 
 
+@dataclass(frozen=True, slots=True)
+class PublishedAiModelMapping:
+    model_mapping_id: str
+    logical_model_id: str
+    provider_id: str
+    provider_model_name: str
+    max_output_tokens: int
+    input_cost_microunits_per_million_tokens: int
+    output_cost_microunits_per_million_tokens: int
+
+
+@dataclass(frozen=True, slots=True)
+class PublishedAiRoute:
+    route_id: str
+    version: int
+    scenario: str
+    logical_model_id: str
+    targets: list[dict[str, Any]]
+    max_input_tokens: int
+    max_output_tokens: int
+    budget_ceiling_microunits: int
+    total_attempt_limit: int
+    rollout_percentage: int
+    mapping_snapshots: list[dict[str, Any]]
+
+
+@dataclass(frozen=True, slots=True)
+class PublishedAiPrompt:
+    scenario: str
+    system_template: str
+    user_template: str
+
+
+RuntimeMapping = AiModelMappingRecord | PublishedAiModelMapping
+RuntimeRoute = AiRouteRecord | PublishedAiRoute
+RuntimePrompt = AiPromptRecord | PublishedAiPrompt
+
+
 class AiHttpTransport:
     def __init__(
         self,
@@ -247,7 +285,9 @@ class RegistryAiProvider:
         now = datetime.now(UTC)
         routing_key = self._routing_key(input_data=input_data, context_data=context_data)
         route = await self._active_route(model_id=model_id, routing_key=routing_key, now=now)
-        prompt = await self._active_prompt(scenario=route.scenario, now=now)
+        prompt = await self._active_prompt(
+            scenario=route.scenario, routing_key=routing_key, now=now
+        )
         input_json = json.dumps(input_data, ensure_ascii=False, separators=(",", ":"))
         context_json = json.dumps(context_data, ensure_ascii=False, separators=(",", ":"))
         estimated_input_tokens = ceil((len(input_json) + len(context_json)) / 4)
@@ -382,27 +422,55 @@ class RegistryAiProvider:
 
     async def _active_route(
         self, *, model_id: str, routing_key: str, now: datetime
-    ) -> AiRouteRecord:
+    ) -> RuntimeRoute:
         routes = list(
             await self._session.scalars(
                 select(AiRouteRecord)
                 .where(
-                    AiRouteRecord.scenario == "REPLY_GENERATION",
-                    AiRouteRecord.logical_model_id == model_id,
-                    AiRouteRecord.status == "ACTIVE",
-                    AiRouteRecord.effective_at.is_not(None),
-                    AiRouteRecord.effective_at <= now,
+                    (
+                        (
+                            AiRouteRecord.published_snapshot.is_not(None)
+                            & AiRouteRecord.published_effective_at.is_not(None)
+                            & (AiRouteRecord.published_effective_at <= now)
+                        )
+                        | (
+                            (AiRouteRecord.status == "ACTIVE")
+                            & (AiRouteRecord.effective_at.is_not(None))
+                            & (AiRouteRecord.effective_at <= now)
+                        )
+                    ),
                 )
-                .order_by(AiRouteRecord.version.desc())
+                .order_by(
+                    AiRouteRecord.published_version.desc().nullslast(), AiRouteRecord.version.desc()
+                )
             )
         )
         for route in routes:
+            if route.published_snapshot is not None and route.published_version is not None:
+                snapshot = route.published_snapshot
+                candidate: RuntimeRoute = PublishedAiRoute(
+                    route_id=route.route_id,
+                    version=route.published_version,
+                    scenario=str(snapshot["scenario"]),
+                    logical_model_id=str(snapshot["logicalModelId"]),
+                    targets=list(snapshot["targets"]),
+                    max_input_tokens=int(snapshot["maxInputTokens"]),
+                    max_output_tokens=int(snapshot["maxOutputTokens"]),
+                    budget_ceiling_microunits=int(snapshot["budgetCeilingMicrounits"]),
+                    total_attempt_limit=int(snapshot["totalAttemptLimit"]),
+                    rollout_percentage=route.published_rollout_percentage,
+                    mapping_snapshots=list(snapshot.get("modelMappings", [])),
+                )
+            else:
+                candidate = route
+            if candidate.scenario != "REPLY_GENERATION" or candidate.logical_model_id != model_id:
+                continue
             if self._resolver.in_rollout(
                 provider_id=route.route_id,
                 routing_key=routing_key,
-                percentage=route.rollout_percentage,
+                percentage=candidate.rollout_percentage,
             ):
-                return route
+                return candidate
         raise ApiError(
             status_code=503,
             code="AI_ROUTE_UNAVAILABLE",
@@ -410,30 +478,86 @@ class RegistryAiProvider:
             retryable=True,
         )
 
-    async def _active_prompt(self, *, scenario: str, now: datetime) -> AiPromptRecord:
-        prompt = await self._session.scalar(
+    async def _active_prompt(
+        self, *, scenario: str, routing_key: str, now: datetime
+    ) -> RuntimePrompt:
+        statement = (
             select(AiPromptRecord)
             .where(
-                AiPromptRecord.scenario == scenario,
-                AiPromptRecord.status == "ACTIVE",
-                AiPromptRecord.effective_at.is_not(None),
-                AiPromptRecord.effective_at <= now,
+                (
+                    (
+                        AiPromptRecord.published_snapshot.is_not(None)
+                        & AiPromptRecord.published_effective_at.is_not(None)
+                        & (AiPromptRecord.published_effective_at <= now)
+                    )
+                    | (
+                        (AiPromptRecord.status == "ACTIVE")
+                        & (AiPromptRecord.effective_at.is_not(None))
+                        & (AiPromptRecord.effective_at <= now)
+                    )
+                ),
             )
-            .order_by(AiPromptRecord.version.desc())
-            .limit(1)
+            .order_by(
+                AiPromptRecord.published_version.desc().nullslast(), AiPromptRecord.version.desc()
+            )
         )
-        if prompt is None:
+        prompts = list(await self._session.scalars(statement))
+        selected: RuntimePrompt | None = None
+        for item in prompts:
+            item_scenario = (
+                str(item.published_snapshot["scenario"])
+                if item.published_snapshot is not None
+                else item.scenario
+            )
+            if item_scenario != scenario:
+                continue
+            rollout = (
+                item.published_rollout_percentage if item.published_snapshot is not None else 100
+            )
+            if not self._resolver.in_rollout(
+                provider_id=item.prompt_id,
+                routing_key=routing_key,
+                percentage=rollout,
+            ):
+                continue
+            selected = (
+                item
+                if item.published_snapshot is None
+                else PublishedAiPrompt(
+                    scenario=item_scenario,
+                    system_template=str(item.published_snapshot["systemTemplate"]),
+                    user_template=str(item.published_snapshot["userTemplate"]),
+                )
+            )
+            break
+        if selected is None:
             raise ApiError(
                 status_code=503,
                 code="AI_PROMPT_UNAVAILABLE",
                 message="No published AI prompt is available.",
                 retryable=True,
             )
-        return prompt
+        return selected
 
-    async def _mappings(
-        self, *, route: AiRouteRecord, now: datetime
-    ) -> dict[str, AiModelMappingRecord]:
+    async def _mappings(self, *, route: RuntimeRoute, now: datetime) -> dict[str, RuntimeMapping]:
+        if isinstance(route, PublishedAiRoute) and route.mapping_snapshots:
+            mappings = [
+                PublishedAiModelMapping(
+                    model_mapping_id=str(item["modelMappingId"]),
+                    logical_model_id=str(item["logicalModelId"]),
+                    provider_id=str(item["providerId"]),
+                    provider_model_name=str(item["providerModelName"]),
+                    max_output_tokens=int(item["maxOutputTokens"]),
+                    input_cost_microunits_per_million_tokens=int(
+                        item["inputCostMicrounitsPerMillionTokens"]
+                    ),
+                    output_cost_microunits_per_million_tokens=int(
+                        item["outputCostMicrounitsPerMillionTokens"]
+                    ),
+                )
+                for item in route.mapping_snapshots
+            ]
+            return {item.model_mapping_id: item for item in mappings}
         ids = [str(item["modelMappingId"]) for item in route.targets]
         rows = await self._session.scalars(
             select(AiModelMappingRecord).where(
@@ -449,7 +573,7 @@ class RegistryAiProvider:
 
     @staticmethod
     def _render_prompt(
-        *, prompt: AiPromptRecord, input_json: str, context_json: str
+        *, prompt: RuntimePrompt, input_json: str, context_json: str
     ) -> tuple[str, str]:
         values = {"inputJson": input_json, "contextJson": context_json}
         try:
@@ -507,7 +631,7 @@ class RegistryAiProvider:
         return sha256(canonical.encode()).hexdigest()
 
     @staticmethod
-    def _cost(*, mapping: AiModelMappingRecord, input_tokens: int, output_tokens: int) -> int:
+    def _cost(*, mapping: RuntimeMapping, input_tokens: int, output_tokens: int) -> int:
         weighted = (
             input_tokens * mapping.input_cost_microunits_per_million_tokens
             + output_tokens * mapping.output_cost_microunits_per_million_tokens
@@ -517,8 +641,8 @@ class RegistryAiProvider:
     async def _record_attempt(
         self,
         *,
-        route: AiRouteRecord,
-        mapping: AiModelMappingRecord,
+        route: RuntimeRoute,
+        mapping: RuntimeMapping,
         provider: ResolvedProvider,
         routing_key: str,
         attempt_number: int,
