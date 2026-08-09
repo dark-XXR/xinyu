@@ -7,7 +7,7 @@ Last updated: 2026-08-09
 - Active task: `BACKEND-PROVIDER-REGISTRY-001`
 - State: `ready`
 - Contract version: `1.0.0`
-- Current phase: email-first authentication persistence and policy enforcement are complete; encrypted provider adapters are next
+- Current phase: encrypted provider registry and administration are implemented; real adapters and runtime routing are next
 
 ## Completed
 
@@ -28,6 +28,10 @@ Last updated: 2026-08-09
 - Unified administrator provider contract now covers AI, SMTP/API email, Aliyun/Tencent SMS,
   and EPAY-compatible payment configuration, write-only credential rotation, redacted health
   checks, bounded publication, and rollback. Twenty-two provider fixtures validate 8 operations.
+- The provider registry now persists validated drafts, encrypted immutable credential versions,
+  redacted health checks, immutable configuration snapshots, publication pointers, gray rollout,
+  atomic rollback, and audit events. Editing a published provider cannot change its online snapshot.
+  Keyed credential fingerprints resist offline guessing and secrets are never returned by the API.
 - Versioned products and prices, immutable order benefit snapshots, payment attempts, active
   provider-query reconciliation, subscription cancellation, refunds, entitlement recovery, and
   signed Epay-compatible callbacks are now defined. Twenty-seven commerce fixtures validate
@@ -67,8 +71,8 @@ Android Lint, and Debug APK assembly all passed.
 Identity contract validation now covers 46 fixtures across 19 tagged operations. Generated
 Kotlin and TypeScript clients both compile with the new email/channel models and operations.
 
-Backend verification now covers 16 PostgreSQL integration tests. The email/auth and administrator
-authentication migrations passed
+Backend verification now covers 17 PostgreSQL integration tests. The email/auth, administrator
+authentication, and provider-registry migrations passed
 upgrade, downgrade, and re-upgrade; Ruff, strict MyPy, TypeScript, Android unit tests, Android Lint,
 and Debug APK assembly also pass.
 
@@ -99,8 +103,8 @@ not being represented as a completed interactive Antigravity design workflow.
 
 ## Next exact actions
 
-1. Implement the encrypted provider registry behind administrator permission checks.
-2. Connect SMTP/API email delivery and health checks to the active provider version.
+1. Resolve effective published providers by kind, priority, rollout, and effective time.
+2. Connect the SMTP email sender and real SMTP health check to encrypted provider credentials.
 3. Change Android to email-first login and expose SMS only when the channel policy allows it.
-4. Implement AI routes, Epay, catalog versioning, advertising rewards, and referral persistence.
-5. Build the administration console, then perform the full Antigravity Android UI redesign.
+4. Add real AI provider routing, then implement Epay and catalog persistence.
+5. Build the administration console, followed by the full Antigravity Android UI redesign.

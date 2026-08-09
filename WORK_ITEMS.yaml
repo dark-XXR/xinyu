@@ -493,7 +493,7 @@ items:
     title: Implement encrypted configurable provider registry health checks and rollout
     moduleCode: APP_CONFIG
     owner: codex-root
-    status: ready
+    status: in_progress
     allowedPaths:
       - services/api/src/love_reply_api/application/**
       - services/api/src/love_reply_api/domain/**
@@ -508,7 +508,7 @@ items:
       - health_checks_redact_credentials_and_sensitive_payloads
       - active_configuration_can_roll_back_atomically
       - ai_routes_fail_over_with_bounded_retry_and_cost
-    handoffNotes: ""
+    handoffNotes: "Encrypted provider persistence and all 8 administrator operations are implemented behind MFA-backed permissions. Configuration validation covers AI, SMTP/API email, Aliyun/Tencent SMS, and EPAY_COMPAT presets. Write-only credentials use authenticated encryption and keyed fingerprints; health results and audit reasons are redacted. Immutable versions preserve published snapshots while edits remain drafts, and rollback is atomic. Seventeen PostgreSQL tests pass. Real SMTP/API/AI health adapters and runtime routing remain before completion."
 
   - taskId: BACKEND-COMMERCE-001
     title: Implement products subscriptions Epay orders callbacks refunds and reconciliation

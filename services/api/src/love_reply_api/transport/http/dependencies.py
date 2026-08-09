@@ -1,3 +1,4 @@
+from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Annotated, cast
 
@@ -11,6 +12,7 @@ from love_reply_api.application.auth import AuthService, EmailSender, SmsSender
 from love_reply_api.application.errors import ApiError
 from love_reply_api.application.generation import AiProvider, GenerationService
 from love_reply_api.application.identity import IdentityService
+from love_reply_api.application.providers import ProviderHealthChecker, ProviderService
 from love_reply_api.application.tokens import TokenService
 from love_reply_api.config import Settings, get_settings
 from love_reply_api.infrastructure.admin_records import AdminSessionRecord, AdminUserRecord
@@ -115,6 +117,22 @@ def get_admin_auth_service(
     return AdminAuthService(session=session, settings=settings)
 
 
+def get_provider_health_checker(request: Request) -> ProviderHealthChecker:
+    return cast(ProviderHealthChecker, request.app.state.provider_health_checker)
+
+
+def get_provider_service(
+    session: Annotated[AsyncSession, Depends(get_session)],
+    settings: Annotated[Settings, Depends(get_settings)],
+    health_checker: Annotated[ProviderHealthChecker, Depends(get_provider_health_checker)],
+) -> ProviderService:
+    return ProviderService(
+        session=session,
+        settings=settings,
+        health_checker=health_checker,
+    )
+
+
 async def get_admin_context(
     client: Annotated[AdminClientContext, Depends(get_admin_client_context)],
     credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer)],
@@ -131,6 +149,23 @@ async def get_admin_context(
         access_token=credentials.credentials
     )
     return AdminContext(admin=admin, session=session)
+
+
+def require_admin_permission(
+    permission: str,
+) -> Callable[[AdminContext], AdminContext]:
+    def dependency(
+        context: Annotated[AdminContext, Depends(get_admin_context)],
+    ) -> AdminContext:
+        if permission not in context.admin.permissions:
+            raise ApiError(
+                status_code=403,
+                code="PERMISSION_DENIED",
+                message="Administrator permission is required.",
+            )
+        return context
+
+    return dependency
 
 
 def get_identity_service(
