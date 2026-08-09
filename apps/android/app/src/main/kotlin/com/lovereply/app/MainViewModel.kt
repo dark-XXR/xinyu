@@ -13,6 +13,7 @@ import com.lovereply.app.domain.EntitlementSummary
 import com.lovereply.app.domain.GenerationPhase
 import com.lovereply.app.domain.GenerationQuoteSummary
 import com.lovereply.app.domain.GenerationResult
+import com.lovereply.app.domain.LoginChannel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,11 +28,18 @@ enum class AppScreen {
 }
 
 data class LoginUiState(
+    val selectedChannel: LoginChannel = LoginChannel.EMAIL,
+    val email: String = "",
     val countryCode: String = "+86",
     val phoneNumber: String = "",
     val verificationCode: String = "",
     val challengeId: String? = null,
     val resendSeconds: Int = 0,
+    val maskedDestination: String? = null,
+    val channelPolicyLoading: Boolean = true,
+    val emailAvailable: Boolean = true,
+    val smsAvailable: Boolean = false,
+    val channelPolicyVersion: Int? = null,
 )
 
 data class MainUiState(
@@ -61,7 +69,32 @@ class MainViewModel(
 
     init {
         loadBootstrap()
-        if (repository.hasSession()) refreshEntitlements()
+        if (repository.hasSession()) {
+            refreshEntitlements()
+        } else {
+            loadAuthChannels()
+        }
+    }
+
+    fun selectLoginChannel(channel: LoginChannel) {
+        val login = state.value.login
+        if (channel == login.selectedChannel) return
+        if (channel == LoginChannel.SMS && !login.smsAvailable) return
+        if (channel == LoginChannel.EMAIL && !login.emailAvailable) return
+        countdownJob?.cancel()
+        updateLogin {
+            copy(
+                selectedChannel = channel,
+                verificationCode = "",
+                challengeId = null,
+                resendSeconds = 0,
+                maskedDestination = null,
+            )
+        }
+    }
+
+    fun updateEmail(value: String) = updateLogin {
+        copy(email = value.trim().take(254), challengeId = null, maskedDestination = null)
     }
 
     fun updateCountryCode(value: String) = updateLogin {
@@ -76,18 +109,28 @@ class MainViewModel(
         copy(verificationCode = value.filter(Char::isDigit).take(8))
     }
 
-    fun sendSms() {
+    fun sendVerificationCode() {
         val login = state.value.login
-        if (login.phoneNumber.length !in 6..15) {
-            setError("请输入正确的手机号", "INVALID_PHONE")
-            return
+        when (login.selectedChannel) {
+            LoginChannel.EMAIL -> if (!login.email.isValidEmail()) {
+                setError("请输入正确的邮箱地址", "INVALID_EMAIL")
+                return
+            }
+            LoginChannel.SMS -> if (login.phoneNumber.length !in 6..15) {
+                setError("请输入正确的手机号", "INVALID_PHONE")
+                return
+            }
         }
         launchAction("正在发送验证码") {
-            val challenge = repository.sendSms(login.countryCode, login.phoneNumber)
+            val challenge = when (login.selectedChannel) {
+                LoginChannel.EMAIL -> repository.sendEmail(login.email)
+                LoginChannel.SMS -> repository.sendSms(login.countryCode, login.phoneNumber)
+            }
             mutableState.value = state.value.copy(
                 login = state.value.login.copy(
                     challengeId = challenge.id,
                     resendSeconds = challenge.resendAfterSeconds,
+                    maskedDestination = challenge.maskedDestination,
                 ),
                 errorMessage = null,
                 errorCode = null,
@@ -104,11 +147,14 @@ class MainViewModel(
             return
         }
         if (login.verificationCode.length !in 4..8) {
-            setError("请输入短信验证码", "INVALID_CODE")
+            setError("请输入验证码", "INVALID_CODE")
             return
         }
         launchAction("正在登录") {
-            repository.login(challengeId, login.verificationCode)
+            when (login.selectedChannel) {
+                LoginChannel.EMAIL -> repository.loginWithEmail(challengeId, login.verificationCode)
+                LoginChannel.SMS -> repository.loginWithSms(challengeId, login.verificationCode)
+            }
             mutableState.value = state.value.copy(
                 screen = AppScreen.COMPOSER,
                 busy = false,
@@ -299,6 +345,34 @@ class MainViewModel(
         }
     }
 
+    private fun loadAuthChannels() {
+        viewModelScope.launch {
+            try {
+                val policy = repository.getAuthChannels()
+                val emailAvailable = LoginChannel.EMAIL in policy.availableChannels
+                val smsAvailable = LoginChannel.SMS in policy.availableChannels
+                val selectedChannel = if (emailAvailable || !smsAvailable) {
+                    LoginChannel.EMAIL
+                } else {
+                    LoginChannel.SMS
+                }
+                mutableState.value = state.value.copy(
+                    login = state.value.login.copy(
+                        selectedChannel = selectedChannel,
+                        channelPolicyLoading = false,
+                        emailAvailable = emailAvailable,
+                        smsAvailable = smsAvailable,
+                        channelPolicyVersion = policy.policyVersion,
+                    ),
+                )
+            } catch (_: ApiFailure) {
+                mutableState.value = state.value.copy(
+                    login = state.value.login.copy(channelPolicyLoading = false),
+                )
+            }
+        }
+    }
+
     private fun launchAction(label: String, action: suspend () -> Unit) {
         if (state.value.busy) return
         mutableState.value = state.value.copy(
@@ -404,3 +478,8 @@ private fun String?.toFailureMessage(): String = when (this) {
     "CONTENT_BLOCKED" -> "内容未通过安全检查，本次额度已释放"
     else -> "本次生成未完成，额度不会被扣除"
 }
+
+private fun String.isValidEmail(): Boolean =
+    length in 3..254 && EMAIL_PATTERN.matches(this)
+
+private val EMAIL_PATTERN = Regex("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")

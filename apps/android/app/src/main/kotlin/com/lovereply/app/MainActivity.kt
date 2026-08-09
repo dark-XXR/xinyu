@@ -26,10 +26,12 @@ class MainActivity : ComponentActivity() {
             LoveReplyTheme {
                 LoveReplyApp(
                     state = state,
+                    onLoginChannelChange = viewModel::selectLoginChannel,
+                    onEmailChange = viewModel::updateEmail,
                     onCountryCodeChange = viewModel::updateCountryCode,
                     onPhoneChange = viewModel::updatePhone,
                     onVerificationCodeChange = viewModel::updateVerificationCode,
-                    onSendSms = viewModel::sendSms,
+                    onSendVerificationCode = viewModel::sendVerificationCode,
                     onLogin = viewModel::login,
                     onMessageChange = viewModel::updateMessage,
                     onRelationshipChange = viewModel::updateRelationshipStage,

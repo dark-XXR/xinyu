@@ -6,9 +6,11 @@ import com.lovereply.app.domain.EntitlementSummary
 import com.lovereply.app.domain.GenerationPhase
 import com.lovereply.app.domain.GenerationQuoteSummary
 import com.lovereply.app.domain.GenerationResult
+import com.lovereply.app.domain.LoginChallenge
+import com.lovereply.app.domain.LoginChannel
+import com.lovereply.app.domain.LoginChannelPolicy
 import com.lovereply.app.domain.ReplyAnalysis
 import com.lovereply.app.domain.ReplyCandidate
-import com.lovereply.app.domain.SmsChallenge
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
@@ -23,13 +25,13 @@ class MainViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     @Test
-    fun loginMovesToComposerAndLoadsEntitlement() = runTest(mainDispatcherRule.dispatcher) {
+    fun emailLoginMovesToComposerAndLoadsEntitlement() = runTest(mainDispatcherRule.dispatcher) {
         val repository = FakeRepository(hasSession = false)
         val viewModel = MainViewModel(repository)
+        advanceUntilIdle()
 
-        viewModel.updateCountryCode("+86")
-        viewModel.updatePhone("13800138000")
-        viewModel.sendSms()
+        viewModel.updateEmail("hello@example.com")
+        viewModel.sendVerificationCode()
         advanceUntilIdle()
         viewModel.updateVerificationCode("123456")
         viewModel.login()
@@ -37,7 +39,49 @@ class MainViewModelTest {
 
         assertEquals(AppScreen.COMPOSER, viewModel.state.value.screen)
         assertEquals(8, viewModel.state.value.entitlement?.textRemaining)
-        assertEquals(1, repository.loginCalls)
+        assertEquals(1, repository.emailLoginCalls)
+        assertEquals(0, repository.smsLoginCalls)
+    }
+
+    @Test
+    fun channelSwitchPreservesDestinationsAndClearsChallenge() = runTest(mainDispatcherRule.dispatcher) {
+        val repository = FakeRepository(hasSession = false)
+        val viewModel = MainViewModel(repository)
+        advanceUntilIdle()
+
+        viewModel.updateEmail("hello@example.com")
+        viewModel.sendVerificationCode()
+        advanceUntilIdle()
+        assertNotNull(viewModel.state.value.login.challengeId)
+
+        viewModel.selectLoginChannel(LoginChannel.SMS)
+        viewModel.updatePhone("13800138000")
+        viewModel.selectLoginChannel(LoginChannel.EMAIL)
+
+        val login = viewModel.state.value.login
+        assertEquals("hello@example.com", login.email)
+        assertEquals("13800138000", login.phoneNumber)
+        assertEquals(null, login.challengeId)
+        assertEquals("", login.verificationCode)
+    }
+
+    @Test
+    fun policyEnabledSmsFallbackUsesSharedLoginFlow() = runTest(mainDispatcherRule.dispatcher) {
+        val repository = FakeRepository(hasSession = false)
+        val viewModel = MainViewModel(repository)
+        advanceUntilIdle()
+
+        viewModel.selectLoginChannel(LoginChannel.SMS)
+        viewModel.updatePhone("13800138000")
+        viewModel.sendVerificationCode()
+        advanceUntilIdle()
+        viewModel.updateVerificationCode("123456")
+        viewModel.login()
+        advanceUntilIdle()
+
+        assertEquals(AppScreen.COMPOSER, viewModel.state.value.screen)
+        assertEquals(0, repository.emailLoginCalls)
+        assertEquals(1, repository.smsLoginCalls)
     }
 
     @Test
@@ -88,17 +132,30 @@ private class FakeRepository(
     private val hasSession: Boolean,
     private val failGeneration: Boolean = false,
 ) : LoveReplyRepository {
-    var loginCalls = 0
+    var emailLoginCalls = 0
+    var smsLoginCalls = 0
     var quoteCalls = 0
     private var pollCalls = 0
 
     override fun hasSession(): Boolean = hasSession
 
-    override suspend fun sendSms(countryCode: String, phoneNumber: String) =
-        SmsChallenge(id = "sms_test", resendAfterSeconds = 1)
+    override suspend fun getAuthChannels() = LoginChannelPolicy(
+        availableChannels = setOf(LoginChannel.EMAIL, LoginChannel.SMS),
+        policyVersion = 1,
+    )
 
-    override suspend fun login(challengeId: String, code: String) {
-        loginCalls += 1
+    override suspend fun sendEmail(email: String) =
+        LoginChallenge(id = "email_test", resendAfterSeconds = 1, maskedDestination = "h***@example.com")
+
+    override suspend fun sendSms(countryCode: String, phoneNumber: String) =
+        LoginChallenge(id = "sms_test", resendAfterSeconds = 1)
+
+    override suspend fun loginWithEmail(challengeId: String, code: String) {
+        emailLoginCalls += 1
+    }
+
+    override suspend fun loginWithSms(challengeId: String, code: String) {
+        smsLoginCalls += 1
     }
 
     override suspend fun getEntitlements() = EntitlementSummary(

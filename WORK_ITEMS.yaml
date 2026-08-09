@@ -551,7 +551,7 @@ items:
     title: Upgrade Android to email-first authentication with explicit SMS fallback
     moduleCode: AUTH
     owner: codex-root
-    status: ready
+    status: done
     allowedPaths:
       - apps/android/**
     dependsOn: [BACKEND-AUTH-CHANNELS-001, CONTRACT-CODEGEN-001]
@@ -561,7 +561,7 @@ items:
       - sms_fallback_is_visible_only_when_server_policy_allows
       - channel_switch_preserves_non_secret_input
       - email_and_sms_login_share_session_refresh_behavior
-    handoffNotes: "The current Android P0 screen remains SMS-first until the additive email contract and backend are complete."
+    handoffNotes: "Complete. Android now reads the public channel policy, defaults to email, exposes SMS only when available, preserves non-secret email and phone input across channel changes, and clears channel-bound challenge state. Email and SMS use the same encrypted session storage and refresh path. Five ViewModel tests, six default-size Compose tests, six compact-size Compose tests, Android Lint, and Debug APK assembly pass. Antigravity is discoverable through computer-use, but launch still fails with node_repl exec context not found."
 
   - taskId: BACKEND-RUNTIME-CONFIG-001
     title: Implement published runtime configuration and remove business defaults from code

@@ -3,9 +3,20 @@ package com.lovereply.app.domain
 import com.love_reply.generated.model.CommunicationGoal
 import com.love_reply.generated.model.RelationshipStage
 
-data class SmsChallenge(
+enum class LoginChannel {
+    EMAIL,
+    SMS,
+}
+
+data class LoginChannelPolicy(
+    val availableChannels: Set<LoginChannel>,
+    val policyVersion: Int,
+)
+
+data class LoginChallenge(
     val id: String,
     val resendAfterSeconds: Int,
+    val maskedDestination: String? = null,
 )
 
 data class AppBootstrap(

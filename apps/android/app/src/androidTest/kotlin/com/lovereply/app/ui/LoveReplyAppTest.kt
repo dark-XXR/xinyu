@@ -8,6 +8,7 @@ import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
@@ -16,11 +17,13 @@ import androidx.compose.ui.test.performScrollToIndex
 import androidx.test.platform.app.InstrumentationRegistry
 import com.lovereply.app.AppScreen
 import com.lovereply.app.MainUiState
+import com.lovereply.app.LoginUiState
 import com.lovereply.app.domain.ComposerDraft
 import com.lovereply.app.domain.EntitlementSummary
 import com.lovereply.app.domain.GenerationPhase
 import com.lovereply.app.domain.GenerationQuoteSummary
 import com.lovereply.app.domain.GenerationResult
+import com.lovereply.app.domain.LoginChannel
 import com.lovereply.app.domain.ReplyAnalysis
 import com.lovereply.app.domain.ReplyCandidate
 import com.lovereply.app.ui.theme.LoveReplyTheme
@@ -32,13 +35,38 @@ class LoveReplyAppTest {
     val composeRule = createComposeRule()
 
     @Test
-    fun loginScreenShowsSmsControls() {
-        setAppContent(MainUiState(screen = AppScreen.LOGIN))
+    fun loginScreenDefaultsToEmailAndHidesSmsWithoutPolicy() {
+        setAppContent(
+            MainUiState(
+                screen = AppScreen.LOGIN,
+                login = LoginUiState(channelPolicyLoading = false),
+            ),
+        )
 
-        composeRule.onNodeWithTag("phone_input").assertIsDisplayed()
+        composeRule.onNodeWithTag("email_input").assertIsDisplayed()
+        composeRule.onAllNodesWithTag("phone_input").assertCountEquals(0)
         composeRule.onNodeWithTag("code_input").assertIsDisplayed()
         composeRule.onNodeWithTag("login_button").assertIsDisplayed()
         captureScreen("login")
+    }
+
+    @Test
+    fun loginScreenShowsSmsOnlyWhenPolicyAllowsIt() {
+        setAppContent(
+            MainUiState(
+                screen = AppScreen.LOGIN,
+                login = LoginUiState(
+                    selectedChannel = LoginChannel.SMS,
+                    channelPolicyLoading = false,
+                    smsAvailable = true,
+                ),
+            ),
+        )
+
+        composeRule.onNodeWithTag("channel_sms").assertIsDisplayed()
+        composeRule.onNodeWithTag("phone_input").assertIsDisplayed()
+        composeRule.onAllNodesWithTag("email_input").assertCountEquals(0)
+        captureScreen("login_sms")
     }
 
     @Test
@@ -134,10 +162,12 @@ class LoveReplyAppTest {
             LoveReplyTheme(darkTheme = false) {
                 LoveReplyApp(
                     state = state,
+                    onLoginChannelChange = {},
+                    onEmailChange = {},
                     onCountryCodeChange = {},
                     onPhoneChange = {},
                     onVerificationCodeChange = {},
-                    onSendSms = {},
+                    onSendVerificationCode = {},
                     onLogin = {},
                     onMessageChange = {},
                     onRelationshipChange = {},

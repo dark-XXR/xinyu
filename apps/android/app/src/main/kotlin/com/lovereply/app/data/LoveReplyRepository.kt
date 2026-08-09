@@ -8,6 +8,10 @@ import com.love_reply.generated.infrastructure.ApiClient
 import com.love_reply.generated.infrastructure.Serializer
 import com.love_reply.generated.model.CommunicationGoal
 import com.love_reply.generated.model.CreateGenerationRequest
+import com.love_reply.generated.model.AuthChannel
+import com.love_reply.generated.model.EmailLoginRequest
+import com.love_reply.generated.model.EmailPurpose
+import com.love_reply.generated.model.EmailSendRequest
 import com.love_reply.generated.model.GenerationContext
 import com.love_reply.generated.model.GenerationInput
 import com.love_reply.generated.model.GenerationQuoteRequest
@@ -25,10 +29,12 @@ import com.lovereply.app.domain.EntitlementSummary
 import com.lovereply.app.domain.GenerationPhase
 import com.lovereply.app.domain.GenerationQuoteSummary
 import com.lovereply.app.domain.GenerationResult
+import com.lovereply.app.domain.LoginChallenge
+import com.lovereply.app.domain.LoginChannel
+import com.lovereply.app.domain.LoginChannelPolicy
 import com.lovereply.app.domain.ReplyAnalysis
 import com.lovereply.app.domain.ReplyCandidate
 import com.lovereply.app.domain.ReplyStyleOption
-import com.lovereply.app.domain.SmsChallenge
 import java.io.IOException
 import java.util.UUID
 import kotlinx.coroutines.sync.Mutex
@@ -38,8 +44,11 @@ import retrofit2.Response
 interface LoveReplyRepository {
     fun hasSession(): Boolean
     suspend fun getBootstrap(): AppBootstrap? = null
-    suspend fun sendSms(countryCode: String, phoneNumber: String): SmsChallenge
-    suspend fun login(challengeId: String, code: String)
+    suspend fun getAuthChannels(): LoginChannelPolicy
+    suspend fun sendEmail(email: String): LoginChallenge
+    suspend fun sendSms(countryCode: String, phoneNumber: String): LoginChallenge
+    suspend fun loginWithEmail(challengeId: String, code: String)
+    suspend fun loginWithSms(challengeId: String, code: String)
     suspend fun getEntitlements(): EntitlementSummary
     suspend fun quote(draft: ComposerDraft): GenerationQuoteSummary
     suspend fun create(draft: ComposerDraft, quote: GenerationQuoteSummary): GenerationResult
@@ -56,6 +65,30 @@ class NetworkLoveReplyRepository(
     private val errorAdapter = Serializer.moshiBuilder.build().adapter(ApiErrorEnvelope::class.java)
 
     override fun hasSession(): Boolean = sessionStore.read() != null
+
+    override suspend fun getAuthChannels(): LoginChannelPolicy {
+        val api = anonymousClient().createService(AUTHApi::class.java)
+        val response = networkCall {
+            api.getAuthChannels(
+                xClientVersion = CLIENT_VERSION,
+                xPlatform = AUTHApi.XPlatformGetAuthChannels.ANDROID,
+                xDeviceId = deviceIdStore.value,
+            )
+        }
+        val policy = response.data
+        return LoginChannelPolicy(
+            availableChannels = policy.channels
+                .filter { it.available }
+                .mapNotNull { availability ->
+                    when (availability.channel) {
+                        AuthChannel.EMAIL -> LoginChannel.EMAIL
+                        AuthChannel.SMS -> LoginChannel.SMS
+                    }
+                }
+                .toSet(),
+            policyVersion = policy.policyVersion,
+        )
+    }
 
     override suspend fun getBootstrap(): AppBootstrap {
         val api = anonymousClient().createService(APPCONFIGApi::class.java)
@@ -76,7 +109,29 @@ class NetworkLoveReplyRepository(
         )
     }
 
-    override suspend fun sendSms(countryCode: String, phoneNumber: String): SmsChallenge {
+    override suspend fun sendEmail(email: String): LoginChallenge {
+        val api = anonymousClient().createService(AUTHApi::class.java)
+        val response = networkCall {
+            api.sendEmailChallenge(
+                xClientVersion = CLIENT_VERSION,
+                xPlatform = AUTHApi.XPlatformSendEmailChallenge.ANDROID,
+                xDeviceId = deviceIdStore.value,
+                idempotencyKey = idempotencyKey(),
+                emailSendRequest = EmailSendRequest(
+                    email = email,
+                    purpose = EmailPurpose.LOGIN,
+                ),
+            )
+        }
+        val challenge = response.data
+        return LoginChallenge(
+            id = challenge.challengeId,
+            resendAfterSeconds = challenge.resendAfterSeconds,
+            maskedDestination = challenge.maskedDestination,
+        )
+    }
+
+    override suspend fun sendSms(countryCode: String, phoneNumber: String): LoginChallenge {
         val api = anonymousClient().createService(AUTHApi::class.java)
         val response = networkCall {
             api.sendSmsChallenge(
@@ -92,10 +147,24 @@ class NetworkLoveReplyRepository(
             )
         }
         val challenge = response.data
-        return SmsChallenge(challenge.challengeId, challenge.resendAfterSeconds)
+        return LoginChallenge(challenge.challengeId, challenge.resendAfterSeconds)
     }
 
-    override suspend fun login(challengeId: String, code: String) {
+    override suspend fun loginWithEmail(challengeId: String, code: String) {
+        val api = anonymousClient().createService(AUTHApi::class.java)
+        val response = networkCall {
+            api.loginWithEmail(
+                xClientVersion = CLIENT_VERSION,
+                xPlatform = AUTHApi.XPlatformLoginWithEmail.ANDROID,
+                xDeviceId = deviceIdStore.value,
+                idempotencyKey = idempotencyKey(),
+                emailLoginRequest = EmailLoginRequest(challengeId, code),
+            )
+        }
+        saveSession(response.data.tokens.accessToken, response.data.tokens.refreshToken)
+    }
+
+    override suspend fun loginWithSms(challengeId: String, code: String) {
         val api = anonymousClient().createService(AUTHApi::class.java)
         val response = networkCall {
             api.loginWithSms(
@@ -106,12 +175,7 @@ class NetworkLoveReplyRepository(
                 smsLoginRequest = SmsLoginRequest(challengeId, code),
             )
         }
-        sessionStore.write(
-            SessionTokens(
-                accessToken = response.data.tokens.accessToken,
-                refreshToken = response.data.tokens.refreshToken,
-            ),
-        )
+        saveSession(response.data.tokens.accessToken, response.data.tokens.refreshToken)
     }
 
     override suspend fun getEntitlements(): EntitlementSummary = authorized { client ->
@@ -190,6 +254,10 @@ class NetworkLoveReplyRepository(
     }
 
     override fun clearSession() = sessionStore.clear()
+
+    private fun saveSession(accessToken: String, refreshToken: String) {
+        sessionStore.write(SessionTokens(accessToken, refreshToken))
+    }
 
     private suspend fun <T> authorized(block: suspend (ApiClient) -> Response<T>): T {
         val initial = sessionStore.read() ?: throw ApiFailure(

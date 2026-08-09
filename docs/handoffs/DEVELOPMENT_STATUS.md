@@ -5,9 +5,9 @@ Last updated: 2026-08-09
 ## Current checkpoint
 
 - Active task: `BACKEND-PROVIDER-REGISTRY-001`
-- State: `ready`
+- State: `in_progress`
 - Contract version: `1.0.0`
-- Current phase: SMTP-backed email authentication is complete; Android email-first UI and AI adapters are next
+- Current phase: Android email-first authentication is complete; AI provider routing is next
 
 ## Completed
 
@@ -48,16 +48,18 @@ Last updated: 2026-08-09
   10 operations; reward amounts and limits are not client constants.
 - Android Compose project with an app module and a read-only generated API module.
 - Encrypted access/refresh token persistence, atomic refresh retry, and installation ID.
-- SMS login, server-authoritative entitlement display, composer draft, relationship/goal/style
-  controls, quote confirmation, create and polling flow.
+- Email-first login with server-policy-controlled SMS fallback, shared encrypted sessions and refresh,
+  server-authoritative entitlement display, composer draft, relationship/goal/style controls, quote
+  confirmation, create, and polling flow.
 - Result analysis and `SAFE`, `PUSH_PULL`, and `DIRECT` candidate cards with copy actions.
 - Failed and cancelled generation states preserve the draft and request a fresh quote on retry.
 - P1 OCR, profile, payment, history, and knowledge entry points remain hidden.
-- Three ViewModel tests and five Android 35 Compose UI tests pass.
+- Five ViewModel tests and six Android 35 Compose UI tests pass.
 - Debug APK assembles successfully with compile SDK 35 and Java 17.
 - Real emulator-to-local-API SMS login, entitlement, quote, generation failure, and quota release
   flow verified. The default unavailable AI provider still fails closed without fake replies.
-- Antigravity loaded and displayed the final Android test changes after the desktop reconfiguration.
+- Antigravity is discoverable through computer-use, but launching either registered application ID
+  still fails with `node_repl exec context not found` before a controllable window is created.
 - Login, composer, quote, success, and failure states were exported and inspected at `1080x2400`
   and a compact `360x640dp` equivalent; no clipping, overlap, or unsafe-inset issues remain.
 
@@ -69,7 +71,7 @@ cd apps/android
 .\gradlew.bat :app:connectedDebugAndroidTest
 ```
 
-Last results: 3 unit tests, 5 default-size device UI tests, 5 compact-size UI tests,
+Last results: 5 unit tests, 6 default-size device UI tests, 6 compact-size UI tests,
 Android Lint, and Debug APK assembly all passed.
 
 Identity contract validation now covers 46 fixtures across 19 tagged operations. Generated
@@ -107,8 +109,7 @@ not being represented as a completed interactive Antigravity design workflow.
 
 ## Next exact actions
 
-1. Change Android to email-first login and expose SMS only when the channel policy allows it.
-2. Verify the updated login flow in Antigravity and on compact/default Android viewports.
-3. Add real AI provider routing with bounded retry, timeout, and cost controls.
-4. Implement Epay and catalog persistence, then referral rewards.
-5. Build the administration console, followed by the full Antigravity Android UI redesign.
+1. Add real AI provider routing with bounded retry, timeout, and cost controls.
+2. Implement Epay and catalog persistence, then referral rewards.
+3. Build the administration console, followed by the full Antigravity Android UI redesign.
+4. Repeat IDE visual review when the Antigravity launch bridge can create a controllable window.

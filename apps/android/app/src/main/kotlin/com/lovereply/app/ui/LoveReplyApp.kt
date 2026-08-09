@@ -69,6 +69,7 @@ import com.lovereply.app.domain.EntitlementSummary
 import com.lovereply.app.domain.GenerationPhase
 import com.lovereply.app.domain.GenerationQuoteSummary
 import com.lovereply.app.domain.GenerationResult
+import com.lovereply.app.domain.LoginChannel
 import com.lovereply.app.domain.ReplyCandidate
 import com.lovereply.app.domain.ReplyStyleOption
 
@@ -99,10 +100,12 @@ private val goalOptions = listOf(
 @Composable
 fun LoveReplyApp(
     state: MainUiState,
+    onLoginChannelChange: (LoginChannel) -> Unit,
+    onEmailChange: (String) -> Unit,
     onCountryCodeChange: (String) -> Unit,
     onPhoneChange: (String) -> Unit,
     onVerificationCodeChange: (String) -> Unit,
-    onSendSms: () -> Unit,
+    onSendVerificationCode: () -> Unit,
     onLogin: () -> Unit,
     onMessageChange: (String) -> Unit,
     onRelationshipChange: (RelationshipStage) -> Unit,
@@ -124,10 +127,12 @@ fun LoveReplyApp(
         when (state.screen) {
             AppScreen.LOGIN -> LoginScreen(
                 state = state,
+                onLoginChannelChange = onLoginChannelChange,
+                onEmailChange = onEmailChange,
                 onCountryCodeChange = onCountryCodeChange,
                 onPhoneChange = onPhoneChange,
                 onVerificationCodeChange = onVerificationCodeChange,
-                onSendSms = onSendSms,
+                onSendVerificationCode = onSendVerificationCode,
                 onLogin = onLogin,
                 onDismissError = onDismissError,
                 modifier = Modifier.padding(padding),
@@ -161,10 +166,12 @@ fun LoveReplyApp(
 @Composable
 private fun LoginScreen(
     state: MainUiState,
+    onLoginChannelChange: (LoginChannel) -> Unit,
+    onEmailChange: (String) -> Unit,
     onCountryCodeChange: (String) -> Unit,
     onPhoneChange: (String) -> Unit,
     onVerificationCodeChange: (String) -> Unit,
-    onSendSms: () -> Unit,
+    onSendVerificationCode: () -> Unit,
     onLogin: () -> Unit,
     onDismissError: () -> Unit,
     modifier: Modifier = Modifier,
@@ -193,25 +200,56 @@ private fun LoginScreen(
             ErrorBanner(it, onDismissError, Modifier.padding(bottom = 16.dp))
         }
 
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedTextField(
-                value = state.login.countryCode,
-                onValueChange = onCountryCodeChange,
-                modifier = Modifier.width(92.dp),
-                label = { Text("区号") },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+        if (state.login.smsAvailable) {
+            LoginChannelSelector(
+                selectedChannel = state.login.selectedChannel,
+                emailEnabled = state.login.emailAvailable,
+                onChannelChange = onLoginChannelChange,
+                modifier = Modifier.padding(bottom = 16.dp),
             )
-            OutlinedTextField(
-                value = state.login.phoneNumber,
-                onValueChange = onPhoneChange,
+        }
+
+        if (state.login.channelPolicyLoading) {
+            LinearProgressIndicator(
                 modifier = Modifier
-                    .weight(1f)
-                    .testTag("phone_input"),
-                label = { Text("手机号") },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp),
             )
+        }
+
+        if (state.login.selectedChannel == LoginChannel.EMAIL) {
+            OutlinedTextField(
+                value = state.login.email,
+                onValueChange = onEmailChange,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag("email_input"),
+                label = { Text("邮箱地址") },
+                singleLine = true,
+                enabled = state.login.emailAvailable,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+            )
+        } else {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(
+                    value = state.login.countryCode,
+                    onValueChange = onCountryCodeChange,
+                    modifier = Modifier.width(92.dp),
+                    label = { Text("区号") },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                )
+                OutlinedTextField(
+                    value = state.login.phoneNumber,
+                    onValueChange = onPhoneChange,
+                    modifier = Modifier
+                        .weight(1f)
+                        .testTag("phone_input"),
+                    label = { Text("手机号") },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                )
+            }
         }
 
         Spacer(Modifier.height(12.dp))
@@ -230,7 +268,7 @@ private fun LoginScreen(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
             )
             OutlinedButton(
-                onClick = onSendSms,
+                onClick = onSendVerificationCode,
                 enabled = !state.busy && state.login.resendSeconds == 0,
                 contentPadding = PaddingValues(horizontal = 14.dp, vertical = 14.dp),
             ) {
@@ -239,6 +277,15 @@ private fun LoginScreen(
                     maxLines = 1,
                 )
             }
+        }
+
+        state.login.maskedDestination?.let { destination ->
+            Text(
+                text = "验证码已发送至 $destination",
+                modifier = Modifier.padding(top = 8.dp),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
 
         Button(
@@ -270,6 +317,54 @@ private fun LoginScreen(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+        }
+    }
+}
+
+@Composable
+private fun LoginChannelSelector(
+    selectedChannel: LoginChannel,
+    emailEnabled: Boolean,
+    onChannelChange: (LoginChannel) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(8.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant,
+    ) {
+        Row(Modifier.padding(4.dp)) {
+            listOf(
+                LoginChannel.EMAIL to "邮箱",
+                LoginChannel.SMS to "短信",
+            ).forEach { (channel, label) ->
+                val selected = channel == selectedChannel
+                TextButton(
+                    onClick = { onChannelChange(channel) },
+                    enabled = channel != LoginChannel.EMAIL || emailEnabled,
+                    modifier = Modifier
+                        .weight(1f)
+                        .background(
+                            color = if (selected) {
+                                MaterialTheme.colorScheme.surface
+                            } else {
+                                MaterialTheme.colorScheme.surfaceVariant
+                            },
+                            shape = RoundedCornerShape(6.dp),
+                        )
+                        .testTag("channel_${channel.name.lowercase()}"),
+                ) {
+                    Text(
+                        text = label,
+                        color = if (selected) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        },
+                        fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
+                    )
+                }
+            }
         }
     }
 }
