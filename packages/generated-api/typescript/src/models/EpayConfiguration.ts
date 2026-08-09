@@ -80,6 +80,24 @@ export interface EpayConfiguration {
      */
     callbackAckText: string;
     /**
+     * Server callback URL configured for the selected provider publication.
+     * @type {string}
+     * @memberof EpayConfiguration
+     */
+    notifyUrl: string;
+    /**
+     * Browser return URL for user navigation only; it never settles an order.
+     * @type {string}
+     * @memberof EpayConfiguration
+     */
+    returnUrl: string;
+    /**
+     *
+     * @type {number}
+     * @memberof EpayConfiguration
+     */
+    callbackTimeWindowSeconds: number;
+    /**
      *
      * @type {number}
      * @memberof EpayConfiguration
@@ -131,6 +149,9 @@ export function instanceOfEpayConfiguration(value: object): value is EpayConfigu
     if (value['signingPreset'] !== 'EPAY_MD5_CANONICAL') return false;
 
     if (!('callbackAckText' in value) || value['callbackAckText'] === undefined) return false;
+    if (!('notifyUrl' in value) || value['notifyUrl'] === undefined) return false;
+    if (!('returnUrl' in value) || value['returnUrl'] === undefined) return false;
+    if (!('callbackTimeWindowSeconds' in value) || value['callbackTimeWindowSeconds'] === undefined) return false;
     if (!('timeoutMs' in value) || value['timeoutMs'] === undefined) return false;
     return true;
 }
@@ -155,6 +176,9 @@ export function EpayConfigurationFromJSONTyped(json: any, ignoreDiscriminator: b
         'paymentTypes': new Set(json['paymentTypes']),
         'signingPreset': json['signingPreset'],
         'callbackAckText': json['callbackAckText'],
+        'notifyUrl': json['notifyUrl'],
+        'returnUrl': json['returnUrl'],
+        'callbackTimeWindowSeconds': json['callbackTimeWindowSeconds'],
         'timeoutMs': json['timeoutMs'],
     };
 }
@@ -180,6 +204,9 @@ export function EpayConfigurationToJSONTyped(value?: EpayConfiguration | null, i
         'paymentTypes': Array.from(value['paymentTypes'] as Set<any>),
         'signingPreset': value['signingPreset'],
         'callbackAckText': value['callbackAckText'],
+        'notifyUrl': value['notifyUrl'],
+        'returnUrl': value['returnUrl'],
+        'callbackTimeWindowSeconds': value['callbackTimeWindowSeconds'],
         'timeoutMs': value['timeoutMs'],
     };
 }

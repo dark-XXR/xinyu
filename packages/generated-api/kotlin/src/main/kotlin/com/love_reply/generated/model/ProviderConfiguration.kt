@@ -56,6 +56,9 @@ import com.squareup.moshi.JsonClass
  * @param paymentTypes
  * @param signingPreset
  * @param callbackAckText
+ * @param notifyUrl Server callback URL configured for the selected provider publication.
+ * @param returnUrl Browser return URL for user navigation only; it never settles an order.
+ * @param callbackTimeWindowSeconds
  * @param organization
  * @param project
  * @param replyToAddress
@@ -121,6 +124,17 @@ data class ProviderConfiguration (
 
     @Json(name = "callbackAckText")
     val callbackAckText: kotlin.String,
+
+    /* Server callback URL configured for the selected provider publication. */
+    @Json(name = "notifyUrl")
+    val notifyUrl: java.net.URI,
+
+    /* Browser return URL for user navigation only; it never settles an order. */
+    @Json(name = "returnUrl")
+    val returnUrl: java.net.URI,
+
+    @Json(name = "callbackTimeWindowSeconds")
+    val callbackTimeWindowSeconds: kotlin.Int,
 
     @Json(name = "organization")
     val organization: kotlin.String? = null,

@@ -55,6 +55,7 @@
 | B06 | 外部供应商业务服务 | `services/api/src/love_reply_api/application/providers.py` | 加密密钥、不可变版本、审计与发布规则 |
 | B07 | 邮件/短信供应商运行时 | `services/api/src/love_reply_api/application/provider_runtime.py` | 解析已发布供应商并发送邮件或短信 |
 | B07.1 | 邮件/短信原生协议与签名 | `services/api/src/love_reply_api/application/delivery_adapters.py` | SES、SendGrid、Resend、Mailgun、阿里云和腾讯云请求与签名 |
+| B07.2 | 易支付原生协议与验签 | `services/api/src/love_reply_api/application/payment_adapters.py` | 收银台、查询、退款、MD5 签名和服务端回调验签 |
 | B08 | AI 管理接口 | `services/api/src/love_reply_api/transport/http/routes/admin_ai.py` | AI 模型、路由、提示词、评测和风控的 22 个接口 |
 | B09 | AI 管理业务规则 | `services/api/src/love_reply_api/application/ai_admin.py` | 评测门禁、预算校验、发布快照和回滚 |
 | B10 | AI 真实模型调用 | `services/api/src/love_reply_api/application/ai_gateway.py` | OpenAI、Anthropic、Gemini 和兼容协议调用与故障转移 |

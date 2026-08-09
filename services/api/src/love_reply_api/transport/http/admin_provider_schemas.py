@@ -123,6 +123,9 @@ class EpayConfiguration(StrictApiModel):
     payment_types: list[Literal["ALIPAY", "WECHAT_PAY"]] = Field(min_length=1)
     signing_preset: Literal["EPAY_MD5_CANONICAL"]
     callback_ack_text: str = Field(min_length=1, max_length=32)
+    notify_url: AnyHttpUrl
+    return_url: AnyHttpUrl
+    callback_time_window_seconds: int = Field(ge=60, le=86_400)
     timeout_ms: int = Field(ge=1000, le=60_000)
 
     @field_validator("gateway_base_url")
@@ -132,6 +135,16 @@ class EpayConfiguration(StrictApiModel):
             raise ValueError("provider URLs must use HTTPS")
         if value.username is not None or value.password is not None:
             raise ValueError("provider URLs cannot contain credentials")
+        return value
+
+    @field_validator("notify_url", "return_url")
+    @classmethod
+    def require_https_callback(cls, value: AnyHttpUrl) -> AnyHttpUrl:
+        # 通知地址负责服务端结算，返回地址只用于浏览器导航；两者都禁止明文 HTTP。
+        if value.scheme != "https":
+            raise ValueError("payment callback URLs must use HTTPS")
+        if value.username is not None or value.password is not None:
+            raise ValueError("payment callback URLs cannot contain credentials")
         return value
 
     @model_validator(mode="after")

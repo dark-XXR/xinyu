@@ -20,6 +20,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from love_reply_api.application.delivery_adapters import EmailApiTransport, SmsApiTransport
 from love_reply_api.application.errors import ApiError
+from love_reply_api.application.payment_adapters import EpayTransport
 from love_reply_api.application.providers import ProviderHealthResult
 from love_reply_api.application.runtime_config import RuntimeConfigService
 from love_reply_api.application.security import SecretCipher
@@ -373,16 +374,47 @@ class RegistrySmsSender:
         )
 
 
+class RegistryPaymentGateway:
+    """解析后台已发布的易支付供应商，供订单服务统一调用。"""
+
+    def __init__(
+        self,
+        *,
+        session: AsyncSession,
+        settings: Settings,
+        epay_transport: EpayTransport | None = None,
+    ) -> None:
+        self._resolver = PublishedProviderResolver(session=session, settings=settings)
+        self.transport = epay_transport or EpayTransport()
+
+    async def resolve(self, *, routing_key: str) -> ResolvedProvider:
+        provider = await self._resolver.resolve(
+            kind="PAYMENT",
+            routing_key=routing_key,
+            adapter_types={"EPAY_COMPAT"},
+        )
+        if provider is None:
+            raise ApiError(
+                status_code=503,
+                code="PAYMENT_PROVIDER_UNAVAILABLE",
+                message="Payment provider is temporarily unavailable.",
+                retryable=True,
+            )
+        return provider
+
+
 class ProviderAdapterHealthChecker:
     def __init__(
         self,
         smtp_transport: SmtpTransport | None = None,
         email_api_transport: EmailApiTransport | None = None,
         sms_api_transport: SmsApiTransport | None = None,
+        epay_transport: EpayTransport | None = None,
     ) -> None:
         self._smtp = smtp_transport or SmtpTransport()
         self._email_api = email_api_transport or EmailApiTransport()
         self._sms_api = sms_api_transport or SmsApiTransport()
+        self._epay = epay_transport or EpayTransport()
 
     async def check(
         self,
@@ -401,6 +433,7 @@ class ProviderAdapterHealthChecker:
             "MAILGUN_API",
             "ALIYUN_SMS",
             "TENCENT_SMS",
+            "EPAY_COMPAT",
         }
         if adapter_type not in supported:
             raise ApiError(
@@ -441,6 +474,11 @@ class ProviderAdapterHealthChecker:
                 phone_e164=administrator_test_destination,
                 code="000000",
             )
+        elif kind == "PAYMENT" and adapter_type == "EPAY_COMPAT":
+            provider_request_id = await self._epay.health_check(
+                configuration=configuration,
+                credentials=credentials,
+            )
         else:
             raise ApiError(
                 status_code=503,
@@ -451,4 +489,7 @@ class ProviderAdapterHealthChecker:
         return ProviderHealthResult(
             status="HEALTHY",
             redacted_summary="Authenticated synthetic delivery succeeded.",
+            provider_request_id=(
+                provider_request_id if kind == "PAYMENT" and adapter_type == "EPAY_COMPAT" else None
+            ),
         )

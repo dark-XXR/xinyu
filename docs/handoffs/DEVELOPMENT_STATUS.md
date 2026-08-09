@@ -7,7 +7,7 @@ Last updated: 2026-08-09
 - Active task: `BACKEND-PROVIDER-REGISTRY-001`
 - State: `in_progress`
 - Contract version: `1.0.0`
-- Current phase: AI, email, and SMS provider runtimes are complete; Epay runtime is next
+- Current phase: external provider runtimes are complete; commerce persistence is next
 
 ## Completed
 
@@ -57,6 +57,11 @@ Last updated: 2026-08-09
   Cloud TC3-HMAC-SHA256. Login-channel availability is derived from effective publications, health
   checks perform explicit administrator-addressed synthetic delivery, and transport failures never
   return provider bodies, credentials, or verification codes.
+- EPAY-compatible providers now support administrator-configurable notification and browser-return
+  URLs, callback freshness windows, canonical MD5 checkout signing, active payment query, refund,
+  constant-time callback verification, and synthetic query health checks. CNY amounts are converted
+  from integer minor units, unsupported currencies fail closed, and browser return values never
+  represent settlement proof.
 - A Chinese file/page catalog and code-comment guide now map Android screens, UI parameters,
   backend routes, business services, data tables, contracts, and planned administration pages for
   non-developer maintenance.
@@ -102,7 +107,7 @@ Android Lint, and Debug APK assembly all passed.
 Identity contract validation now covers 46 fixtures across 19 tagged operations. Generated
 Kotlin and TypeScript clients both compile with the new email/channel models and operations.
 
-Backend verification now covers 41 PostgreSQL integration and transport tests. The email/auth,
+Backend verification now covers 50 PostgreSQL integration and transport tests. The email/auth,
 administrator authentication, provider-registry, and AI-gateway migrations passed
 upgrade, downgrade, and re-upgrade; Ruff, strict MyPy, TypeScript, Android unit tests, Android Lint,
 and Debug APK assembly also pass.
@@ -134,8 +139,9 @@ browser/emulator output rather than IDE automation.
 
 ## Next exact actions
 
-1. Implement Epay runtime integration and signed callback verification.
-2. Implement catalog, price, subscription, refund, and reconciliation persistence.
-3. Complete referral reward runtime behavior.
-4. Build the administration console through Antigravity CLI only.
-5. Redesign the Android UI through Antigravity CLI and verify it on emulator viewports.
+1. Implement versioned product catalog and immutable order snapshots.
+2. Persist payment attempts and idempotent Epay callback/query settlement.
+3. Implement subscription grants, refunds, entitlement recovery, and reconciliation.
+4. Complete referral reward runtime behavior.
+5. Build the administration console through Antigravity CLI only.
+6. Redesign the Android UI through Antigravity CLI and verify it on emulator viewports.

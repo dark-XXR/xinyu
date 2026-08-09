@@ -8,6 +8,7 @@ from fastapi.exceptions import RequestValidationError
 from love_reply_api.application.ai_gateway import AiHttpTransport
 from love_reply_api.application.delivery_adapters import EmailApiTransport, SmsApiTransport
 from love_reply_api.application.errors import ApiError
+from love_reply_api.application.payment_adapters import EpayTransport
 from love_reply_api.application.provider_runtime import (
     ProviderAdapterHealthChecker,
     SmtpTransport,
@@ -41,12 +42,14 @@ app.state.email_sender = None
 app.state.smtp_transport = SmtpTransport()
 app.state.email_api_transport = EmailApiTransport()
 app.state.sms_api_transport = SmsApiTransport()
+app.state.epay_transport = EpayTransport()
 app.state.ai_provider = None
 app.state.ai_transport = AiHttpTransport()
 app.state.provider_health_checker = ProviderAdapterHealthChecker(
     smtp_transport=app.state.smtp_transport,
     email_api_transport=app.state.email_api_transport,
     sms_api_transport=app.state.sms_api_transport,
+    epay_transport=app.state.epay_transport,
 )
 app.add_exception_handler(ApiError, api_error_handler)  # type: ignore[arg-type]
 app.add_exception_handler(RequestValidationError, validation_error_handler)  # type: ignore[arg-type]
