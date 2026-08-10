@@ -7,6 +7,7 @@ export {
   Configuration,
   ADMINPROVIDERApi,
   ADMINCOMMERCEApi,
+  ADMINAIApi,
 } from '@love-reply/generated-api'
 
 export type {
@@ -39,6 +40,19 @@ export type {
   PublishProviderRequest,
   RollbackProviderRequest,
   RotateCredentialsRequest,
+  AiModelMapping,
+  AiModelMappingWriteRequest,
+  AiRoute,
+  AiRouteTarget,
+  AiRouteWriteRequest,
+  AiPromptTemplate,
+  AiPromptWriteRequest,
+  AiRiskPolicy,
+  AiRiskPolicyWriteRequest,
+  AiEvaluationRun,
+  AiEvaluationRunRequest,
+  AiPublishRequest,
+  AiRollbackRequest,
 } from '@love-reply/generated-api'
 
 export {
@@ -59,4 +73,10 @@ export {
   EpayConfigurationAdapterTypeEnum,
   EpayConfigurationPaymentTypesEnum,
   EpayConfigurationSigningPresetEnum,
+  AiResourceStatus,
+  AiScenario,
+  AiModality,
+  AiRiskPolicyPromptInjectionActionEnum,
+  AiRiskPolicyWriteRequestPromptInjectionActionEnum,
+  AiEvaluationRunStatusEnum,
 } from '@love-reply/generated-api'

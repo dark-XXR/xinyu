@@ -8,6 +8,7 @@ import { Dashboard } from './pages/Dashboard'
 import { Providers } from './pages/Providers'
 import { Products } from './pages/commerce/Products'
 import { Orders } from './pages/commerce/Orders'
+import { AiOperations } from './pages/ai/AiOperations'
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
         <Route path="/" element={<Layout />}>
           <Route index element={<Dashboard />} />
           <Route path="providers" element={<Providers />} />
+          <Route path="ai" element={<AiOperations />} />
           <Route path="commerce/products" element={<Products />} />
           <Route path="commerce/orders" element={<Orders />} />
         </Route>

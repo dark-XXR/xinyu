@@ -7,7 +7,7 @@ Last updated: 2026-08-09
 - Active task: `FRONTEND-ADMIN-CONSOLE-001`
 - State: `in_progress`
 - Contract version: `1.0.0`
-- Current phase: administration console milestone 1 is accepted; AI and audit administration are next
+- Current phase: administration console milestone 2 AI operations is accepted; provider disable and dedicated audit administration are next
 
 ## Completed
 
@@ -122,6 +122,16 @@ Last updated: 2026-08-09
   browser acceptance at `1440x900` and `390x844`. Mobile data tables become labeled card rows,
   all checked pages have zero horizontal overflow, menus and dialogs close with Escape, and the
   checked browser console has zero warnings or errors.
+- The AI operations administration route `/ai` now manages logical model mappings, configurable
+  multi-target scenario routes, prompt templates with JSON Schema validation, safety policies,
+  evaluation runs, gray publication, and rollback to real historical versions. Costs, token limits,
+  retries, budgets, evaluation identifiers, rollout percentages, and audit defaults come from the
+  repository or administrator input rather than page constants. Publication re-reads the referenced
+  evaluation and requires successful quality and safety gates before changing online state.
+- The AI operations page passed real-browser interaction checks for all five tabs, route target
+  addition/removal, invalid JSON rejection, evaluation confirmation, forged evaluation rejection,
+  and mobile acceptance at `390x844`. The mobile document width equals the viewport width, table
+  rows become labeled cards, and the navigation menu opens and closes with Escape.
 
 ## Verification commands
 
@@ -135,9 +145,9 @@ Last results: 5 unit tests, 6 default-size device UI tests, 6 compact-size UI te
 Android Lint, and Debug APK assembly all passed.
 
 Administration web results: TypeScript project references, oxlint (0 warnings/errors), and Vite
-production build pass. The production bundle is 270.21 kB JavaScript (80.59 kB gzip) and 6.63 kB
-CSS (1.88 kB gzip). Playwright accepted all four routes at desktop size and the three tabular routes
-at 390px with `scrollWidth === innerWidth`.
+production build pass. The production bundle is 324.37 kB JavaScript (92.44 kB gzip) and 7.11 kB
+CSS (1.97 kB gzip). Real-browser acceptance covers all five routes at desktop size; `/ai` also passed
+its five functional tabs and `390x844` responsive checks with `scrollWidth === innerWidth`.
 
 Identity contract validation now covers 46 fixtures across 19 tagged operations. Generated
 Kotlin and TypeScript clients both compile with the new email/channel models and operations.
@@ -177,9 +187,9 @@ Antigravity CLI only; the IDE is not launched or controlled.
 
 ## Next exact actions
 
-1. Continue the administration console through Antigravity CLI with AI model mappings, routes,
-   prompts, evaluations, risk policies, publication, and rollback.
-2. Add provider disable and dedicated provider/payment audit readback to finish the administration
+1. Add provider disable and dedicated provider/payment audit readback to finish the administration
    console acceptance criteria.
+2. Add the invitation campaign administration page for configurable milestones, rewards, rollout,
+   publication, and rollback.
 3. Redesign the Android UI through Antigravity CLI and verify it on emulator viewports.
 4. Add invite sharing, progress and reward history to the redesigned Android experience.

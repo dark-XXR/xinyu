@@ -8,6 +8,7 @@ import {
   Configuration,
   ADMINPROVIDERApi,
   ADMINCOMMERCEApi,
+  ADMINAIApi,
   ProviderKind,
   ProviderStatus,
   OrderStatus,
@@ -25,6 +26,12 @@ import {
   EpayConfigurationSigningPresetEnum,
   PaymentMethod,
   PaymentAttemptStatus,
+  AiResourceStatus,
+  AiScenario,
+  AiModality,
+  AiRiskPolicyPromptInjectionActionEnum,
+  AiRiskPolicyWriteRequestPromptInjectionActionEnum,
+  AiEvaluationRunStatusEnum,
 } from './models';
 import type {
   Provider,
@@ -44,9 +51,32 @@ import type {
   SmtpConfiguration,
   SmsConfiguration,
   EpayConfiguration,
+  AiModelMapping,
+  AiModelMappingWriteRequest,
+  AiRoute,
+  AiRouteTarget,
+  AiRouteWriteRequest,
+  AiPromptTemplate,
+  AiPromptWriteRequest,
+  AiRiskPolicy,
+  AiRiskPolicyWriteRequest,
+  AiEvaluationRun,
+  AiEvaluationRunRequest,
+  AiPublishRequest,
+  AiRollbackRequest,
 } from './models';
 
 /* ── 仓库接口 ── */
+
+export interface AiEditorDefaults {
+  modelMapping: AiModelMappingWriteRequest;
+  route: AiRouteWriteRequest;
+  prompt: AiPromptWriteRequest;
+  riskPolicy: AiRiskPolicyWriteRequest;
+  evaluationRun: AiEvaluationRunRequest;
+  publish: AiPublishRequest;
+  rollback: AiRollbackRequest;
+}
 
 export interface Repository {
   getSystemHealth(): Promise<{ status: string; issues: string[] }>;
@@ -69,6 +99,30 @@ export interface Repository {
   getRefunds(): Promise<AdminRefund[]>;
   auditRefund(refundId: string, request: AdminRefundDecisionRequest, resourceVersion: number): Promise<void>;
   executeRefund(refundId: string, request: AdminRefundExecuteRequest, resourceVersion: number): Promise<void>;
+
+  /* AI 运行配置 */
+  getAiModelMappings(): Promise<AiModelMapping[]>;
+  saveAiModelMapping(request: AiModelMappingWriteRequest, modelMappingId?: string, resourceVersion?: number): Promise<void>;
+
+  getAiRoutes(): Promise<AiRoute[]>;
+  saveAiRoute(request: AiRouteWriteRequest, routeId?: string, resourceVersion?: number): Promise<void>;
+  publishAiRoute(routeId: string, resourceVersion: number, request: AiPublishRequest): Promise<void>;
+  rollbackAiRoute(routeId: string, resourceVersion: number, request: AiRollbackRequest): Promise<void>;
+
+  getAiPrompts(): Promise<AiPromptTemplate[]>;
+  saveAiPrompt(request: AiPromptWriteRequest, promptId?: string, resourceVersion?: number): Promise<void>;
+  publishAiPrompt(promptId: string, resourceVersion: number, request: AiPublishRequest): Promise<void>;
+  rollbackAiPrompt(promptId: string, resourceVersion: number, request: AiRollbackRequest): Promise<void>;
+
+  getAiRiskPolicies(): Promise<AiRiskPolicy[]>;
+  saveAiRiskPolicy(request: AiRiskPolicyWriteRequest, riskPolicyId?: string, resourceVersion?: number): Promise<void>;
+  publishAiRiskPolicy(riskPolicyId: string, resourceVersion: number, request: AiPublishRequest): Promise<void>;
+  rollbackAiRiskPolicy(riskPolicyId: string, resourceVersion: number, request: AiRollbackRequest): Promise<void>;
+
+  runAiEvaluation(request: AiEvaluationRunRequest): Promise<AiEvaluationRun>;
+  getAiEvaluationRun(evaluationRunId: string): Promise<AiEvaluationRun | null>;
+
+  getAiEditorDefaults(): Promise<AiEditorDefaults>;
 }
 
 /* ── HTTP 配置 ── */
@@ -139,6 +193,11 @@ const mockState: {
   products: AdminProductVersion[];
   orders: AdminOrder[];
   refunds: AdminRefund[];
+  aiModelMappings: AiModelMapping[];
+  aiRoutes: AiRoute[];
+  aiPrompts: AiPromptTemplate[];
+  aiRiskPolicies: AiRiskPolicy[];
+  aiEvaluationRuns: AiEvaluationRun[];
 } = {
   providers: [
     {
@@ -350,6 +409,209 @@ const mockState: {
       updatedAt: now,
       userId: 'user-001',
     } satisfies AdminRefund,
+  ],
+
+  aiModelMappings: [
+    {
+      modelMappingId: 'mm-001',
+      logicalModelId: 'gpt-4o-mini',
+      providerId: 'prov-ai-001',
+      providerModelName: 'gpt-4o-mini-2024-07-18',
+      inputModalities: new Set<AiModality>([AiModality.Text]),
+      outputModalities: new Set<AiModality>([AiModality.Text]),
+      contextWindowTokens: 128000,
+      maxOutputTokens: 16384,
+      inputCostMicrounitsPerMillionTokens: 150,
+      outputCostMicrounitsPerMillionTokens: 600,
+      currency: 'USD',
+      qualityTier: 'STANDARD',
+      dataRegion: 'GLOBAL',
+      retentionPolicy: 'ZERO_DATA_RETENTION',
+      status: AiResourceStatus.Active,
+      enabled: true,
+      resourceVersion: 1,
+      createdAt: yesterday,
+      updatedAt: now,
+    } satisfies AiModelMapping,
+    {
+      modelMappingId: 'mm-002',
+      logicalModelId: 'deepseek-r1',
+      providerId: 'prov-ai-001',
+      providerModelName: 'deepseek-reasoner',
+      inputModalities: new Set<AiModality>([AiModality.Text]),
+      outputModalities: new Set<AiModality>([AiModality.Text]),
+      contextWindowTokens: 64000,
+      maxOutputTokens: 8192,
+      inputCostMicrounitsPerMillionTokens: 550,
+      outputCostMicrounitsPerMillionTokens: 2190,
+      currency: 'USD',
+      qualityTier: 'HIGH',
+      dataRegion: 'GLOBAL',
+      retentionPolicy: 'ZERO_DATA_RETENTION',
+      status: AiResourceStatus.Draft,
+      enabled: false,
+      resourceVersion: 1,
+      createdAt: now,
+      updatedAt: now,
+    } satisfies AiModelMapping,
+  ],
+
+  aiRoutes: [
+    {
+      routeId: 'rt-reply-v2',
+      version: 2,
+      scenario: AiScenario.ReplyGeneration,
+      logicalModelId: 'gpt-4o-mini',
+      targets: [
+        {
+          modelMappingId: 'mm-001',
+          priority: 1,
+          timeoutMs: 15000,
+          retryLimit: 2,
+        } satisfies AiRouteTarget,
+      ],
+      maxInputTokens: 4096,
+      maxOutputTokens: 2048,
+      budgetCeilingMicrounits: 5000,
+      totalAttemptLimit: 3,
+      safetyPolicyId: 'pol-strict-01',
+      status: AiResourceStatus.Active,
+      rolloutPercentage: 100,
+      effectiveAt: yesterday,
+      resourceVersion: 2,
+      createdAt: yesterday,
+      updatedAt: now,
+    } satisfies AiRoute,
+    {
+      routeId: 'rt-reply-v1',
+      version: 1,
+      scenario: AiScenario.ReplyGeneration,
+      logicalModelId: 'gpt-4o-mini',
+      targets: [
+        {
+          modelMappingId: 'mm-001',
+          priority: 1,
+          timeoutMs: 20000,
+          retryLimit: 1,
+        } satisfies AiRouteTarget,
+      ],
+      maxInputTokens: 2048,
+      maxOutputTokens: 1024,
+      budgetCeilingMicrounits: 3000,
+      totalAttemptLimit: 2,
+      safetyPolicyId: 'pol-strict-01',
+      status: AiResourceStatus.Superseded,
+      rolloutPercentage: 0,
+      effectiveAt: yesterday,
+      resourceVersion: 1,
+      createdAt: yesterday,
+      updatedAt: yesterday,
+    } satisfies AiRoute,
+  ],
+
+  aiPrompts: [
+    {
+      promptId: 'prompt-reply-v2',
+      version: 2,
+      promptCode: 'REPLY_DEFAULT',
+      scenario: AiScenario.ReplyGeneration,
+      systemTemplate: '你是一个高情商恋爱回复助手，请根据对方的聊天消息生成体贴且幽默的回复。',
+      userTemplate: '对方消息：{{message}}；期望语气：{{tone}}',
+      allowedInputFields: new Set<string>(['message', 'tone']),
+      outputSchema: {
+        type: 'object',
+        properties: {
+          replies: {
+            type: 'array',
+            items: { type: 'string' },
+          },
+        },
+        required: ['replies'],
+      },
+      safetyPolicyId: 'pol-strict-01',
+      status: AiResourceStatus.Active,
+      effectiveAt: yesterday,
+      resourceVersion: 2,
+      createdAt: yesterday,
+      updatedAt: now,
+    } satisfies AiPromptTemplate,
+    {
+      promptId: 'prompt-reply-v1',
+      version: 1,
+      promptCode: 'REPLY_DEFAULT',
+      scenario: AiScenario.ReplyGeneration,
+      systemTemplate: '你是一个恋爱助手。',
+      userTemplate: '对方消息：{{message}}',
+      allowedInputFields: new Set<string>(['message']),
+      outputSchema: {
+        type: 'object',
+        properties: {
+          replies: { type: 'array', items: { type: 'string' } },
+        },
+      },
+      safetyPolicyId: 'pol-strict-01',
+      status: AiResourceStatus.Superseded,
+      effectiveAt: yesterday,
+      resourceVersion: 1,
+      createdAt: yesterday,
+      updatedAt: yesterday,
+    } satisfies AiPromptTemplate,
+  ],
+
+  aiRiskPolicies: [
+    {
+      riskPolicyId: 'pol-strict-01',
+      version: 1,
+      policyCode: 'STRICT_SAFETY',
+      blockedCategories: new Set<string>(['HATE_SPEECH', 'HARASSMENT', 'EXPLICIT_CONTENT']),
+      reviewCategories: new Set<string>(['SENSITIVE_POLITICS']),
+      inputModerationEnabled: true,
+      outputModerationEnabled: true,
+      promptInjectionAction: AiRiskPolicyPromptInjectionActionEnum.Block,
+      minimumSafetyScore: 85,
+      allowAppeals: true,
+      status: AiResourceStatus.Active,
+      effectiveAt: yesterday,
+      resourceVersion: 1,
+      createdAt: yesterday,
+      updatedAt: now,
+    } satisfies AiRiskPolicy,
+    {
+      riskPolicyId: 'pol-strict-00',
+      version: 0,
+      policyCode: 'STRICT_SAFETY',
+      blockedCategories: new Set<string>(['HATE_SPEECH']),
+      reviewCategories: new Set<string>(['SENSITIVE_POLITICS']),
+      inputModerationEnabled: true,
+      outputModerationEnabled: false,
+      promptInjectionAction: AiRiskPolicyPromptInjectionActionEnum.Review,
+      minimumSafetyScore: 70,
+      allowAppeals: false,
+      status: AiResourceStatus.Superseded,
+      effectiveAt: yesterday,
+      resourceVersion: 1,
+      createdAt: yesterday,
+      updatedAt: yesterday,
+    } satisfies AiRiskPolicy,
+  ],
+
+  aiEvaluationRuns: [
+    {
+      evaluationRunId: 'eval-run-001',
+      promptId: 'prompt-reply-v2',
+      routeId: 'rt-reply-v2',
+      suiteIds: ['suite-general-01', 'suite-safety-01'],
+      status: AiEvaluationRunStatusEnum.Succeeded,
+      passed: true,
+      totalCases: 100,
+      completedCases: 100,
+      score: 96.5,
+      safetyPassed: true,
+      costMicrounits: 12000,
+      failureCode: null,
+      createdAt: yesterday,
+      updatedAt: now,
+    } satisfies AiEvaluationRun,
   ],
 };
 
@@ -571,6 +833,415 @@ const mockRepository: Repository = {
       }
     }
   },
+
+  /* ── AI 运行配置 Mock 实现 ── */
+  async getAiModelMappings() {
+    return [...mockState.aiModelMappings];
+  },
+
+  async saveAiModelMapping(req, id, _rv) {
+    if (id) {
+      const idx = mockState.aiModelMappings.findIndex((m) => m.modelMappingId === id);
+      if (idx !== -1) {
+        const existing = mockState.aiModelMappings[idx];
+        mockState.aiModelMappings[idx] = {
+          ...existing,
+          logicalModelId: req.logicalModelId,
+          providerId: req.providerId,
+          providerModelName: req.providerModelName,
+          inputModalities: req.inputModalities,
+          outputModalities: req.outputModalities,
+          contextWindowTokens: req.contextWindowTokens,
+          maxOutputTokens: req.maxOutputTokens,
+          inputCostMicrounitsPerMillionTokens: req.inputCostMicrounitsPerMillionTokens,
+          outputCostMicrounitsPerMillionTokens: req.outputCostMicrounitsPerMillionTokens,
+          currency: req.currency,
+          qualityTier: req.qualityTier ?? undefined,
+          dataRegion: req.dataRegion ?? undefined,
+          retentionPolicy: req.retentionPolicy ?? undefined,
+          enabled: req.enabled,
+          resourceVersion: existing.resourceVersion + 1,
+          updatedAt: new Date(),
+        };
+      }
+    } else {
+      mockState.aiModelMappings.push({
+        modelMappingId: `mm-${Date.now()}`,
+        logicalModelId: req.logicalModelId,
+        providerId: req.providerId,
+        providerModelName: req.providerModelName,
+        inputModalities: req.inputModalities,
+        outputModalities: req.outputModalities,
+        contextWindowTokens: req.contextWindowTokens,
+        maxOutputTokens: req.maxOutputTokens,
+        inputCostMicrounitsPerMillionTokens: req.inputCostMicrounitsPerMillionTokens,
+        outputCostMicrounitsPerMillionTokens: req.outputCostMicrounitsPerMillionTokens,
+        currency: req.currency,
+        qualityTier: req.qualityTier ?? undefined,
+        dataRegion: req.dataRegion ?? undefined,
+        retentionPolicy: req.retentionPolicy ?? undefined,
+        status: AiResourceStatus.Draft,
+        enabled: req.enabled,
+        resourceVersion: 1,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+    }
+  },
+
+  async getAiRoutes() {
+    return [...mockState.aiRoutes];
+  },
+
+  async saveAiRoute(req, id, _rv) {
+    if (id) {
+      const idx = mockState.aiRoutes.findIndex((r) => r.routeId === id);
+      if (idx !== -1) {
+        const existing = mockState.aiRoutes[idx];
+        mockState.aiRoutes[idx] = {
+          ...existing,
+          scenario: req.scenario,
+          logicalModelId: req.logicalModelId,
+          targets: req.targets,
+          maxInputTokens: req.maxInputTokens,
+          maxOutputTokens: req.maxOutputTokens,
+          budgetCeilingMicrounits: req.budgetCeilingMicrounits,
+          totalAttemptLimit: req.totalAttemptLimit,
+          safetyPolicyId: req.safetyPolicyId,
+          resourceVersion: existing.resourceVersion + 1,
+          updatedAt: new Date(),
+        };
+      }
+    } else {
+      const existingMaxVer = mockState.aiRoutes
+        .filter((r) => r.scenario === req.scenario)
+        .reduce((max, r) => Math.max(max, r.version), 0);
+      mockState.aiRoutes.push({
+        routeId: `rt-${Date.now()}`,
+        version: existingMaxVer + 1,
+        scenario: req.scenario,
+        logicalModelId: req.logicalModelId,
+        targets: req.targets,
+        maxInputTokens: req.maxInputTokens,
+        maxOutputTokens: req.maxOutputTokens,
+        budgetCeilingMicrounits: req.budgetCeilingMicrounits,
+        totalAttemptLimit: req.totalAttemptLimit,
+        safetyPolicyId: req.safetyPolicyId,
+        status: AiResourceStatus.Draft,
+        rolloutPercentage: 0,
+        effectiveAt: new Date(),
+        resourceVersion: 1,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+    }
+  },
+
+  async publishAiRoute(id, _rv, req) {
+    const route = mockState.aiRoutes.find((r) => r.routeId === id);
+    if (route) {
+      mockState.aiRoutes.forEach((r) => {
+        if (r.scenario === route.scenario && r.status === AiResourceStatus.Active) {
+          r.status = AiResourceStatus.Superseded;
+          r.rolloutPercentage = 0;
+          r.resourceVersion += 1;
+          r.updatedAt = new Date();
+        }
+      });
+      route.status = AiResourceStatus.Active;
+      route.rolloutPercentage = req.rolloutPercentage;
+      route.effectiveAt = req.effectiveAt;
+      route.resourceVersion += 1;
+      route.updatedAt = new Date();
+    }
+  },
+
+  async rollbackAiRoute(id, _rv, req) {
+    const current = mockState.aiRoutes.find((r) => r.routeId === id);
+    if (current) {
+      current.status = AiResourceStatus.Superseded;
+      current.rolloutPercentage = 0;
+      current.resourceVersion += 1;
+      current.updatedAt = new Date();
+
+      const target = mockState.aiRoutes.find(
+        (r) => r.scenario === current.scenario && r.version === req.targetVersion,
+      );
+      if (target) {
+        target.status = AiResourceStatus.Active;
+        target.rolloutPercentage = 100;
+        target.resourceVersion += 1;
+        target.updatedAt = new Date();
+      }
+    }
+  },
+
+  async getAiPrompts() {
+    return [...mockState.aiPrompts];
+  },
+
+  async saveAiPrompt(req, id, _rv) {
+    if (id) {
+      const idx = mockState.aiPrompts.findIndex((p) => p.promptId === id);
+      if (idx !== -1) {
+        const existing = mockState.aiPrompts[idx];
+        mockState.aiPrompts[idx] = {
+          ...existing,
+          promptCode: req.promptCode,
+          scenario: req.scenario,
+          systemTemplate: req.systemTemplate,
+          userTemplate: req.userTemplate,
+          allowedInputFields: req.allowedInputFields,
+          outputSchema: req.outputSchema,
+          safetyPolicyId: req.safetyPolicyId ?? undefined,
+          resourceVersion: existing.resourceVersion + 1,
+          updatedAt: new Date(),
+        };
+      }
+    } else {
+      const maxVer = mockState.aiPrompts
+        .filter((p) => p.promptCode === req.promptCode)
+        .reduce((max, p) => Math.max(max, p.version), 0);
+      mockState.aiPrompts.push({
+        promptId: `prompt-${Date.now()}`,
+        version: maxVer + 1,
+        promptCode: req.promptCode,
+        scenario: req.scenario,
+        systemTemplate: req.systemTemplate,
+        userTemplate: req.userTemplate,
+        allowedInputFields: req.allowedInputFields,
+        outputSchema: req.outputSchema,
+        safetyPolicyId: req.safetyPolicyId ?? undefined,
+        status: AiResourceStatus.Draft,
+        effectiveAt: new Date(),
+        resourceVersion: 1,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+    }
+  },
+
+  async publishAiPrompt(id, _rv, req) {
+    const prompt = mockState.aiPrompts.find((p) => p.promptId === id);
+    if (prompt) {
+      mockState.aiPrompts.forEach((p) => {
+        if (p.promptCode === prompt.promptCode && p.status === AiResourceStatus.Active) {
+          p.status = AiResourceStatus.Superseded;
+          p.resourceVersion += 1;
+          p.updatedAt = new Date();
+        }
+      });
+      prompt.status = AiResourceStatus.Active;
+      prompt.effectiveAt = req.effectiveAt;
+      prompt.resourceVersion += 1;
+      prompt.updatedAt = new Date();
+    }
+  },
+
+  async rollbackAiPrompt(id, _rv, req) {
+    const current = mockState.aiPrompts.find((p) => p.promptId === id);
+    if (current) {
+      current.status = AiResourceStatus.Superseded;
+      current.resourceVersion += 1;
+      current.updatedAt = new Date();
+
+      const target = mockState.aiPrompts.find(
+        (p) => p.promptCode === current.promptCode && p.version === req.targetVersion,
+      );
+      if (target) {
+        target.status = AiResourceStatus.Active;
+        target.resourceVersion += 1;
+        target.updatedAt = new Date();
+      }
+    }
+  },
+
+  async getAiRiskPolicies() {
+    return [...mockState.aiRiskPolicies];
+  },
+
+  async saveAiRiskPolicy(req, id, _rv) {
+    if (id) {
+      const idx = mockState.aiRiskPolicies.findIndex((p) => p.riskPolicyId === id);
+      if (idx !== -1) {
+        const existing = mockState.aiRiskPolicies[idx];
+        mockState.aiRiskPolicies[idx] = {
+          ...existing,
+          policyCode: req.policyCode,
+          blockedCategories: req.blockedCategories,
+          reviewCategories: req.reviewCategories,
+          inputModerationEnabled: req.inputModerationEnabled,
+          outputModerationEnabled: req.outputModerationEnabled,
+          promptInjectionAction: req.promptInjectionAction,
+          minimumSafetyScore: req.minimumSafetyScore,
+          allowAppeals: req.allowAppeals,
+          resourceVersion: existing.resourceVersion + 1,
+          updatedAt: new Date(),
+        };
+      }
+    } else {
+      const maxVer = mockState.aiRiskPolicies
+        .filter((p) => p.policyCode === req.policyCode)
+        .reduce((max, p) => Math.max(max, p.version), 0);
+      mockState.aiRiskPolicies.push({
+        riskPolicyId: `pol-${Date.now()}`,
+        version: maxVer + 1,
+        policyCode: req.policyCode,
+        blockedCategories: req.blockedCategories,
+        reviewCategories: req.reviewCategories,
+        inputModerationEnabled: req.inputModerationEnabled,
+        outputModerationEnabled: req.outputModerationEnabled,
+        promptInjectionAction: req.promptInjectionAction,
+        minimumSafetyScore: req.minimumSafetyScore,
+        allowAppeals: req.allowAppeals,
+        status: AiResourceStatus.Draft,
+        effectiveAt: new Date(),
+        resourceVersion: 1,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+    }
+  },
+
+  async publishAiRiskPolicy(id, _rv, req) {
+    const pol = mockState.aiRiskPolicies.find((p) => p.riskPolicyId === id);
+    if (pol) {
+      mockState.aiRiskPolicies.forEach((p) => {
+        if (p.policyCode === pol.policyCode && p.status === AiResourceStatus.Active) {
+          p.status = AiResourceStatus.Superseded;
+          p.resourceVersion += 1;
+          p.updatedAt = new Date();
+        }
+      });
+      pol.status = AiResourceStatus.Active;
+      pol.effectiveAt = req.effectiveAt;
+      pol.resourceVersion += 1;
+      pol.updatedAt = new Date();
+    }
+  },
+
+  async rollbackAiRiskPolicy(id, _rv, req) {
+    const current = mockState.aiRiskPolicies.find((p) => p.riskPolicyId === id);
+    if (current) {
+      current.status = AiResourceStatus.Superseded;
+      current.resourceVersion += 1;
+      current.updatedAt = new Date();
+
+      const target = mockState.aiRiskPolicies.find(
+        (p) => p.policyCode === current.policyCode && p.version === req.targetVersion,
+      );
+      if (target) {
+        target.status = AiResourceStatus.Active;
+        target.resourceVersion += 1;
+        target.updatedAt = new Date();
+      }
+    }
+  },
+
+  async runAiEvaluation(req) {
+    const newRun: AiEvaluationRun = {
+      evaluationRunId: `eval-${Date.now()}`,
+      promptId: req.promptId,
+      routeId: req.routeId,
+      suiteIds: Array.from(req.suiteIds),
+      status: AiEvaluationRunStatusEnum.Succeeded,
+      passed: true,
+      totalCases: 50,
+      completedCases: 50,
+      score: 95.0,
+      safetyPassed: true,
+      costMicrounits: Math.min(req.maxCostMicrounits, 8500),
+      failureCode: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    mockState.aiEvaluationRuns.unshift(newRun);
+    return newRun;
+  },
+
+  async getAiEvaluationRun(evaluationRunId) {
+    return mockState.aiEvaluationRuns.find((r) => r.evaluationRunId === evaluationRunId) ?? null;
+  },
+
+  async getAiEditorDefaults(): Promise<AiEditorDefaults> {
+    return {
+      modelMapping: {
+        logicalModelId: 'gpt-4o-mini',
+        providerId: mockState.providers[0]?.providerId ?? 'prov-ai-001',
+        providerModelName: 'gpt-4o-mini-2024-07-18',
+        inputModalities: new Set<AiModality>([AiModality.Text]),
+        outputModalities: new Set<AiModality>([AiModality.Text]),
+        contextWindowTokens: 128000,
+        maxOutputTokens: 4096,
+        inputCostMicrounitsPerMillionTokens: 150,
+        outputCostMicrounitsPerMillionTokens: 600,
+        currency: 'USD',
+        qualityTier: 'STANDARD',
+        dataRegion: 'GLOBAL',
+        retentionPolicy: 'ZERO_DATA_RETENTION',
+        enabled: true,
+      },
+      route: {
+        scenario: AiScenario.ReplyGeneration,
+        logicalModelId: 'gpt-4o-mini',
+        targets: [
+          {
+            modelMappingId: mockState.aiModelMappings[0]?.modelMappingId ?? 'mm-001',
+            priority: 1,
+            timeoutMs: 15000,
+            retryLimit: 2,
+          },
+        ],
+        maxInputTokens: 4096,
+        maxOutputTokens: 2048,
+        budgetCeilingMicrounits: 5000,
+        totalAttemptLimit: 3,
+        safetyPolicyId: mockState.aiRiskPolicies[0]?.riskPolicyId ?? 'pol-strict-01',
+      },
+      prompt: {
+        promptCode: 'REPLY_NEW',
+        scenario: AiScenario.ReplyGeneration,
+        systemTemplate: '你是一个高情商聊天助手。',
+        userTemplate: '用户输入：{{message}}',
+        allowedInputFields: new Set<string>(['message']),
+        outputSchema: {
+          type: 'object',
+          properties: {
+            reply: { type: 'string' },
+          },
+          required: ['reply'],
+        },
+        safetyPolicyId: mockState.aiRiskPolicies[0]?.riskPolicyId ?? 'pol-strict-01',
+      },
+      riskPolicy: {
+        policyCode: 'NEW_SAFETY_POLICY',
+        blockedCategories: new Set<string>(['HATE_SPEECH', 'HARASSMENT']),
+        reviewCategories: new Set<string>(['SENSITIVE_POLITICS']),
+        inputModerationEnabled: true,
+        outputModerationEnabled: true,
+        promptInjectionAction: AiRiskPolicyWriteRequestPromptInjectionActionEnum.Block,
+        minimumSafetyScore: 80,
+        allowAppeals: true,
+      },
+      evaluationRun: {
+        promptId: mockState.aiPrompts[0]?.promptId ?? 'prompt-reply-v2',
+        routeId: mockState.aiRoutes[0]?.routeId ?? 'rt-reply-v2',
+        suiteIds: new Set<string>(['suite-general-01', 'suite-safety-01']),
+        evaluatorLogicalModelId: 'gpt-4o-mini',
+        maxCostMicrounits: 50000,
+      },
+      publish: {
+        rolloutPercentage: 100,
+        effectiveAt: new Date(),
+        evaluationRunId: mockState.aiEvaluationRuns[0]?.evaluationRunId ?? 'eval-run-001',
+        auditReason: '管理后台发布新版本',
+      },
+      rollback: {
+        targetVersion: 1,
+        auditReason: '管理后台误操作紧急回滚',
+      },
+    };
+  },
 };
 
 /* ── HTTP 仓库 ── */
@@ -761,6 +1432,305 @@ const httpRepository: Repository = {
       ifMatch: `W/"${resourceVersion}"`,
       adminRefundExecuteRequest: req,
     });
+  },
+
+  /* ── AI 运行配置 HTTP 实现 ── */
+  async getAiModelMappings() {
+    const api = new ADMINAIApi(getConfiguration());
+    const res = await api.listAdminAiModelMappings({ ...commonHeaders });
+    return res.data?.items ?? [];
+  },
+
+  async saveAiModelMapping(request, modelMappingId, resourceVersion) {
+    const api = new ADMINAIApi(getConfiguration());
+    if (modelMappingId && resourceVersion !== undefined) {
+      await api.updateAdminAiModelMapping({
+        modelMappingId,
+        ...commonHeaders,
+        idempotencyKey: Date.now().toString(),
+        ifMatch: `W/"${resourceVersion}"`,
+        aiModelMappingWriteRequest: request,
+      });
+    } else {
+      await api.createAdminAiModelMapping({
+        ...commonHeaders,
+        idempotencyKey: Date.now().toString(),
+        aiModelMappingWriteRequest: request,
+      });
+    }
+  },
+
+  async getAiRoutes() {
+    const api = new ADMINAIApi(getConfiguration());
+    const res = await api.listAdminAiRoutes({ ...commonHeaders });
+    return res.data?.items ?? [];
+  },
+
+  async saveAiRoute(request, routeId, resourceVersion) {
+    const api = new ADMINAIApi(getConfiguration());
+    if (routeId && resourceVersion !== undefined) {
+      await api.updateAdminAiRoute({
+        routeId,
+        ...commonHeaders,
+        idempotencyKey: Date.now().toString(),
+        ifMatch: `W/"${resourceVersion}"`,
+        aiRouteWriteRequest: request,
+      });
+    } else {
+      await api.createAdminAiRoute({
+        ...commonHeaders,
+        idempotencyKey: Date.now().toString(),
+        aiRouteWriteRequest: request,
+      });
+    }
+  },
+
+  async publishAiRoute(routeId, resourceVersion, request) {
+    const api = new ADMINAIApi(getConfiguration());
+    await api.publishAdminAiRoute({
+      routeId,
+      ...commonHeaders,
+      idempotencyKey: Date.now().toString(),
+      ifMatch: `W/"${resourceVersion}"`,
+      aiPublishRequest: request,
+    });
+  },
+
+  async rollbackAiRoute(routeId, resourceVersion, request) {
+    const api = new ADMINAIApi(getConfiguration());
+    await api.rollbackAdminAiRoute({
+      routeId,
+      ...commonHeaders,
+      idempotencyKey: Date.now().toString(),
+      ifMatch: `W/"${resourceVersion}"`,
+      aiRollbackRequest: request,
+    });
+  },
+
+  async getAiPrompts() {
+    const api = new ADMINAIApi(getConfiguration());
+    const res = await api.listAdminAiPrompts({ ...commonHeaders });
+    return res.data?.items ?? [];
+  },
+
+  async saveAiPrompt(request, promptId, resourceVersion) {
+    const api = new ADMINAIApi(getConfiguration());
+    if (promptId && resourceVersion !== undefined) {
+      await api.updateAdminAiPrompt({
+        promptId,
+        ...commonHeaders,
+        idempotencyKey: Date.now().toString(),
+        ifMatch: `W/"${resourceVersion}"`,
+        aiPromptWriteRequest: request,
+      });
+    } else {
+      await api.createAdminAiPrompt({
+        ...commonHeaders,
+        idempotencyKey: Date.now().toString(),
+        aiPromptWriteRequest: request,
+      });
+    }
+  },
+
+  async publishAiPrompt(promptId, resourceVersion, request) {
+    const api = new ADMINAIApi(getConfiguration());
+    await api.publishAdminAiPrompt({
+      promptId,
+      ...commonHeaders,
+      idempotencyKey: Date.now().toString(),
+      ifMatch: `W/"${resourceVersion}"`,
+      aiPublishRequest: request,
+    });
+  },
+
+  async rollbackAiPrompt(promptId, resourceVersion, request) {
+    const api = new ADMINAIApi(getConfiguration());
+    await api.rollbackAdminAiPrompt({
+      promptId,
+      ...commonHeaders,
+      idempotencyKey: Date.now().toString(),
+      ifMatch: `W/"${resourceVersion}"`,
+      aiRollbackRequest: request,
+    });
+  },
+
+  async getAiRiskPolicies() {
+    const api = new ADMINAIApi(getConfiguration());
+    const res = await api.listAdminAiRiskPolicies({ ...commonHeaders });
+    return res.data?.items ?? [];
+  },
+
+  async saveAiRiskPolicy(request, riskPolicyId, resourceVersion) {
+    const api = new ADMINAIApi(getConfiguration());
+    if (riskPolicyId && resourceVersion !== undefined) {
+      await api.updateAdminAiRiskPolicy({
+        riskPolicyId,
+        ...commonHeaders,
+        idempotencyKey: Date.now().toString(),
+        ifMatch: `W/"${resourceVersion}"`,
+        aiRiskPolicyWriteRequest: request,
+      });
+    } else {
+      await api.createAdminAiRiskPolicy({
+        ...commonHeaders,
+        idempotencyKey: Date.now().toString(),
+        aiRiskPolicyWriteRequest: request,
+      });
+    }
+  },
+
+  async publishAiRiskPolicy(riskPolicyId, resourceVersion, request) {
+    const api = new ADMINAIApi(getConfiguration());
+    await api.publishAdminAiRiskPolicy({
+      riskPolicyId,
+      ...commonHeaders,
+      idempotencyKey: Date.now().toString(),
+      ifMatch: `W/"${resourceVersion}"`,
+      aiPublishRequest: request,
+    });
+  },
+
+  async rollbackAiRiskPolicy(riskPolicyId, resourceVersion, request) {
+    const api = new ADMINAIApi(getConfiguration());
+    await api.rollbackAdminAiRiskPolicy({
+      riskPolicyId,
+      ...commonHeaders,
+      idempotencyKey: Date.now().toString(),
+      ifMatch: `W/"${resourceVersion}"`,
+      aiRollbackRequest: request,
+    });
+  },
+
+  async runAiEvaluation(request) {
+    const api = new ADMINAIApi(getConfiguration());
+    const res = await api.createAdminAiEvaluationRun({
+      ...commonHeaders,
+      idempotencyKey: Date.now().toString(),
+      aiEvaluationRunRequest: request,
+    });
+    return res.data;
+  },
+
+  async getAiEvaluationRun(evaluationRunId) {
+    const api = new ADMINAIApi(getConfiguration());
+    const res = await api.getAdminAiEvaluationRun({
+      evaluationRunId,
+      ...commonHeaders,
+    });
+    return res.data ?? null;
+  },
+
+  async getAiEditorDefaults(): Promise<AiEditorDefaults> {
+    // 从真实 HTTP 接口中并行拉取已有资源数据
+    const [providers, mappings, routes, prompts, policies] = await Promise.all([
+      this.getProviders(),
+      this.getAiModelMappings(),
+      this.getAiRoutes(),
+      this.getAiPrompts(),
+      this.getAiRiskPolicies(),
+    ]);
+
+    // 获取服务器已有的参考项（若无资源则设为 undefined，后续使用安全中性边界值）
+    const refProvider = providers[0];
+    const refMapping = mappings[0];
+    const refRoute = routes[0];
+    const refPrompt = prompts[0];
+    const refPolicy = policies[0];
+
+    // 模型映射编辑默认模板：新 ID / 模型名为空字符串，数值复制自服务器已有资源或使用中性 0 值
+    const modelMapping: AiModelMappingWriteRequest = {
+      logicalModelId: '',
+      providerId: refProvider?.providerId ?? '',
+      providerModelName: '',
+      inputModalities: refMapping ? new Set(refMapping.inputModalities) : new Set<AiModality>([AiModality.Text]),
+      outputModalities: refMapping ? new Set(refMapping.outputModalities) : new Set<AiModality>([AiModality.Text]),
+      contextWindowTokens: refMapping?.contextWindowTokens ?? 0,
+      maxOutputTokens: refMapping?.maxOutputTokens ?? 0,
+      inputCostMicrounitsPerMillionTokens: refMapping?.inputCostMicrounitsPerMillionTokens ?? 0,
+      outputCostMicrounitsPerMillionTokens: refMapping?.outputCostMicrounitsPerMillionTokens ?? 0,
+      currency: refMapping?.currency ?? 'CNY',
+      qualityTier: refMapping?.qualityTier ?? undefined,
+      dataRegion: refMapping?.dataRegion ?? undefined,
+      retentionPolicy: refMapping?.retentionPolicy ?? undefined,
+      enabled: true,
+    };
+
+    // 场景路由编辑默认模板：数值与 Target 尽量派生自服务器已有路由
+    const route: AiRouteWriteRequest = {
+      scenario: refRoute?.scenario ?? AiScenario.ReplyGeneration,
+      logicalModelId: refRoute?.logicalModelId ?? (refMapping?.logicalModelId ?? ''),
+      targets: refRoute && refRoute.targets.length > 0
+        ? refRoute.targets.map((t) => ({ ...t }))
+        : [
+            {
+              modelMappingId: refMapping?.modelMappingId ?? '',
+              priority: 1,
+              timeoutMs: 0,
+              retryLimit: 0,
+            },
+          ],
+      maxInputTokens: refRoute?.maxInputTokens ?? 0,
+      maxOutputTokens: refRoute?.maxOutputTokens ?? 0,
+      budgetCeilingMicrounits: refRoute?.budgetCeilingMicrounits ?? 0,
+      totalAttemptLimit: refRoute?.totalAttemptLimit ?? 1,
+      safetyPolicyId: refRoute?.safetyPolicyId ?? (refPolicy?.riskPolicyId ?? ''),
+    };
+
+    // 提示词编辑默认模板
+    const prompt: AiPromptWriteRequest = {
+      promptCode: '',
+      scenario: refPrompt?.scenario ?? AiScenario.ReplyGeneration,
+      systemTemplate: '',
+      userTemplate: '',
+      allowedInputFields: refPrompt ? new Set(refPrompt.allowedInputFields) : new Set<string>(),
+      outputSchema: refPrompt?.outputSchema ?? { type: 'object', properties: {} },
+      safetyPolicyId: refPrompt?.safetyPolicyId ?? (refPolicy?.riskPolicyId ?? ''),
+    };
+
+    // 风控策略编辑默认模板
+    const riskPolicy: AiRiskPolicyWriteRequest = {
+      policyCode: '',
+      blockedCategories: refPolicy ? new Set(refPolicy.blockedCategories) : new Set<string>(),
+      reviewCategories: refPolicy ? new Set(refPolicy.reviewCategories) : new Set<string>(),
+      inputModerationEnabled: refPolicy?.inputModerationEnabled ?? true,
+      outputModerationEnabled: refPolicy?.outputModerationEnabled ?? true,
+      promptInjectionAction: refPolicy?.promptInjectionAction ?? AiRiskPolicyWriteRequestPromptInjectionActionEnum.Block,
+      minimumSafetyScore: refPolicy?.minimumSafetyScore ?? 0,
+      allowAppeals: refPolicy?.allowAppeals ?? true,
+    };
+
+    // 评测运行默认模板：maxCost 从服务器路由的预算上限派生
+    const evaluationRun: AiEvaluationRunRequest = {
+      promptId: refPrompt?.promptId ?? '',
+      routeId: refRoute?.routeId ?? '',
+      suiteIds: new Set<string>(),
+      evaluatorLogicalModelId: refRoute?.logicalModelId ?? (refMapping?.logicalModelId ?? ''),
+      maxCostMicrounits: refRoute?.budgetCeilingMicrounits ?? 0,
+    };
+
+    // 发布默认模板：evaluationRunId 默认为空，发布前必须由真实评测校验；rollout 从已有路由派生或使用 0
+    const publish: AiPublishRequest = {
+      rolloutPercentage: refRoute?.rolloutPercentage ?? 0,
+      effectiveAt: new Date(),
+      evaluationRunId: '',
+      auditReason: '',
+    };
+
+    // 回滚默认模板
+    const rollback: AiRollbackRequest = {
+      targetVersion: 0,
+      auditReason: '',
+    };
+
+    return {
+      modelMapping,
+      route,
+      prompt,
+      riskPolicy,
+      evaluationRun,
+      publish,
+      rollback,
+    };
   },
 };
 
