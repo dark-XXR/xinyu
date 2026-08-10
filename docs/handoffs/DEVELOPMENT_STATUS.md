@@ -7,7 +7,7 @@ Last updated: 2026-08-09
 - Active task: `FRONTEND-ADMIN-CONSOLE-001`
 - State: `in_progress`
 - Contract version: `1.0.0`
-- Current phase: administration console milestone 2 AI operations is accepted; provider disable and dedicated audit administration are next
+- Current phase: administration console milestone 3 compliance audit is accepted; provider disable is next
 
 ## Completed
 
@@ -132,6 +132,26 @@ Last updated: 2026-08-09
   addition/removal, invalid JSON rejection, evaluation confirmation, forged evaluation rejection,
   and mobile acceptance at `390x844`. The mobile document width equals the viewport width, table
   rows become labeled cards, and the navigation menu opens and closes with Escape.
+- A unified compliance audit ledger now records user/admin authentication, AI generation input and
+  output, orders, payment settlement, subscriptions, refunds, administrator changes, HTTP failures,
+  latency and operating metadata. AI input/output and refund comments are encrypted; list responses
+  expose only summaries and digests. IP addresses are stored only as deployment-key HMAC hashes.
+- Metadata redaction now normalizes case, underscores and hyphens, covers passwords, OTP/MFA and
+  verification codes, tokens, Authorization, signatures and common API/private/merchant keys, and
+  also redacts `{name, value}` credential rotation structures. Ordinary user AI request bodies are
+  never duplicated into plain HTTP metadata; the business audit stores them only as encrypted content.
+- Administrator audit permissions are separated into summary read, sensitive-content read, export
+  and legal hold. Viewing sensitive content, changing legal hold, creating an export and reading an
+  export all require a reason and create new audit events. HMAC-SHA256 forward hashes detect direct
+  database modification; encrypted export bundles are bounded and expire from server configuration.
+- The `/audit` administration page was implemented through Antigravity CLI. It provides category,
+  user, administrator, order, generation, request and time filters, current-result metrics, event
+  detail with hashes, integrity verification, reason-gated sensitive content, legal hold and two-stage
+  export reading. Closing the detail drawer clears revealed content from component memory.
+- `/audit` passed real browser interaction checks at `1440x900` and `390x844`: reason buttons stay
+  disabled until the contract minimum is met, sensitive content is cleared on close, legal hold and
+  export flows complete, table rows become cards, tabs scroll only inside their own container, and
+  page/root widths match the mobile viewport without horizontal page scrolling.
 
 ## Verification commands
 
@@ -145,18 +165,19 @@ Last results: 5 unit tests, 6 default-size device UI tests, 6 compact-size UI te
 Android Lint, and Debug APK assembly all passed.
 
 Administration web results: TypeScript project references, oxlint (0 warnings/errors), and Vite
-production build pass. The production bundle is 324.37 kB JavaScript (92.44 kB gzip) and 7.11 kB
-CSS (1.97 kB gzip). Real-browser acceptance covers all five routes at desktop size; `/ai` also passed
-its five functional tabs and `390x844` responsive checks with `scrollWidth === innerWidth`.
+production build pass. The production bundle is 367.77 kB JavaScript (103.14 kB gzip) and 7.91 kB
+CSS (2.13 kB gzip). Real-browser acceptance covers the current routes at desktop size; `/ai` and
+`/audit` passed their functional and `390x844` responsive checks with root/page widths equal to the
+viewport.
 
 Identity contract validation now covers 46 fixtures across 19 tagged operations. Generated
 Kotlin and TypeScript clients both compile with the new email/channel models and operations.
 
-Backend verification now covers 59 PostgreSQL integration and transport tests. The email/auth,
+Backend verification now covers 60 PostgreSQL integration and transport tests. The email/auth,
 administrator authentication, provider-registry, and AI-gateway migrations passed
 upgrade, downgrade, and re-upgrade. The commerce administration migration also passed its own
-downgrade/upgrade loop. Referral tables also passed downgrade/upgrade. Ruff, strict MyPy across
-62 source files, OpenAPI lint/bundle, referral fixture validation, generated
+downgrade/upgrade loop. Referral and compliance-audit tables also passed downgrade/upgrade. Ruff,
+strict MyPy across 66 source files, OpenAPI lint/bundle, referral fixture validation, generated
 TypeScript build, generated Kotlin build, Android unit tests, Android Lint, and Debug APK assembly pass.
 
 ## External inputs
@@ -187,8 +208,8 @@ Antigravity CLI only; the IDE is not launched or controlled.
 
 ## Next exact actions
 
-1. Add provider disable and dedicated provider/payment audit readback to finish the administration
-   console acceptance criteria.
+1. Add provider disable to finish the remaining administration console acceptance criterion; its
+   operation and result will automatically enter the unified audit ledger.
 2. Add the invitation campaign administration page for configurable milestones, rewards, rollout,
    publication, and rollback.
 3. Redesign the Android UI through Antigravity CLI and verify it on emulator viewports.

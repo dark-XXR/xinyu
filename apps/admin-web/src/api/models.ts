@@ -8,6 +8,7 @@ export {
   ADMINPROVIDERApi,
   ADMINCOMMERCEApi,
   ADMINAIApi,
+  ADMINRBACApi,
 } from '@love-reply/generated-api'
 
 export type {
@@ -53,6 +54,15 @@ export type {
   AiEvaluationRunRequest,
   AiPublishRequest,
   AiRollbackRequest,
+  AuditEvent,
+  AuditIntegrityData,
+  SensitiveContentData,
+  AuditExportData,
+  AuditExportContentData,
+  AuditExportRequest,
+  LegalHoldRequest,
+  SensitiveContentReadRequest,
+  AuditExportReadRequest,
 } from '@love-reply/generated-api'
 
 export {
@@ -79,4 +89,8 @@ export {
   AiRiskPolicyPromptInjectionActionEnum,
   AiRiskPolicyWriteRequestPromptInjectionActionEnum,
   AiEvaluationRunStatusEnum,
+  AuditEventCategoryEnum,
+  AuditEventOutcomeEnum,
+  AuditEventSeverityEnum,
+  AuditEventActorTypeEnum,
 } from '@love-reply/generated-api'

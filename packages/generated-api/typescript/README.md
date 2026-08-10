@@ -110,10 +110,16 @@ All URIs are relative to *http://localhost:8000*
 *ADMINPROVIDERApi* | [**rollbackAdminProvider**](docs/ADMINPROVIDERApi.md#rollbackadminprovider) | **POST** /admin/v1/providers/{providerId}/rollback | Atomically restore a previously published provider version
 *ADMINPROVIDERApi* | [**rotateAdminProviderCredentials**](docs/ADMINPROVIDERApi.md#rotateadminprovidercredentials) | **POST** /admin/v1/providers/{providerId}/credentials | Create a write-only encrypted credential version
 *ADMINPROVIDERApi* | [**updateAdminProvider**](docs/ADMINPROVIDERApi.md#updateadminprovider) | **PATCH** /admin/v1/providers/{providerId} | Update a provider draft configuration
+*ADMINRBACApi* | [**changeAdminAuditLegalHold**](docs/ADMINRBACApi.md#changeadminauditlegalhold) | **POST** /admin/v1/audit-events/{eventId}/legal-hold | Enable or release legal hold for one audit event
+*ADMINRBACApi* | [**createAdminAuditExport**](docs/ADMINRBACApi.md#createadminauditexport) | **POST** /admin/v1/audit-events/exports | Create a short-lived encrypted regulatory audit bundle
 *ADMINRBACApi* | [**getCurrentAdmin**](docs/ADMINRBACApi.md#getcurrentadmin) | **GET** /admin/v1/me | Read the current administrator and RBAC summary
+*ADMINRBACApi* | [**listAdminAuditEvents**](docs/ADMINRBACApi.md#listadminauditevents) | **GET** /admin/v1/audit-events | Search the tamper-evident compliance audit ledger
 *ADMINRBACApi* | [**loginAdmin**](docs/ADMINRBACApi.md#loginadmin) | **POST** /admin/v1/auth/login | Verify administrator credentials
 *ADMINRBACApi* | [**logoutAdmin**](docs/ADMINRBACApi.md#logoutadmin) | **POST** /admin/v1/auth/logout | Revoke the current administrator session
+*ADMINRBACApi* | [**readAdminAuditExport**](docs/ADMINRBACApi.md#readadminauditexport) | **POST** /admin/v1/audit-events/exports/{exportId}/content | Read a non-expired regulatory audit bundle
+*ADMINRBACApi* | [**readAdminAuditSensitiveContent**](docs/ADMINRBACApi.md#readadminauditsensitivecontent) | **POST** /admin/v1/audit-events/{eventId}/sensitive-content | Read encrypted user content with mandatory purpose logging
 *ADMINRBACApi* | [**refreshAdminAccessToken**](docs/ADMINRBACApi.md#refreshadminaccesstoken) | **POST** /admin/v1/auth/refresh | Rotate an administrator refresh token
+*ADMINRBACApi* | [**verifyAdminAuditIntegrity**](docs/ADMINRBACApi.md#verifyadminauditintegrity) | **GET** /admin/v1/audit-events/integrity | Verify audit hash-chain and encrypted payload digests
 *ADMINRBACApi* | [**verifyAdminMfa**](docs/ADMINRBACApi.md#verifyadminmfa) | **POST** /admin/v1/auth/mfa/verify | Verify an administrator MFA challenge
 *ADMINREFERRALApi* | [**createAdminReferralCampaign**](docs/ADMINREFERRALApi.md#createadminreferralcampaign) | **POST** /admin/v1/referral-campaigns | Create a referral campaign draft
 *ADMINREFERRALApi* | [**getAdminReferralCampaign**](docs/ADMINREFERRALApi.md#getadminreferralcampaign) | **GET** /admin/v1/referral-campaigns/{campaignId} | Read one referral campaign version
@@ -255,6 +261,18 @@ All URIs are relative to *http://localhost:8000*
 - [Appeal](docs/Appeal.md)
 - [AppealRequest](docs/AppealRequest.md)
 - [AppealResponse](docs/AppealResponse.md)
+- [AuditEvent](docs/AuditEvent.md)
+- [AuditEventListData](docs/AuditEventListData.md)
+- [AuditEventListResponse](docs/AuditEventListResponse.md)
+- [AuditEventResponse](docs/AuditEventResponse.md)
+- [AuditExportContentData](docs/AuditExportContentData.md)
+- [AuditExportContentResponse](docs/AuditExportContentResponse.md)
+- [AuditExportData](docs/AuditExportData.md)
+- [AuditExportReadRequest](docs/AuditExportReadRequest.md)
+- [AuditExportRequest](docs/AuditExportRequest.md)
+- [AuditExportResponse](docs/AuditExportResponse.md)
+- [AuditIntegrityData](docs/AuditIntegrityData.md)
+- [AuditIntegrityResponse](docs/AuditIntegrityResponse.md)
 - [AuthChallengeMode](docs/AuthChallengeMode.md)
 - [AuthChannel](docs/AuthChannel.md)
 - [AuthChannelAvailability](docs/AuthChannelAvailability.md)
@@ -332,6 +350,7 @@ All URIs are relative to *http://localhost:8000*
 - [HealthData](docs/HealthData.md)
 - [HealthSuccessResponse](docs/HealthSuccessResponse.md)
 - [LedgerEntryType](docs/LedgerEntryType.md)
+- [LegalHoldRequest](docs/LegalHoldRequest.md)
 - [LogicalModel](docs/LogicalModel.md)
 - [LoginData](docs/LoginData.md)
 - [LoginResponse](docs/LoginResponse.md)
@@ -404,6 +423,9 @@ All URIs are relative to *http://localhost:8000*
 - [RotateCredentialsRequest](docs/RotateCredentialsRequest.md)
 - [SafetyStatus](docs/SafetyStatus.md)
 - [SalesChannel](docs/SalesChannel.md)
+- [SensitiveContentData](docs/SensitiveContentData.md)
+- [SensitiveContentReadRequest](docs/SensitiveContentReadRequest.md)
+- [SensitiveContentResponse](docs/SensitiveContentResponse.md)
 - [SmsChallenge](docs/SmsChallenge.md)
 - [SmsChallengeResponse](docs/SmsChallengeResponse.md)
 - [SmsConfiguration](docs/SmsConfiguration.md)

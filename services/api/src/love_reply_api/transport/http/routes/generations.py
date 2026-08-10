@@ -161,6 +161,9 @@ async def create_generation(
         model_id=body.model_id,
         save_to_history=body.save_to_history,
     )
+    request.state.audit_resource_type = "GENERATION"
+    request.state.audit_resource_id = task.generation_id
+    request.state.audit_generation_id = task.generation_id
     background_tasks.add_task(
         _process_generation,
         service,
@@ -288,11 +291,7 @@ async def stream_generation_events(
                 "payload": event.payload,
             }
             serialized = json.dumps(payload, separators=(",", ":"))
-            yield (
-                f"id: {event.event_id}\n"
-                f"event: {event.event_type}\n"
-                f"data: {serialized}\n\n"
-            )
+            yield (f"id: {event.event_id}\nevent: {event.event_type}\ndata: {serialized}\n\n")
 
     return StreamingResponse(
         event_stream(),

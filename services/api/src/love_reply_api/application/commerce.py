@@ -13,6 +13,7 @@ from uuid import uuid4
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from love_reply_api.application.audit import ComplianceAuditService
 from love_reply_api.application.errors import ApiError
 from love_reply_api.application.payment_adapters import EpayVerifiedCallback
 from love_reply_api.application.provider_runtime import RegistryPaymentGateway
@@ -40,10 +41,12 @@ class CommerceService:
         session: AsyncSession,
         gateway: RegistryPaymentGateway,
         referrals: ReferralService | None = None,
+        audit: ComplianceAuditService | None = None,
     ) -> None:
         self._session = session
         self._gateway = gateway
         self._referrals = referrals
+        self._audit = audit
 
     async def list_products(self, *, region: str, channel: str) -> list[ProductVersionRecord]:
         now = datetime.now(UTC)
@@ -114,6 +117,29 @@ class CommerceService:
         await self._create_attempt(
             order=order, provider=provider, payment_method=payment_method, now=now
         )
+        if self._audit is not None:
+            await self._audit.record_event(
+                category="PAYMENT",
+                event_type="ORDER_CREATED",
+                outcome="SUCCEEDED",
+                severity="INFO",
+                actor_type="USER",
+                actor_id=user_id,
+                user_id=user_id,
+                resource_type="ORDER",
+                resource_id=order_id,
+                order_id=order_id,
+                provider_id=provider.provider_id,
+                summary="用户创建充值或订阅订单",
+                metadata={
+                    "productVersionId": product_version_id,
+                    "productCode": product.product_code,
+                    "productType": product.product_type,
+                    "paymentMethod": payment_method,
+                    "currency": product.currency,
+                    "amountMinor": product.amount_minor,
+                },
+            )
         await self._session.commit()
         return order
 
@@ -136,6 +162,22 @@ class CommerceService:
         order.status = "PENDING_PAYMENT"
         order.resource_version += 1
         order.updated_at = now
+        if self._audit is not None:
+            await self._audit.record_event(
+                category="PAYMENT",
+                event_type="PAYMENT_ATTEMPT_CREATED",
+                outcome="SUCCEEDED",
+                severity="INFO",
+                actor_type="USER",
+                actor_id=user_id,
+                user_id=user_id,
+                resource_type="ORDER",
+                resource_id=order_id,
+                order_id=order_id,
+                provider_id=provider.provider_id,
+                summary="用户为订单重新创建支付尝试",
+                metadata={"paymentMethod": payment_method},
+            )
         await self._session.commit()
         return order
 
@@ -348,6 +390,24 @@ class CommerceService:
         record.status = "CANCELLATION_SCHEDULED" if cancel_at_period_end else "CANCELLED"
         record.resource_version += 1
         record.updated_at = now
+        if self._audit is not None:
+            await self._audit.record_event(
+                category="PAYMENT",
+                event_type="SUBSCRIPTION_CANCEL_CHANGED",
+                outcome="SUCCEEDED",
+                severity="INFO",
+                actor_type="USER",
+                actor_id=user_id,
+                user_id=user_id,
+                resource_type="SUBSCRIPTION",
+                resource_id=subscription_id,
+                order_id=record.order_id,
+                summary="用户变更订阅取消状态",
+                metadata={
+                    "cancelAtPeriodEnd": cancel_at_period_end,
+                    "status": record.status,
+                },
+            )
         await self._session.commit()
         return record
 
@@ -399,6 +459,26 @@ class CommerceService:
             updated_at=now,
         )
         self._session.add(record)
+        if self._audit is not None:
+            await self._audit.record_event(
+                category="PAYMENT",
+                event_type="REFUND_REQUESTED",
+                outcome="SUCCEEDED",
+                severity="INFO",
+                actor_type="USER",
+                actor_id=user_id,
+                user_id=user_id,
+                resource_type="REFUND",
+                resource_id=record.refund_id,
+                order_id=order_id,
+                summary="用户提交退款申请",
+                metadata={
+                    "amountMinor": amount_minor,
+                    "currency": order.currency,
+                    "reasonCode": reason_code,
+                },
+                sensitive_payload={"comment": comment} if comment else None,
+            )
         await self._session.commit()
         return record
 
@@ -478,6 +558,28 @@ class CommerceService:
                 received_at=now,
             )
         )
+        if self._audit is not None:
+            await self._audit.record_event(
+                category="PAYMENT",
+                event_type="PAYMENT_SETTLED",
+                outcome="SUCCEEDED",
+                severity="INFO",
+                actor_type="SYSTEM",
+                user_id=order.user_id,
+                resource_type="ORDER",
+                resource_id=order.order_id,
+                order_id=order.order_id,
+                provider_id=provider_id,
+                summary="支付到账并完成权益发放",
+                metadata={
+                    "paymentAttemptId": attempt.payment_attempt_id,
+                    "providerTransactionId": provider_transaction_id,
+                    "paymentMethod": attempt.payment_method,
+                    "amountMinor": order.amount_minor,
+                    "currency": order.currency,
+                    "entitlementGranted": True,
+                },
+            )
         await self._grant(order=order, now=now)
         if self._referrals is not None:
             await self._referrals.record_milestone(

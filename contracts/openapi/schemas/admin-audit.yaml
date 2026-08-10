@@ -1,0 +1,164 @@
+AuditEvent:
+  type: object
+  additionalProperties: false
+  required: [eventId, occurredAt, category, eventType, outcome, severity, actorType, summary, metadata, containsSensitiveContent, retentionUntil, legalHold, previousEventHash, eventHash]
+  properties:
+    eventId: { type: string, maxLength: 64 }
+    occurredAt: { type: string, format: date-time }
+    category: { type: string, enum: [AUTH, AI, PAYMENT, ADMIN, OPERATIONS, SECURITY, PRIVACY] }
+    eventType: { type: string, maxLength: 96 }
+    outcome: { type: string, enum: [SUCCEEDED, FAILED, CANCELLED, PENDING] }
+    severity: { type: string, enum: [INFO, WARNING, ERROR, HIGH, CRITICAL] }
+    actorType: { type: string, enum: [ANONYMOUS, USER, ADMIN, SYSTEM, PROVIDER] }
+    actorId: { type: [string, "null"], maxLength: 128 }
+    userId: { type: [string, "null"], maxLength: 64 }
+    adminId: { type: [string, "null"], maxLength: 64 }
+    sessionId: { type: [string, "null"], maxLength: 64 }
+    requestId: { type: [string, "null"], maxLength: 128 }
+    clientPlatform: { type: [string, "null"], maxLength: 32 }
+    clientVersion: { type: [string, "null"], maxLength: 64 }
+    resourceType: { type: [string, "null"], maxLength: 48 }
+    resourceId: { type: [string, "null"], maxLength: 128 }
+    orderId: { type: [string, "null"], maxLength: 64 }
+    generationId: { type: [string, "null"], maxLength: 64 }
+    providerId: { type: [string, "null"], maxLength: 64 }
+    summary: { type: string, maxLength: 500 }
+    metadata: { type: object, additionalProperties: true }
+    containsSensitiveContent: { type: boolean }
+    sensitivePayloadDigest: { type: [string, "null"], pattern: "^[a-f0-9]{64}$" }
+    retentionUntil: { type: string, format: date-time }
+    legalHold: { type: boolean }
+    previousEventHash: { type: string, pattern: "^[a-f0-9]{64}$" }
+    eventHash: { type: string, pattern: "^[a-f0-9]{64}$" }
+
+AuditEventListData:
+  type: object
+  additionalProperties: false
+  required: [items, hasMore]
+  properties:
+    items:
+      type: array
+      items: { $ref: "#/AuditEvent" }
+    nextCursor: { type: [string, "null"] }
+    hasMore: { type: boolean }
+
+AuditEventListResponse:
+  allOf:
+    - $ref: ../components/schemas/common.yaml#/BaseSuccessEnvelope
+    - type: object
+      properties:
+        data: { $ref: "#/AuditEventListData" }
+
+SensitiveContentReadRequest:
+  type: object
+  additionalProperties: false
+  required: [auditReason]
+  properties:
+    auditReason: { type: string, minLength: 8, maxLength: 500 }
+
+SensitiveContentData:
+  type: object
+  additionalProperties: false
+  required: [eventId, content]
+  properties:
+    eventId: { type: string }
+    content: { type: object, additionalProperties: true }
+
+SensitiveContentResponse:
+  allOf:
+    - $ref: ../components/schemas/common.yaml#/BaseSuccessEnvelope
+    - type: object
+      properties:
+        data: { $ref: "#/SensitiveContentData" }
+
+LegalHoldRequest:
+  type: object
+  additionalProperties: false
+  required: [enabled, auditReason]
+  properties:
+    enabled: { type: boolean }
+    auditReason: { type: string, minLength: 8, maxLength: 500 }
+
+AuditEventResponse:
+  allOf:
+    - $ref: ../components/schemas/common.yaml#/BaseSuccessEnvelope
+    - type: object
+      properties:
+        data: { $ref: "#/AuditEvent" }
+
+AuditIntegrityData:
+  type: object
+  additionalProperties: false
+  required: [valid, checkedCount]
+  properties:
+    valid: { type: boolean }
+    checkedCount: { type: integer, minimum: 0 }
+    firstInvalidEventId: { type: [string, "null"] }
+
+AuditIntegrityResponse:
+  allOf:
+    - $ref: ../components/schemas/common.yaml#/BaseSuccessEnvelope
+    - type: object
+      properties:
+        data: { $ref: "#/AuditIntegrityData" }
+
+AuditExportRequest:
+  type: object
+  additionalProperties: false
+  required: [auditReason, includeSensitiveContent]
+  properties:
+    auditReason: { type: string, minLength: 8, maxLength: 500 }
+    includeSensitiveContent: { type: boolean }
+    category: { type: [string, "null"] }
+    eventType: { type: [string, "null"] }
+    outcome: { type: [string, "null"] }
+    userId: { type: [string, "null"] }
+    adminId: { type: [string, "null"] }
+    requestId: { type: [string, "null"] }
+    resourceType: { type: [string, "null"] }
+    resourceId: { type: [string, "null"] }
+    orderId: { type: [string, "null"] }
+    generationId: { type: [string, "null"] }
+    fromTime: { type: [string, "null"], format: date-time }
+    toTime: { type: [string, "null"], format: date-time }
+
+AuditExportData:
+  type: object
+  additionalProperties: false
+  required: [exportId, includeSensitiveContent, eventCount, bundleDigest, createdAt, expiresAt]
+  properties:
+    exportId: { type: string }
+    includeSensitiveContent: { type: boolean }
+    eventCount: { type: integer, minimum: 0 }
+    bundleDigest: { type: string, pattern: "^[a-f0-9]{64}$" }
+    createdAt: { type: string, format: date-time }
+    expiresAt: { type: string, format: date-time }
+
+AuditExportResponse:
+  allOf:
+    - $ref: ../components/schemas/common.yaml#/BaseSuccessEnvelope
+    - type: object
+      properties:
+        data: { $ref: "#/AuditExportData" }
+
+AuditExportReadRequest:
+  type: object
+  additionalProperties: false
+  required: [auditReason]
+  properties:
+    auditReason: { type: string, minLength: 8, maxLength: 500 }
+
+AuditExportContentData:
+  type: object
+  additionalProperties: false
+  required: [exportId, bundle]
+  properties:
+    exportId: { type: string }
+    bundle: { type: object, additionalProperties: true }
+
+AuditExportContentResponse:
+  allOf:
+    - $ref: ../components/schemas/common.yaml#/BaseSuccessEnvelope
+    - type: object
+      properties:
+        data: { $ref: "#/AuditExportContentData" }

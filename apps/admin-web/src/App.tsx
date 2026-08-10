@@ -9,6 +9,7 @@ import { Providers } from './pages/Providers'
 import { Products } from './pages/commerce/Products'
 import { Orders } from './pages/commerce/Orders'
 import { AiOperations } from './pages/ai/AiOperations'
+import { AuditOperations } from './pages/audit/AuditOperations'
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
           <Route index element={<Dashboard />} />
           <Route path="providers" element={<Providers />} />
           <Route path="ai" element={<AiOperations />} />
+          <Route path="audit" element={<AuditOperations />} />
           <Route path="commerce/products" element={<Products />} />
           <Route path="commerce/orders" element={<Orders />} />
         </Route>

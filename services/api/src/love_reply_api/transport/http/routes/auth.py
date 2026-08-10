@@ -115,12 +115,20 @@ async def login_with_email(
     service: Annotated[AuthService, Depends(get_auth_service)],
 ) -> LoginResponse:
     del idempotency_key
+    request.state.audit_metadata = {
+        "channel": "EMAIL",
+        "challengeId": body.challenge_id,
+        "deviceIdHashInputPresent": bool(client.device_id),
+    }
     result = await service.login_with_email(
         challenge_id=body.challenge_id,
         code=body.code,
         device_id=client.device_id,
         locale=client.accept_language,
     )
+    request.state.audit_actor_type = "USER"
+    request.state.audit_actor_id = result.user.user_id
+    request.state.audit_user_id = result.user.user_id
     return SuccessEnvelope(
         data=_login_data(result),
         request_id=_request_id(request),
@@ -155,12 +163,20 @@ async def login_with_sms(
     service: Annotated[AuthService, Depends(get_auth_service)],
 ) -> LoginResponse:
     del idempotency_key
+    request.state.audit_metadata = {
+        "channel": "SMS",
+        "challengeId": body.challenge_id,
+        "deviceIdHashInputPresent": bool(client.device_id),
+    }
     result = await service.login_with_sms(
         challenge_id=body.challenge_id,
         code=body.code,
         device_id=client.device_id,
         locale=client.accept_language,
     )
+    request.state.audit_actor_type = "USER"
+    request.state.audit_actor_id = result.user.user_id
+    request.state.audit_user_id = result.user.user_id
     return SuccessEnvelope(
         data=_login_data(result),
         request_id=_request_id(request),

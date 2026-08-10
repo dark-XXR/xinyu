@@ -59,16 +59,104 @@ import {
     AdminTokenResponseToJSON,
 } from '../models/AdminTokenResponse';
 import {
+    type AuditEventListResponse,
+    AuditEventListResponseFromJSON,
+    AuditEventListResponseToJSON,
+} from '../models/AuditEventListResponse';
+import {
+    type AuditEventResponse,
+    AuditEventResponseFromJSON,
+    AuditEventResponseToJSON,
+} from '../models/AuditEventResponse';
+import {
+    type AuditExportContentResponse,
+    AuditExportContentResponseFromJSON,
+    AuditExportContentResponseToJSON,
+} from '../models/AuditExportContentResponse';
+import {
+    type AuditExportReadRequest,
+    AuditExportReadRequestFromJSON,
+    AuditExportReadRequestToJSON,
+} from '../models/AuditExportReadRequest';
+import {
+    type AuditExportRequest,
+    AuditExportRequestFromJSON,
+    AuditExportRequestToJSON,
+} from '../models/AuditExportRequest';
+import {
+    type AuditExportResponse,
+    AuditExportResponseFromJSON,
+    AuditExportResponseToJSON,
+} from '../models/AuditExportResponse';
+import {
+    type AuditIntegrityResponse,
+    AuditIntegrityResponseFromJSON,
+    AuditIntegrityResponseToJSON,
+} from '../models/AuditIntegrityResponse';
+import {
     type ErrorResponse,
     ErrorResponseFromJSON,
     ErrorResponseToJSON,
 } from '../models/ErrorResponse';
+import {
+    type LegalHoldRequest,
+    LegalHoldRequestFromJSON,
+    LegalHoldRequestToJSON,
+} from '../models/LegalHoldRequest';
+import {
+    type SensitiveContentReadRequest,
+    SensitiveContentReadRequestFromJSON,
+    SensitiveContentReadRequestToJSON,
+} from '../models/SensitiveContentReadRequest';
+import {
+    type SensitiveContentResponse,
+    SensitiveContentResponseFromJSON,
+    SensitiveContentResponseToJSON,
+} from '../models/SensitiveContentResponse';
+
+export interface ChangeAdminAuditLegalHoldRequest {
+    xClientVersion: string;
+    xPlatform: ChangeAdminAuditLegalHoldXPlatformEnum;
+    acceptLanguage: string;
+    eventId: string;
+    legalHoldRequest: LegalHoldRequest;
+    xRequestId?: string;
+}
+
+export interface CreateAdminAuditExportRequest {
+    xClientVersion: string;
+    xPlatform: CreateAdminAuditExportXPlatformEnum;
+    acceptLanguage: string;
+    auditExportRequest: AuditExportRequest;
+    xRequestId?: string;
+}
 
 export interface GetCurrentAdminRequest {
     xClientVersion: string;
     xPlatform: GetCurrentAdminXPlatformEnum;
     acceptLanguage: string;
     xRequestId?: string;
+}
+
+export interface ListAdminAuditEventsRequest {
+    xClientVersion: string;
+    xPlatform: ListAdminAuditEventsXPlatformEnum;
+    acceptLanguage: string;
+    xRequestId?: string;
+    cursor?: string | null;
+    limit?: number;
+    category?: string | null;
+    eventType?: string | null;
+    outcome?: string | null;
+    userId?: string | null;
+    adminId?: string | null;
+    requestId?: string | null;
+    resourceType?: string | null;
+    resourceId?: string | null;
+    orderId?: string | null;
+    generationId?: string | null;
+    from?: Date | null;
+    to?: Date | null;
 }
 
 export interface LoginAdminRequest {
@@ -88,12 +176,37 @@ export interface LogoutAdminRequest {
     xRequestId?: string;
 }
 
+export interface ReadAdminAuditExportRequest {
+    xClientVersion: string;
+    xPlatform: ReadAdminAuditExportXPlatformEnum;
+    acceptLanguage: string;
+    exportId: string;
+    auditExportReadRequest: AuditExportReadRequest;
+    xRequestId?: string;
+}
+
+export interface ReadAdminAuditSensitiveContentRequest {
+    xClientVersion: string;
+    xPlatform: ReadAdminAuditSensitiveContentXPlatformEnum;
+    acceptLanguage: string;
+    eventId: string;
+    sensitiveContentReadRequest: SensitiveContentReadRequest;
+    xRequestId?: string;
+}
+
 export interface RefreshAdminAccessTokenRequest {
     xClientVersion: string;
     xPlatform: RefreshAdminAccessTokenXPlatformEnum;
     acceptLanguage: string;
     idempotencyKey: string;
     adminRefreshRequest: AdminRefreshRequest;
+    xRequestId?: string;
+}
+
+export interface VerifyAdminAuditIntegrityRequest {
+    xClientVersion: string;
+    xPlatform: VerifyAdminAuditIntegrityXPlatformEnum;
+    acceptLanguage: string;
     xRequestId?: string;
 }
 
@@ -113,6 +226,70 @@ export interface VerifyAdminMfaRequest {
  * @interface ADMINRBACApiInterface
  */
 export interface ADMINRBACApiInterface {
+    /**
+     * Creates request options for changeAdminAuditLegalHold without sending the request
+     * @param {string} xClientVersion Semantic application version used for compatibility enforcement.
+     * @param {'ANDROID' | 'ADMIN_WEB'} xPlatform
+     * @param {string} acceptLanguage
+     * @param {string} eventId
+     * @param {LegalHoldRequest} legalHoldRequest
+     * @param {string} [xRequestId] Client correlation ID. The server returns the final accepted value.
+     * @throws {RequiredError}
+     * @memberof ADMINRBACApiInterface
+     */
+    changeAdminAuditLegalHoldRequestOpts(requestParameters: ChangeAdminAuditLegalHoldRequest): Promise<runtime.RequestOpts>;
+
+    /**
+     *
+     * @summary Enable or release legal hold for one audit event
+     * @param {string} xClientVersion Semantic application version used for compatibility enforcement.
+     * @param {'ANDROID' | 'ADMIN_WEB'} xPlatform
+     * @param {string} acceptLanguage
+     * @param {string} eventId
+     * @param {LegalHoldRequest} legalHoldRequest
+     * @param {string} [xRequestId] Client correlation ID. The server returns the final accepted value.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ADMINRBACApiInterface
+     */
+    changeAdminAuditLegalHoldRaw(requestParameters: ChangeAdminAuditLegalHoldRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AuditEventResponse>>;
+
+    /**
+     * Enable or release legal hold for one audit event
+     */
+    changeAdminAuditLegalHold(requestParameters: ChangeAdminAuditLegalHoldRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AuditEventResponse>;
+
+    /**
+     * Creates request options for createAdminAuditExport without sending the request
+     * @param {string} xClientVersion Semantic application version used for compatibility enforcement.
+     * @param {'ANDROID' | 'ADMIN_WEB'} xPlatform
+     * @param {string} acceptLanguage
+     * @param {AuditExportRequest} auditExportRequest
+     * @param {string} [xRequestId] Client correlation ID. The server returns the final accepted value.
+     * @throws {RequiredError}
+     * @memberof ADMINRBACApiInterface
+     */
+    createAdminAuditExportRequestOpts(requestParameters: CreateAdminAuditExportRequest): Promise<runtime.RequestOpts>;
+
+    /**
+     *
+     * @summary Create a short-lived encrypted regulatory audit bundle
+     * @param {string} xClientVersion Semantic application version used for compatibility enforcement.
+     * @param {'ANDROID' | 'ADMIN_WEB'} xPlatform
+     * @param {string} acceptLanguage
+     * @param {AuditExportRequest} auditExportRequest
+     * @param {string} [xRequestId] Client correlation ID. The server returns the final accepted value.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ADMINRBACApiInterface
+     */
+    createAdminAuditExportRaw(requestParameters: CreateAdminAuditExportRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AuditExportResponse>>;
+
+    /**
+     * Create a short-lived encrypted regulatory audit bundle
+     */
+    createAdminAuditExport(requestParameters: CreateAdminAuditExportRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AuditExportResponse>;
+
     /**
      * Creates request options for getCurrentAdmin without sending the request
      * @param {string} xClientVersion Semantic application version used for compatibility enforcement.
@@ -142,6 +319,63 @@ export interface ADMINRBACApiInterface {
      * Read the current administrator and RBAC summary
      */
     getCurrentAdmin(requestParameters: GetCurrentAdminRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AdminMeResponse>;
+
+    /**
+     * Creates request options for listAdminAuditEvents without sending the request
+     * @param {string} xClientVersion Semantic application version used for compatibility enforcement.
+     * @param {'ANDROID' | 'ADMIN_WEB'} xPlatform
+     * @param {string} acceptLanguage
+     * @param {string} [xRequestId] Client correlation ID. The server returns the final accepted value.
+     * @param {string} [cursor]
+     * @param {number} [limit]
+     * @param {string} [category]
+     * @param {string} [eventType]
+     * @param {string} [outcome]
+     * @param {string} [userId]
+     * @param {string} [adminId]
+     * @param {string} [requestId]
+     * @param {string} [resourceType]
+     * @param {string} [resourceId]
+     * @param {string} [orderId]
+     * @param {string} [generationId]
+     * @param {Date} [from]
+     * @param {Date} [to]
+     * @throws {RequiredError}
+     * @memberof ADMINRBACApiInterface
+     */
+    listAdminAuditEventsRequestOpts(requestParameters: ListAdminAuditEventsRequest): Promise<runtime.RequestOpts>;
+
+    /**
+     *
+     * @summary Search the tamper-evident compliance audit ledger
+     * @param {string} xClientVersion Semantic application version used for compatibility enforcement.
+     * @param {'ANDROID' | 'ADMIN_WEB'} xPlatform
+     * @param {string} acceptLanguage
+     * @param {string} [xRequestId] Client correlation ID. The server returns the final accepted value.
+     * @param {string} [cursor]
+     * @param {number} [limit]
+     * @param {string} [category]
+     * @param {string} [eventType]
+     * @param {string} [outcome]
+     * @param {string} [userId]
+     * @param {string} [adminId]
+     * @param {string} [requestId]
+     * @param {string} [resourceType]
+     * @param {string} [resourceId]
+     * @param {string} [orderId]
+     * @param {string} [generationId]
+     * @param {Date} [from]
+     * @param {Date} [to]
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ADMINRBACApiInterface
+     */
+    listAdminAuditEventsRaw(requestParameters: ListAdminAuditEventsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AuditEventListResponse>>;
+
+    /**
+     * Search the tamper-evident compliance audit ledger
+     */
+    listAdminAuditEvents(requestParameters: ListAdminAuditEventsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AuditEventListResponse>;
 
     /**
      * Creates request options for loginAdmin without sending the request
@@ -210,6 +444,72 @@ export interface ADMINRBACApiInterface {
     logoutAdmin(requestParameters: LogoutAdminRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AdminEmptyResponse>;
 
     /**
+     * Creates request options for readAdminAuditExport without sending the request
+     * @param {string} xClientVersion Semantic application version used for compatibility enforcement.
+     * @param {'ANDROID' | 'ADMIN_WEB'} xPlatform
+     * @param {string} acceptLanguage
+     * @param {string} exportId
+     * @param {AuditExportReadRequest} auditExportReadRequest
+     * @param {string} [xRequestId] Client correlation ID. The server returns the final accepted value.
+     * @throws {RequiredError}
+     * @memberof ADMINRBACApiInterface
+     */
+    readAdminAuditExportRequestOpts(requestParameters: ReadAdminAuditExportRequest): Promise<runtime.RequestOpts>;
+
+    /**
+     *
+     * @summary Read a non-expired regulatory audit bundle
+     * @param {string} xClientVersion Semantic application version used for compatibility enforcement.
+     * @param {'ANDROID' | 'ADMIN_WEB'} xPlatform
+     * @param {string} acceptLanguage
+     * @param {string} exportId
+     * @param {AuditExportReadRequest} auditExportReadRequest
+     * @param {string} [xRequestId] Client correlation ID. The server returns the final accepted value.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ADMINRBACApiInterface
+     */
+    readAdminAuditExportRaw(requestParameters: ReadAdminAuditExportRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AuditExportContentResponse>>;
+
+    /**
+     * Read a non-expired regulatory audit bundle
+     */
+    readAdminAuditExport(requestParameters: ReadAdminAuditExportRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AuditExportContentResponse>;
+
+    /**
+     * Creates request options for readAdminAuditSensitiveContent without sending the request
+     * @param {string} xClientVersion Semantic application version used for compatibility enforcement.
+     * @param {'ANDROID' | 'ADMIN_WEB'} xPlatform
+     * @param {string} acceptLanguage
+     * @param {string} eventId
+     * @param {SensitiveContentReadRequest} sensitiveContentReadRequest
+     * @param {string} [xRequestId] Client correlation ID. The server returns the final accepted value.
+     * @throws {RequiredError}
+     * @memberof ADMINRBACApiInterface
+     */
+    readAdminAuditSensitiveContentRequestOpts(requestParameters: ReadAdminAuditSensitiveContentRequest): Promise<runtime.RequestOpts>;
+
+    /**
+     *
+     * @summary Read encrypted user content with mandatory purpose logging
+     * @param {string} xClientVersion Semantic application version used for compatibility enforcement.
+     * @param {'ANDROID' | 'ADMIN_WEB'} xPlatform
+     * @param {string} acceptLanguage
+     * @param {string} eventId
+     * @param {SensitiveContentReadRequest} sensitiveContentReadRequest
+     * @param {string} [xRequestId] Client correlation ID. The server returns the final accepted value.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ADMINRBACApiInterface
+     */
+    readAdminAuditSensitiveContentRaw(requestParameters: ReadAdminAuditSensitiveContentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SensitiveContentResponse>>;
+
+    /**
+     * Read encrypted user content with mandatory purpose logging
+     */
+    readAdminAuditSensitiveContent(requestParameters: ReadAdminAuditSensitiveContentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SensitiveContentResponse>;
+
+    /**
      * Creates request options for refreshAdminAccessToken without sending the request
      * @param {string} xClientVersion Semantic application version used for compatibility enforcement.
      * @param {'ANDROID' | 'ADMIN_WEB'} xPlatform
@@ -242,6 +542,35 @@ export interface ADMINRBACApiInterface {
      * Rotate an administrator refresh token
      */
     refreshAdminAccessToken(requestParameters: RefreshAdminAccessTokenRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AdminTokenResponse>;
+
+    /**
+     * Creates request options for verifyAdminAuditIntegrity without sending the request
+     * @param {string} xClientVersion Semantic application version used for compatibility enforcement.
+     * @param {'ANDROID' | 'ADMIN_WEB'} xPlatform
+     * @param {string} acceptLanguage
+     * @param {string} [xRequestId] Client correlation ID. The server returns the final accepted value.
+     * @throws {RequiredError}
+     * @memberof ADMINRBACApiInterface
+     */
+    verifyAdminAuditIntegrityRequestOpts(requestParameters: VerifyAdminAuditIntegrityRequest): Promise<runtime.RequestOpts>;
+
+    /**
+     *
+     * @summary Verify audit hash-chain and encrypted payload digests
+     * @param {string} xClientVersion Semantic application version used for compatibility enforcement.
+     * @param {'ANDROID' | 'ADMIN_WEB'} xPlatform
+     * @param {string} acceptLanguage
+     * @param {string} [xRequestId] Client correlation ID. The server returns the final accepted value.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ADMINRBACApiInterface
+     */
+    verifyAdminAuditIntegrityRaw(requestParameters: VerifyAdminAuditIntegrityRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AuditIntegrityResponse>>;
+
+    /**
+     * Verify audit hash-chain and encrypted payload digests
+     */
+    verifyAdminAuditIntegrity(requestParameters: VerifyAdminAuditIntegrityRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AuditIntegrityResponse>;
 
     /**
      * Creates request options for verifyAdminMfa without sending the request
@@ -283,6 +612,198 @@ export interface ADMINRBACApiInterface {
  *
  */
 export class ADMINRBACApi extends runtime.BaseAPI implements ADMINRBACApiInterface {
+
+    /**
+     * Creates request options for changeAdminAuditLegalHold without sending the request
+     */
+    async changeAdminAuditLegalHoldRequestOpts(requestParameters: ChangeAdminAuditLegalHoldRequest): Promise<runtime.RequestOpts> {
+        if (requestParameters['xClientVersion'] == null) {
+            throw new runtime.RequiredError(
+                'xClientVersion',
+                'Required parameter "xClientVersion" was null or undefined when calling changeAdminAuditLegalHold().'
+            );
+        }
+
+        if (requestParameters['xPlatform'] == null) {
+            throw new runtime.RequiredError(
+                'xPlatform',
+                'Required parameter "xPlatform" was null or undefined when calling changeAdminAuditLegalHold().'
+            );
+        }
+
+        if (requestParameters['acceptLanguage'] == null) {
+            throw new runtime.RequiredError(
+                'acceptLanguage',
+                'Required parameter "acceptLanguage" was null or undefined when calling changeAdminAuditLegalHold().'
+            );
+        }
+
+        if (requestParameters['eventId'] == null) {
+            throw new runtime.RequiredError(
+                'eventId',
+                'Required parameter "eventId" was null or undefined when calling changeAdminAuditLegalHold().'
+            );
+        }
+
+        if (requestParameters['legalHoldRequest'] == null) {
+            throw new runtime.RequiredError(
+                'legalHoldRequest',
+                'Required parameter "legalHoldRequest" was null or undefined when calling changeAdminAuditLegalHold().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (requestParameters['xRequestId'] != null) {
+            headerParameters['X-Request-Id'] = String(requestParameters['xRequestId']);
+        }
+
+        if (requestParameters['xClientVersion'] != null) {
+            headerParameters['X-Client-Version'] = String(requestParameters['xClientVersion']);
+        }
+
+        if (requestParameters['xPlatform'] != null) {
+            headerParameters['X-Platform'] = String(requestParameters['xPlatform']);
+        }
+
+        if (requestParameters['acceptLanguage'] != null) {
+            headerParameters['Accept-Language'] = String(requestParameters['acceptLanguage']);
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("adminBearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/admin/v1/audit-events/{eventId}/legal-hold`;
+        urlPath = urlPath.replace('{eventId}', encodeURIComponent(String(requestParameters['eventId'])));
+
+        return {
+            path: urlPath,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: LegalHoldRequestToJSON(requestParameters['legalHoldRequest']),
+        };
+    }
+
+    /**
+     * Enable or release legal hold for one audit event
+     */
+    async changeAdminAuditLegalHoldRaw(requestParameters: ChangeAdminAuditLegalHoldRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AuditEventResponse>> {
+        const requestOptions = await this.changeAdminAuditLegalHoldRequestOpts(requestParameters);
+        const response = await this.request(requestOptions, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => AuditEventResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Enable or release legal hold for one audit event
+     */
+    async changeAdminAuditLegalHold(requestParameters: ChangeAdminAuditLegalHoldRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AuditEventResponse> {
+        const response = await this.changeAdminAuditLegalHoldRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Creates request options for createAdminAuditExport without sending the request
+     */
+    async createAdminAuditExportRequestOpts(requestParameters: CreateAdminAuditExportRequest): Promise<runtime.RequestOpts> {
+        if (requestParameters['xClientVersion'] == null) {
+            throw new runtime.RequiredError(
+                'xClientVersion',
+                'Required parameter "xClientVersion" was null or undefined when calling createAdminAuditExport().'
+            );
+        }
+
+        if (requestParameters['xPlatform'] == null) {
+            throw new runtime.RequiredError(
+                'xPlatform',
+                'Required parameter "xPlatform" was null or undefined when calling createAdminAuditExport().'
+            );
+        }
+
+        if (requestParameters['acceptLanguage'] == null) {
+            throw new runtime.RequiredError(
+                'acceptLanguage',
+                'Required parameter "acceptLanguage" was null or undefined when calling createAdminAuditExport().'
+            );
+        }
+
+        if (requestParameters['auditExportRequest'] == null) {
+            throw new runtime.RequiredError(
+                'auditExportRequest',
+                'Required parameter "auditExportRequest" was null or undefined when calling createAdminAuditExport().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (requestParameters['xRequestId'] != null) {
+            headerParameters['X-Request-Id'] = String(requestParameters['xRequestId']);
+        }
+
+        if (requestParameters['xClientVersion'] != null) {
+            headerParameters['X-Client-Version'] = String(requestParameters['xClientVersion']);
+        }
+
+        if (requestParameters['xPlatform'] != null) {
+            headerParameters['X-Platform'] = String(requestParameters['xPlatform']);
+        }
+
+        if (requestParameters['acceptLanguage'] != null) {
+            headerParameters['Accept-Language'] = String(requestParameters['acceptLanguage']);
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("adminBearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/admin/v1/audit-events/exports`;
+
+        return {
+            path: urlPath,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: AuditExportRequestToJSON(requestParameters['auditExportRequest']),
+        };
+    }
+
+    /**
+     * Create a short-lived encrypted regulatory audit bundle
+     */
+    async createAdminAuditExportRaw(requestParameters: CreateAdminAuditExportRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AuditExportResponse>> {
+        const requestOptions = await this.createAdminAuditExportRequestOpts(requestParameters);
+        const response = await this.request(requestOptions, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => AuditExportResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Create a short-lived encrypted regulatory audit bundle
+     */
+    async createAdminAuditExport(requestParameters: CreateAdminAuditExportRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AuditExportResponse> {
+        const response = await this.createAdminAuditExportRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
 
     /**
      * Creates request options for getCurrentAdmin without sending the request
@@ -365,6 +886,144 @@ export class ADMINRBACApi extends runtime.BaseAPI implements ADMINRBACApiInterfa
      */
     async getCurrentAdmin(requestParameters: GetCurrentAdminRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AdminMeResponse> {
         const response = await this.getCurrentAdminRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Creates request options for listAdminAuditEvents without sending the request
+     */
+    async listAdminAuditEventsRequestOpts(requestParameters: ListAdminAuditEventsRequest): Promise<runtime.RequestOpts> {
+        if (requestParameters['xClientVersion'] == null) {
+            throw new runtime.RequiredError(
+                'xClientVersion',
+                'Required parameter "xClientVersion" was null or undefined when calling listAdminAuditEvents().'
+            );
+        }
+
+        if (requestParameters['xPlatform'] == null) {
+            throw new runtime.RequiredError(
+                'xPlatform',
+                'Required parameter "xPlatform" was null or undefined when calling listAdminAuditEvents().'
+            );
+        }
+
+        if (requestParameters['acceptLanguage'] == null) {
+            throw new runtime.RequiredError(
+                'acceptLanguage',
+                'Required parameter "acceptLanguage" was null or undefined when calling listAdminAuditEvents().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        if (requestParameters['cursor'] != null) {
+            queryParameters['cursor'] = requestParameters['cursor'];
+        }
+
+        if (requestParameters['limit'] != null) {
+            queryParameters['limit'] = requestParameters['limit'];
+        }
+
+        if (requestParameters['category'] != null) {
+            queryParameters['category'] = requestParameters['category'];
+        }
+
+        if (requestParameters['eventType'] != null) {
+            queryParameters['eventType'] = requestParameters['eventType'];
+        }
+
+        if (requestParameters['outcome'] != null) {
+            queryParameters['outcome'] = requestParameters['outcome'];
+        }
+
+        if (requestParameters['userId'] != null) {
+            queryParameters['userId'] = requestParameters['userId'];
+        }
+
+        if (requestParameters['adminId'] != null) {
+            queryParameters['adminId'] = requestParameters['adminId'];
+        }
+
+        if (requestParameters['requestId'] != null) {
+            queryParameters['requestId'] = requestParameters['requestId'];
+        }
+
+        if (requestParameters['resourceType'] != null) {
+            queryParameters['resourceType'] = requestParameters['resourceType'];
+        }
+
+        if (requestParameters['resourceId'] != null) {
+            queryParameters['resourceId'] = requestParameters['resourceId'];
+        }
+
+        if (requestParameters['orderId'] != null) {
+            queryParameters['orderId'] = requestParameters['orderId'];
+        }
+
+        if (requestParameters['generationId'] != null) {
+            queryParameters['generationId'] = requestParameters['generationId'];
+        }
+
+        if (requestParameters['from'] != null) {
+            queryParameters['from'] = (requestParameters['from'] as any).toISOString();
+        }
+
+        if (requestParameters['to'] != null) {
+            queryParameters['to'] = (requestParameters['to'] as any).toISOString();
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (requestParameters['xRequestId'] != null) {
+            headerParameters['X-Request-Id'] = String(requestParameters['xRequestId']);
+        }
+
+        if (requestParameters['xClientVersion'] != null) {
+            headerParameters['X-Client-Version'] = String(requestParameters['xClientVersion']);
+        }
+
+        if (requestParameters['xPlatform'] != null) {
+            headerParameters['X-Platform'] = String(requestParameters['xPlatform']);
+        }
+
+        if (requestParameters['acceptLanguage'] != null) {
+            headerParameters['Accept-Language'] = String(requestParameters['acceptLanguage']);
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("adminBearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/admin/v1/audit-events`;
+
+        return {
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        };
+    }
+
+    /**
+     * Search the tamper-evident compliance audit ledger
+     */
+    async listAdminAuditEventsRaw(requestParameters: ListAdminAuditEventsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AuditEventListResponse>> {
+        const requestOptions = await this.listAdminAuditEventsRequestOpts(requestParameters);
+        const response = await this.request(requestOptions, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => AuditEventListResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Search the tamper-evident compliance audit ledger
+     */
+    async listAdminAuditEvents(requestParameters: ListAdminAuditEventsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AuditEventListResponse> {
+        const response = await this.listAdminAuditEventsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -561,6 +1220,206 @@ export class ADMINRBACApi extends runtime.BaseAPI implements ADMINRBACApiInterfa
     }
 
     /**
+     * Creates request options for readAdminAuditExport without sending the request
+     */
+    async readAdminAuditExportRequestOpts(requestParameters: ReadAdminAuditExportRequest): Promise<runtime.RequestOpts> {
+        if (requestParameters['xClientVersion'] == null) {
+            throw new runtime.RequiredError(
+                'xClientVersion',
+                'Required parameter "xClientVersion" was null or undefined when calling readAdminAuditExport().'
+            );
+        }
+
+        if (requestParameters['xPlatform'] == null) {
+            throw new runtime.RequiredError(
+                'xPlatform',
+                'Required parameter "xPlatform" was null or undefined when calling readAdminAuditExport().'
+            );
+        }
+
+        if (requestParameters['acceptLanguage'] == null) {
+            throw new runtime.RequiredError(
+                'acceptLanguage',
+                'Required parameter "acceptLanguage" was null or undefined when calling readAdminAuditExport().'
+            );
+        }
+
+        if (requestParameters['exportId'] == null) {
+            throw new runtime.RequiredError(
+                'exportId',
+                'Required parameter "exportId" was null or undefined when calling readAdminAuditExport().'
+            );
+        }
+
+        if (requestParameters['auditExportReadRequest'] == null) {
+            throw new runtime.RequiredError(
+                'auditExportReadRequest',
+                'Required parameter "auditExportReadRequest" was null or undefined when calling readAdminAuditExport().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (requestParameters['xRequestId'] != null) {
+            headerParameters['X-Request-Id'] = String(requestParameters['xRequestId']);
+        }
+
+        if (requestParameters['xClientVersion'] != null) {
+            headerParameters['X-Client-Version'] = String(requestParameters['xClientVersion']);
+        }
+
+        if (requestParameters['xPlatform'] != null) {
+            headerParameters['X-Platform'] = String(requestParameters['xPlatform']);
+        }
+
+        if (requestParameters['acceptLanguage'] != null) {
+            headerParameters['Accept-Language'] = String(requestParameters['acceptLanguage']);
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("adminBearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/admin/v1/audit-events/exports/{exportId}/content`;
+        urlPath = urlPath.replace('{exportId}', encodeURIComponent(String(requestParameters['exportId'])));
+
+        return {
+            path: urlPath,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: AuditExportReadRequestToJSON(requestParameters['auditExportReadRequest']),
+        };
+    }
+
+    /**
+     * Read a non-expired regulatory audit bundle
+     */
+    async readAdminAuditExportRaw(requestParameters: ReadAdminAuditExportRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AuditExportContentResponse>> {
+        const requestOptions = await this.readAdminAuditExportRequestOpts(requestParameters);
+        const response = await this.request(requestOptions, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => AuditExportContentResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Read a non-expired regulatory audit bundle
+     */
+    async readAdminAuditExport(requestParameters: ReadAdminAuditExportRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AuditExportContentResponse> {
+        const response = await this.readAdminAuditExportRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Creates request options for readAdminAuditSensitiveContent without sending the request
+     */
+    async readAdminAuditSensitiveContentRequestOpts(requestParameters: ReadAdminAuditSensitiveContentRequest): Promise<runtime.RequestOpts> {
+        if (requestParameters['xClientVersion'] == null) {
+            throw new runtime.RequiredError(
+                'xClientVersion',
+                'Required parameter "xClientVersion" was null or undefined when calling readAdminAuditSensitiveContent().'
+            );
+        }
+
+        if (requestParameters['xPlatform'] == null) {
+            throw new runtime.RequiredError(
+                'xPlatform',
+                'Required parameter "xPlatform" was null or undefined when calling readAdminAuditSensitiveContent().'
+            );
+        }
+
+        if (requestParameters['acceptLanguage'] == null) {
+            throw new runtime.RequiredError(
+                'acceptLanguage',
+                'Required parameter "acceptLanguage" was null or undefined when calling readAdminAuditSensitiveContent().'
+            );
+        }
+
+        if (requestParameters['eventId'] == null) {
+            throw new runtime.RequiredError(
+                'eventId',
+                'Required parameter "eventId" was null or undefined when calling readAdminAuditSensitiveContent().'
+            );
+        }
+
+        if (requestParameters['sensitiveContentReadRequest'] == null) {
+            throw new runtime.RequiredError(
+                'sensitiveContentReadRequest',
+                'Required parameter "sensitiveContentReadRequest" was null or undefined when calling readAdminAuditSensitiveContent().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (requestParameters['xRequestId'] != null) {
+            headerParameters['X-Request-Id'] = String(requestParameters['xRequestId']);
+        }
+
+        if (requestParameters['xClientVersion'] != null) {
+            headerParameters['X-Client-Version'] = String(requestParameters['xClientVersion']);
+        }
+
+        if (requestParameters['xPlatform'] != null) {
+            headerParameters['X-Platform'] = String(requestParameters['xPlatform']);
+        }
+
+        if (requestParameters['acceptLanguage'] != null) {
+            headerParameters['Accept-Language'] = String(requestParameters['acceptLanguage']);
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("adminBearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/admin/v1/audit-events/{eventId}/sensitive-content`;
+        urlPath = urlPath.replace('{eventId}', encodeURIComponent(String(requestParameters['eventId'])));
+
+        return {
+            path: urlPath,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: SensitiveContentReadRequestToJSON(requestParameters['sensitiveContentReadRequest']),
+        };
+    }
+
+    /**
+     * Read encrypted user content with mandatory purpose logging
+     */
+    async readAdminAuditSensitiveContentRaw(requestParameters: ReadAdminAuditSensitiveContentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SensitiveContentResponse>> {
+        const requestOptions = await this.readAdminAuditSensitiveContentRequestOpts(requestParameters);
+        const response = await this.request(requestOptions, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => SensitiveContentResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Read encrypted user content with mandatory purpose logging
+     */
+    async readAdminAuditSensitiveContent(requestParameters: ReadAdminAuditSensitiveContentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SensitiveContentResponse> {
+        const response = await this.readAdminAuditSensitiveContentRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
      * Creates request options for refreshAdminAccessToken without sending the request
      */
     async refreshAdminAccessTokenRequestOpts(requestParameters: RefreshAdminAccessTokenRequest): Promise<runtime.RequestOpts> {
@@ -654,6 +1513,88 @@ export class ADMINRBACApi extends runtime.BaseAPI implements ADMINRBACApiInterfa
      */
     async refreshAdminAccessToken(requestParameters: RefreshAdminAccessTokenRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AdminTokenResponse> {
         const response = await this.refreshAdminAccessTokenRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Creates request options for verifyAdminAuditIntegrity without sending the request
+     */
+    async verifyAdminAuditIntegrityRequestOpts(requestParameters: VerifyAdminAuditIntegrityRequest): Promise<runtime.RequestOpts> {
+        if (requestParameters['xClientVersion'] == null) {
+            throw new runtime.RequiredError(
+                'xClientVersion',
+                'Required parameter "xClientVersion" was null or undefined when calling verifyAdminAuditIntegrity().'
+            );
+        }
+
+        if (requestParameters['xPlatform'] == null) {
+            throw new runtime.RequiredError(
+                'xPlatform',
+                'Required parameter "xPlatform" was null or undefined when calling verifyAdminAuditIntegrity().'
+            );
+        }
+
+        if (requestParameters['acceptLanguage'] == null) {
+            throw new runtime.RequiredError(
+                'acceptLanguage',
+                'Required parameter "acceptLanguage" was null or undefined when calling verifyAdminAuditIntegrity().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (requestParameters['xRequestId'] != null) {
+            headerParameters['X-Request-Id'] = String(requestParameters['xRequestId']);
+        }
+
+        if (requestParameters['xClientVersion'] != null) {
+            headerParameters['X-Client-Version'] = String(requestParameters['xClientVersion']);
+        }
+
+        if (requestParameters['xPlatform'] != null) {
+            headerParameters['X-Platform'] = String(requestParameters['xPlatform']);
+        }
+
+        if (requestParameters['acceptLanguage'] != null) {
+            headerParameters['Accept-Language'] = String(requestParameters['acceptLanguage']);
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("adminBearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/admin/v1/audit-events/integrity`;
+
+        return {
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        };
+    }
+
+    /**
+     * Verify audit hash-chain and encrypted payload digests
+     */
+    async verifyAdminAuditIntegrityRaw(requestParameters: VerifyAdminAuditIntegrityRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AuditIntegrityResponse>> {
+        const requestOptions = await this.verifyAdminAuditIntegrityRequestOpts(requestParameters);
+        const response = await this.request(requestOptions, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => AuditIntegrityResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Verify audit hash-chain and encrypted payload digests
+     */
+    async verifyAdminAuditIntegrity(requestParameters: VerifyAdminAuditIntegrityRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AuditIntegrityResponse> {
+        const response = await this.verifyAdminAuditIntegrityRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -759,11 +1700,35 @@ export class ADMINRBACApi extends runtime.BaseAPI implements ADMINRBACApiInterfa
 /**
  * @export
  */
+export const ChangeAdminAuditLegalHoldXPlatformEnum = {
+    Android: 'ANDROID',
+    AdminWeb: 'ADMIN_WEB'
+} as const;
+export type ChangeAdminAuditLegalHoldXPlatformEnum = typeof ChangeAdminAuditLegalHoldXPlatformEnum[keyof typeof ChangeAdminAuditLegalHoldXPlatformEnum];
+/**
+ * @export
+ */
+export const CreateAdminAuditExportXPlatformEnum = {
+    Android: 'ANDROID',
+    AdminWeb: 'ADMIN_WEB'
+} as const;
+export type CreateAdminAuditExportXPlatformEnum = typeof CreateAdminAuditExportXPlatformEnum[keyof typeof CreateAdminAuditExportXPlatformEnum];
+/**
+ * @export
+ */
 export const GetCurrentAdminXPlatformEnum = {
     Android: 'ANDROID',
     AdminWeb: 'ADMIN_WEB'
 } as const;
 export type GetCurrentAdminXPlatformEnum = typeof GetCurrentAdminXPlatformEnum[keyof typeof GetCurrentAdminXPlatformEnum];
+/**
+ * @export
+ */
+export const ListAdminAuditEventsXPlatformEnum = {
+    Android: 'ANDROID',
+    AdminWeb: 'ADMIN_WEB'
+} as const;
+export type ListAdminAuditEventsXPlatformEnum = typeof ListAdminAuditEventsXPlatformEnum[keyof typeof ListAdminAuditEventsXPlatformEnum];
 /**
  * @export
  */
@@ -783,11 +1748,35 @@ export type LogoutAdminXPlatformEnum = typeof LogoutAdminXPlatformEnum[keyof typ
 /**
  * @export
  */
+export const ReadAdminAuditExportXPlatformEnum = {
+    Android: 'ANDROID',
+    AdminWeb: 'ADMIN_WEB'
+} as const;
+export type ReadAdminAuditExportXPlatformEnum = typeof ReadAdminAuditExportXPlatformEnum[keyof typeof ReadAdminAuditExportXPlatformEnum];
+/**
+ * @export
+ */
+export const ReadAdminAuditSensitiveContentXPlatformEnum = {
+    Android: 'ANDROID',
+    AdminWeb: 'ADMIN_WEB'
+} as const;
+export type ReadAdminAuditSensitiveContentXPlatformEnum = typeof ReadAdminAuditSensitiveContentXPlatformEnum[keyof typeof ReadAdminAuditSensitiveContentXPlatformEnum];
+/**
+ * @export
+ */
 export const RefreshAdminAccessTokenXPlatformEnum = {
     Android: 'ANDROID',
     AdminWeb: 'ADMIN_WEB'
 } as const;
 export type RefreshAdminAccessTokenXPlatformEnum = typeof RefreshAdminAccessTokenXPlatformEnum[keyof typeof RefreshAdminAccessTokenXPlatformEnum];
+/**
+ * @export
+ */
+export const VerifyAdminAuditIntegrityXPlatformEnum = {
+    Android: 'ANDROID',
+    AdminWeb: 'ADMIN_WEB'
+} as const;
+export type VerifyAdminAuditIntegrityXPlatformEnum = typeof VerifyAdminAuditIntegrityXPlatformEnum[keyof typeof VerifyAdminAuditIntegrityXPlatformEnum];
 /**
  * @export
  */

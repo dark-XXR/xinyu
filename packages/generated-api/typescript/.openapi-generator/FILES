@@ -107,6 +107,18 @@ src/models/AppBootstrapResponse.ts
 src/models/Appeal.ts
 src/models/AppealRequest.ts
 src/models/AppealResponse.ts
+src/models/AuditEvent.ts
+src/models/AuditEventListData.ts
+src/models/AuditEventListResponse.ts
+src/models/AuditEventResponse.ts
+src/models/AuditExportContentData.ts
+src/models/AuditExportContentResponse.ts
+src/models/AuditExportData.ts
+src/models/AuditExportReadRequest.ts
+src/models/AuditExportRequest.ts
+src/models/AuditExportResponse.ts
+src/models/AuditIntegrityData.ts
+src/models/AuditIntegrityResponse.ts
 src/models/AuthChallengeMode.ts
 src/models/AuthChannel.ts
 src/models/AuthChannelAvailability.ts
@@ -184,6 +196,7 @@ src/models/HealthCheckRequest.ts
 src/models/HealthData.ts
 src/models/HealthSuccessResponse.ts
 src/models/LedgerEntryType.ts
+src/models/LegalHoldRequest.ts
 src/models/LogicalModel.ts
 src/models/LoginData.ts
 src/models/LoginResponse.ts
@@ -256,6 +269,9 @@ src/models/RollbackReferralCampaignRequest.ts
 src/models/RotateCredentialsRequest.ts
 src/models/SafetyStatus.ts
 src/models/SalesChannel.ts
+src/models/SensitiveContentData.ts
+src/models/SensitiveContentReadRequest.ts
+src/models/SensitiveContentResponse.ts
 src/models/SmsChallenge.ts
 src/models/SmsChallengeResponse.ts
 src/models/SmsConfiguration.ts

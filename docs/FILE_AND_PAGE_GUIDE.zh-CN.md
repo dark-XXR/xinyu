@@ -36,19 +36,19 @@
 | 编号 | 功能或页面 | 主要文件与位置 | 当前状态 |
 | --- | --- | --- | --- |
 | W01 | 管理后台工程与运行说明 | `apps/admin-web/package.json`、`apps/admin-web/README.zh-CN.md` | 已创建：安装、启动、类型检查、代码检查和生产构建命令 |
-| W02 | 页面入口和路由表 | `apps/admin-web/src/main.tsx`、`apps/admin-web/src/App.tsx` | 已完成：初始化数据查询并注册 5 个管理页面路由 |
+| W02 | 页面入口和路由表 | `apps/admin-web/src/main.tsx`、`apps/admin-web/src/App.tsx` | 已完成：初始化数据查询并注册工作台、供应商、AI、合规审计、商品和订单页面路由 |
 | W03 | 全局导航和移动菜单 | `apps/admin-web/src/components/Layout.tsx` | 已完成：桌面侧栏、移动端菜单、当前页面高亮和 Escape 关闭 |
 | W04 | 管理工作台页面 `/` | `apps/admin-web/src/pages/Dashboard.tsx` | 已完成：系统状态、待办指标、已发布商品、最近活动和快捷入口 |
 | W05 | 供应商配置页面 `/providers` | `apps/admin-web/src/pages/Providers.tsx` | 已完成首批：AI、邮件、短信、易支付草稿，筛选、健康检查、密钥轮换、发布和回滚；禁用仍待开发 |
 | W06 | 套餐与价格页面 `/commerce/products` | `apps/admin-web/src/pages/commerce/Products.tsx` | 已完成：价格、次数、权益、销售渠道和版本均由后台数据维护，支持发布与真实历史版本回滚 |
 | W07 | 订单与退款页面 `/commerce/orders` | `apps/admin-web/src/pages/commerce/Orders.tsx` | 已完成：订单搜索、支付尝试、商品快照、退款审批和退款执行 |
-| W08 | 前端数据接口切换层 | `apps/admin-web/src/api/repository.ts` | 已完成首批：统一 Mock/HTTP 调用，包含 AI 模型、路由、提示词、风控、评测、发布与回滚；HTTP 使用自动生成客户端，密钥只写不读 |
-| W09 | 自动生成模型的引用入口 | `apps/admin-web/src/api/models.ts` | 已完成：集中导出页面使用的供应商、商业和 AI 接口类型与枚举；不要在此写业务值 |
+| W08 | 前端数据接口切换层 | `apps/admin-web/src/api/repository.ts` | 已完成首批：统一 Mock/HTTP 调用，包含 AI 配置和合规审计检索、敏感正文、法务冻结、完整性检查与监管导出；HTTP 使用自动生成客户端，密钥只写不读 |
+| W09 | 自动生成模型的引用入口 | `apps/admin-web/src/api/models.ts` | 已完成：集中导出页面使用的供应商、商业、AI 和合规审计接口类型与枚举；不要在此写业务值 |
 | W10 | 全局 UI 参数 | `apps/admin-web/src/styles/design-system.css` | 已完成首批：颜色、字号、间距、页签、表格、抽屉、对话框和 390px 卡片布局 |
 | W11 | 通用按钮、输入和状态标签 | `apps/admin-web/src/components/ui/Button.tsx`、`Input.tsx`、`Badge.tsx` | 已完成：修改按钮外观、输入框和状态颜色时使用这些文件 |
 | W12 | 通用卡片、抽屉和确认框 | `apps/admin-web/src/components/ui/Card.tsx`、`Drawer.tsx`、`Dialog.tsx` | 已完成：焦点约束、Escape 关闭和关闭后恢复焦点 |
 | W13 | AI 运行配置页面 `/ai` | `apps/admin-web/src/pages/ai/AiOperations.tsx` | 已完成：模型映射、场景多目标路由、提示词 JSON Schema、评测闸门、风控、灰度发布和真实历史版本回滚 |
-| W14 | 后台审计查询页面 | 计划位于 `apps/admin-web/src/pages/audit/` | 待开发：供应商与支付操作的独立审计回读 |
+| W14 | 合规审计与监管取证页面 `/audit` | `apps/admin-web/src/pages/audit/AuditOperations.tsx` | 已完成：登录、AI 输入输出、充值支付、管理员配置和网站运行日志检索；敏感正文默认不读取，必须填写理由后二次确认；支持法务冻结、哈希链检查和加密导出 |
 | W15 | 邀请推广页面 | 计划位于 `apps/admin-web/src/pages/referrals/` | 待开发：活动、门槛、奖励和回滚配置 |
 | W16 | AI 表单下拉框与多行输入 | `apps/admin-web/src/components/ui/Select.tsx`、`apps/admin-web/src/components/ui/Textarea.tsx` | 已完成：AI 配置页的枚举选择、Prompt、JSON Schema 和审计原因输入；错误信息可直接显示在输入框下方 |
 
@@ -56,7 +56,7 @@
 
 | 编号 | 功能 | 文件路径 | 说明 |
 | --- | --- | --- | --- |
-| B01 | 后端应用入口与路由注册 | `services/api/src/love_reply_api/main.py` | 注册所有 HTTP 路由和运行时适配器 |
+| B01 | 后端应用入口与请求审计 | `services/api/src/love_reply_api/main.py` | 注册全部路由；记录请求状态、耗时和匿名 IP 哈希，管理后台写操作请求体经脱敏后审计，普通用户 AI 正文不进入普通元数据 |
 | B02 | 普通用户注册/登录接口 | `services/api/src/love_reply_api/transport/http/routes/auth.py` | 邮箱和短信验证码、登录、刷新与退出接口 |
 | B03 | 注册/登录业务规则 | `services/api/src/love_reply_api/application/auth.py` | 验证码、频率限制、渠道策略、账号与会话创建 |
 | B04 | 管理员登录与 MFA | `services/api/src/love_reply_api/application/admin_auth.py` | 管理员密码、TOTP、多因素会话和权限 |
@@ -81,6 +81,9 @@
 | B17 | 邀请推广用户与管理接口 | `services/api/src/love_reply_api/transport/http/routes/referrals.py` | 活动、个人邀请码、绑定、进度、奖励、发布和回滚共 10 个操作 |
 | B18 | 邀请推广业务规则 | `services/api/src/love_reply_api/application/referrals.py` | 单层绑定、设备和支付身份风控、里程碑、冷静期、发奖和撤销 |
 | B19 | 邀请推广接口参数 | `services/api/src/love_reply_api/transport/http/referral_schemas.py` | 活动配置、奖励规则、绑定及响应字段校验 |
+| B20 | 统一合规审计业务服务 | `services/api/src/love_reply_api/application/audit.py` | 敏感正文加密、凭据脱敏、HMAC-SHA256 哈希链、筛选、法务冻结、完整性校验和加密监管导出 |
+| B21 | 管理员合规审计接口 | `services/api/src/love_reply_api/transport/http/routes/admin_audit.py` | 日志列表、敏感正文受控读取、法务冻结、完整性检查、监管导出创建和读取共 6 个操作 |
+| B22 | 合规审计接口参数 | `services/api/src/love_reply_api/transport/http/audit_schemas.py` | 审计筛选、正文读取理由、冻结理由和导出理由校验；理由最少 8 字由后端契约控制 |
 
 ## 数据表和迁移
 
@@ -95,6 +98,7 @@
 | D07 | 商业后台升级文件 | `database/migrations/versions/f5b1c27a9e10_add_commerce_administration.py` | 商品审批、退款执行人、权益发放快照、商业审计、人工调整和对账批次表 |
 | D08 | 邀请推广数据表 | `services/api/src/love_reply_api/infrastructure/referral_records.py` | 活动版本、邀请码、绑定、支付身份哈希、奖励和审计记录 |
 | D09 | 邀请推广升级文件 | `database/migrations/versions/a6ce441f72d8_add_referral_runtime.py` | 创建邀请推广运行时全部数据表和索引 |
+| D10 | 合规审计账本与监管导出表 | `services/api/src/love_reply_api/infrastructure/audit_records.py`、`database/migrations/versions/b91e63a4d2f0_add_compliance_audit_ledger.py` | 追加式统一审计事件、加密正文摘要、保留截止、法务冻结、前序哈希、事件哈希和短效加密导出包 |
 
 ## 契约与配置
 
@@ -106,6 +110,7 @@
 | C04 | AI 管理接口契约 | `contracts/openapi/admin/model-gateway.yaml` 等 | AI 模型、提示词、评测和风控接口 |
 | C05 | AI 管理数据结构 | `contracts/openapi/schemas/admin-ai.yaml` | AI 价格、次数、预算、安全阈值和版本字段 |
 | C06 | 产品与套餐建议规格 | `docs/product/provider-and-subscription-spec.md` | 产品决策参考；最终运行值由后台配置发布 |
+| C07 | 合规审计接口契约 | `contracts/openapi/admin/audit.yaml`、`contracts/openapi/schemas/admin-audit.yaml` | 管理员日志检索、敏感正文、冻结、完整性检查和监管导出的共享前后端契约 |
 | C07 | 当前开发进度 | `docs/handoffs/DEVELOPMENT_STATUS.md` | 已完成功能、验证结果和下一步计划 |
 | C08 | 管理员商业接口契约 | `contracts/openapi/admin/finance.yaml` | 商品、订单、退款、对账和权益调整接口定义 |
 | C09 | 管理员商业数据结构 | `contracts/openapi/schemas/admin-business.yaml` | 后台商品价格、次数、权益、审批和财务操作字段 |

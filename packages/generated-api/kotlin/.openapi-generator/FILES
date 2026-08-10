@@ -116,6 +116,18 @@ src/main/kotlin/com/love_reply/generated/model/AppBootstrapResponse.kt
 src/main/kotlin/com/love_reply/generated/model/Appeal.kt
 src/main/kotlin/com/love_reply/generated/model/AppealRequest.kt
 src/main/kotlin/com/love_reply/generated/model/AppealResponse.kt
+src/main/kotlin/com/love_reply/generated/model/AuditEvent.kt
+src/main/kotlin/com/love_reply/generated/model/AuditEventListData.kt
+src/main/kotlin/com/love_reply/generated/model/AuditEventListResponse.kt
+src/main/kotlin/com/love_reply/generated/model/AuditEventResponse.kt
+src/main/kotlin/com/love_reply/generated/model/AuditExportContentData.kt
+src/main/kotlin/com/love_reply/generated/model/AuditExportContentResponse.kt
+src/main/kotlin/com/love_reply/generated/model/AuditExportData.kt
+src/main/kotlin/com/love_reply/generated/model/AuditExportReadRequest.kt
+src/main/kotlin/com/love_reply/generated/model/AuditExportRequest.kt
+src/main/kotlin/com/love_reply/generated/model/AuditExportResponse.kt
+src/main/kotlin/com/love_reply/generated/model/AuditIntegrityData.kt
+src/main/kotlin/com/love_reply/generated/model/AuditIntegrityResponse.kt
 src/main/kotlin/com/love_reply/generated/model/AuthChallengeMode.kt
 src/main/kotlin/com/love_reply/generated/model/AuthChannel.kt
 src/main/kotlin/com/love_reply/generated/model/AuthChannelAvailability.kt
@@ -193,6 +205,7 @@ src/main/kotlin/com/love_reply/generated/model/HealthCheckRequest.kt
 src/main/kotlin/com/love_reply/generated/model/HealthData.kt
 src/main/kotlin/com/love_reply/generated/model/HealthSuccessResponse.kt
 src/main/kotlin/com/love_reply/generated/model/LedgerEntryType.kt
+src/main/kotlin/com/love_reply/generated/model/LegalHoldRequest.kt
 src/main/kotlin/com/love_reply/generated/model/LogicalModel.kt
 src/main/kotlin/com/love_reply/generated/model/LoginData.kt
 src/main/kotlin/com/love_reply/generated/model/LoginResponse.kt
@@ -265,6 +278,9 @@ src/main/kotlin/com/love_reply/generated/model/RollbackReferralCampaignRequest.k
 src/main/kotlin/com/love_reply/generated/model/RotateCredentialsRequest.kt
 src/main/kotlin/com/love_reply/generated/model/SafetyStatus.kt
 src/main/kotlin/com/love_reply/generated/model/SalesChannel.kt
+src/main/kotlin/com/love_reply/generated/model/SensitiveContentData.kt
+src/main/kotlin/com/love_reply/generated/model/SensitiveContentReadRequest.kt
+src/main/kotlin/com/love_reply/generated/model/SensitiveContentResponse.kt
 src/main/kotlin/com/love_reply/generated/model/SmsChallenge.kt
 src/main/kotlin/com/love_reply/generated/model/SmsChallengeResponse.kt
 src/main/kotlin/com/love_reply/generated/model/SmsConfiguration.kt

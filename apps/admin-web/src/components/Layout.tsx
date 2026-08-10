@@ -4,7 +4,7 @@
  */
 import React, { useState } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
-import { LayoutDashboard, Server, Cpu, ShoppingCart, ListOrdered, Menu } from 'lucide-react';
+import { LayoutDashboard, Server, Cpu, ShoppingCart, ListOrdered, Menu, ShieldCheck } from 'lucide-react';
 
 export const Layout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -41,6 +41,9 @@ export const Layout: React.FC = () => {
           </NavLink>
           <NavLink to="/ai" onClick={closeSidebar} className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
             <Cpu size={18} /> AI 运行配置
+          </NavLink>
+          <NavLink to="/audit" onClick={closeSidebar} className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
+            <ShieldCheck size={18} /> 合规审计
           </NavLink>
           <NavLink to="/commerce/products" onClick={closeSidebar} className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
             <ShoppingCart size={18} /> 商品与套餐

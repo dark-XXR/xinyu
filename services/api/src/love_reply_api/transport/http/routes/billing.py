@@ -255,6 +255,9 @@ async def create_order(
 ) -> OrderResponse:
     del idempotency_key
     order = await service.create_order(user_id=auth.user_id, **body.model_dump())
+    request.state.audit_resource_type = "ORDER"
+    request.state.audit_resource_id = order.order_id
+    request.state.audit_order_id = order.order_id
     return SuccessEnvelope(
         data=await _order_data(service, order), request_id=request.state.request_id
     )
@@ -421,6 +424,7 @@ async def get_refund(
 )
 async def receive_epay_callback(
     provider_id: Annotated[str, Path(alias="providerId")],
+    request: Request,
     service: Annotated[CommerceService, Depends(get_commerce_service)],
     pid: Annotated[str, Form()],
     trade_no: Annotated[str, Form()],
@@ -436,6 +440,15 @@ async def receive_epay_callback(
     buyer: Annotated[str | None, Form()] = None,
     account: Annotated[str | None, Form()] = None,
 ) -> Response:
+    request.state.audit_resource_type = "ORDER"
+    request.state.audit_resource_id = out_trade_no
+    request.state.audit_order_id = out_trade_no
+    request.state.audit_provider_id = provider_id
+    request.state.audit_metadata = {
+        "paymentMethod": type_,
+        "tradeStatus": trade_status,
+        "signType": sign_type,
+    }
     form = {
         "pid": pid,
         "trade_no": trade_no,

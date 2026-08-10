@@ -12,6 +12,7 @@ from love_reply_api.application.generation import (
 )
 from love_reply_api.config import get_settings
 from love_reply_api.domain.generation import GenerationStatus, ReplyStrategy, SafetyStatus
+from love_reply_api.infrastructure.audit_records import ComplianceAuditEventRecord
 from love_reply_api.infrastructure.database import engine, session_factory
 from love_reply_api.infrastructure.generation_records import (
     CandidateActionRecord,
@@ -37,7 +38,7 @@ from love_reply_api.infrastructure.identity_records import (
     UserRecord,
 )
 from love_reply_api.main import app
-from sqlalchemy import delete
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 pytestmark = pytest.mark.skipif(
@@ -329,7 +330,11 @@ async def test_generation_http_flow_returns_quote_snapshot_and_sse() -> None:
             quote_data = quote.json()["data"]
             create = await client.post(
                 "/v1/generations",
-                headers={**auth_headers, "Idempotency-Key": "http-generation-4"},
+                headers={
+                    **auth_headers,
+                    "Idempotency-Key": "http-generation-4",
+                    "X-Request-Id": "req-http-generation-create",
+                },
                 json={
                     "clientRequestId": "http-generation-request",
                     "input": _input(),
@@ -341,6 +346,24 @@ async def test_generation_http_flow_returns_quote_snapshot_and_sse() -> None:
             )
             assert create.status_code == 202
             generation_id = create.json()["data"]["generationId"]
+            async with session_factory() as audit_session:
+                request_audit = await audit_session.scalar(
+                    select(ComplianceAuditEventRecord).where(
+                        ComplianceAuditEventRecord.request_id == "req-http-generation-create"
+                    )
+                )
+                content_audit = await audit_session.scalar(
+                    select(ComplianceAuditEventRecord).where(
+                        ComplianceAuditEventRecord.event_type == "AI_GENERATION_ACCEPTED",
+                        ComplianceAuditEventRecord.generation_id == generation_id,
+                    )
+                )
+                # HTTP 元数据不重复保存普通用户 AI 正文；输入和上下文只进入加密业务审计。
+                assert request_audit is not None
+                assert request_audit.metadata_json["requestBody"] is None
+                assert content_audit is not None
+                assert content_audit.sensitive_payload_ciphertext is not None
+                assert str(_input()["text"]) not in content_audit.sensitive_payload_ciphertext
             snapshot = await client.get(
                 f"/v1/generations/{generation_id}",
                 headers=auth_headers,

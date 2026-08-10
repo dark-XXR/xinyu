@@ -32,6 +32,13 @@
    - 基于订单快照的完整溯源
    - 订单侧执行退款请求的人工审计（通过 / 驳回）
 
+6. **合规审计与监管取证 (Audit Operations - `/audit`)**
+   - 覆盖登录认证、AI 输入输出、充值支付、管理配置修改与网站运行错误/耗时的全量日志检索
+   - 提供基于 SHA-256 签名链的哈希防篡改完整性校验 (`verifyAuditIntegrity`)
+   - 敏感业务正文受控保护：默认隐蔽，必须在 Dialog 中输入不少于 8 个字符的具体审查理由授权后两阶段在线调取 (`readAuditSensitiveContent`)，且仅在当前抽屉窗口内存中短期展示
+   - 支持对涉案/监管取证日志开启/解除法务冻结 (`changeAuditLegalHold`)，锁定排除自动化归档清理
+   - 提供基于加密签名链的短效审计导出包创建 (`createAuditExport`) 与两阶段解密调取 (`readAuditExport`)
+
 ## 技术栈与设计原则
 
 - 基于 **React** (Vite + TS) 及 **React Router v7** Future Flag 的单页应用

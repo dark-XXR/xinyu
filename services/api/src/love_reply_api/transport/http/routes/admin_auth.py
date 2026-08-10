@@ -1,3 +1,4 @@
+from hashlib import sha256
 from typing import Annotated, cast
 
 from fastapi import APIRouter, Depends, Header, Request
@@ -92,6 +93,9 @@ async def login_admin(
     service: Annotated[AdminAuthService, Depends(get_admin_auth_service)],
 ) -> AdminLoginResponse:
     del client, idempotency_key
+    request.state.audit_metadata = {
+        "loginNameHash": sha256(body.login_name.strip().lower().encode()).hexdigest()
+    }
     result = await service.login(login_name=body.login_name, password=body.password)
     return SuccessEnvelope(
         data=AdminLoginData(
@@ -122,6 +126,10 @@ async def verify_admin_mfa(
         method=body.method,
         code=body.code,
     )
+    request.state.audit_actor_type = "ADMIN"
+    request.state.audit_actor_id = result.admin.admin_id
+    request.state.audit_admin_id = result.admin.admin_id
+    request.state.audit_session_id = result.session.session_id
     return SuccessEnvelope(data=_auth_data(result), request_id=_request_id(request))
 
 

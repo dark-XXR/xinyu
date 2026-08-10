@@ -9,6 +9,7 @@ import {
   ADMINPROVIDERApi,
   ADMINCOMMERCEApi,
   ADMINAIApi,
+  ADMINRBACApi,
   ProviderKind,
   ProviderStatus,
   OrderStatus,
@@ -32,6 +33,10 @@ import {
   AiRiskPolicyPromptInjectionActionEnum,
   AiRiskPolicyWriteRequestPromptInjectionActionEnum,
   AiEvaluationRunStatusEnum,
+  AuditEventCategoryEnum,
+  AuditEventOutcomeEnum,
+  AuditEventSeverityEnum,
+  AuditEventActorTypeEnum,
 } from './models';
 import type {
   Provider,
@@ -64,9 +69,35 @@ import type {
   AiEvaluationRunRequest,
   AiPublishRequest,
   AiRollbackRequest,
+  AuditEvent,
+  AuditIntegrityData,
+  SensitiveContentData,
+  AuditExportData,
+  AuditExportContentData,
+  AuditExportRequest,
 } from './models';
 
 /* ── 仓库接口 ── */
+
+export interface AuditFilterParams {
+  cursor?: string;
+  limit?: number;
+  category?: AuditEventCategoryEnum | string;
+  eventType?: string;
+  outcome?: AuditEventOutcomeEnum | string;
+  userId?: string;
+  adminId?: string;
+  orderId?: string;
+  generationId?: string;
+  requestId?: string;
+  from?: Date;
+  to?: Date;
+}
+
+export interface AuditListResult {
+  events: AuditEvent[];
+  nextCursor?: string;
+}
 
 export interface AiEditorDefaults {
   modelMapping: AiModelMappingWriteRequest;
@@ -123,6 +154,14 @@ export interface Repository {
   getAiEvaluationRun(evaluationRunId: string): Promise<AiEvaluationRun | null>;
 
   getAiEditorDefaults(): Promise<AiEditorDefaults>;
+
+  /* 合规审计管理 */
+  getAuditEvents(filter?: AuditFilterParams): Promise<AuditListResult>;
+  verifyAuditIntegrity(): Promise<AuditIntegrityData>;
+  readAuditSensitiveContent(eventId: string, reason: string): Promise<SensitiveContentData>;
+  changeAuditLegalHold(eventId: string, enabled: boolean, reason: string): Promise<AuditEvent>;
+  createAuditExport(request: AuditExportRequest): Promise<AuditExportData>;
+  readAuditExport(exportId: string, reason: string): Promise<AuditExportContentData>;
 }
 
 /* ── HTTP 配置 ── */
@@ -198,6 +237,7 @@ const mockState: {
   aiPrompts: AiPromptTemplate[];
   aiRiskPolicies: AiRiskPolicy[];
   aiEvaluationRuns: AiEvaluationRun[];
+  auditEvents: AuditEvent[];
 } = {
   providers: [
     {
@@ -613,6 +653,185 @@ const mockState: {
       updatedAt: now,
     } satisfies AiEvaluationRun,
   ],
+
+  auditEvents: [
+    {
+      eventId: 'evt-auth-001',
+      occurredAt: new Date(now.getTime() - 3600_000 * 2),
+      category: AuditEventCategoryEnum.Auth,
+      eventType: 'login.success',
+      outcome: AuditEventOutcomeEnum.Succeeded,
+      severity: AuditEventSeverityEnum.Info,
+      actorType: AuditEventActorTypeEnum.User,
+      actorId: 'user-001',
+      userId: 'user-001',
+      sessionId: 'sess-auth-8801',
+      requestId: 'req-auth-001',
+      clientPlatform: 'ANDROID',
+      clientVersion: '1.2.0',
+      summary: '用户通过邮件验证码成功登录系统',
+      // 真实后端只保存部署密钥 HMAC 哈希，不保存原始 IP 地址
+      metadata: { loginChannel: 'EMAIL', ipHash: 'hmac-sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855' },
+      containsSensitiveContent: false,
+      retentionUntil: new Date(now.getTime() + 86400_000 * 365),
+      legalHold: false,
+      previousEventHash: '0000000000000000000000000000000000000000000000000000000000000000',
+      eventHash: 'a1b2c3d4e5f67890a1b2c3d4e5f67890a1b2c3d4e5f67890a1b2c3d4e5f67890',
+    } satisfies AuditEvent,
+    {
+      eventId: 'evt-auth-002',
+      occurredAt: new Date(now.getTime() - 3600_000 * 5),
+      category: AuditEventCategoryEnum.Auth,
+      eventType: 'login.failed',
+      outcome: AuditEventOutcomeEnum.Failed,
+      severity: AuditEventSeverityEnum.Warning,
+      actorType: AuditEventActorTypeEnum.Admin,
+      actorId: 'admin-002',
+      adminId: 'admin-002',
+      requestId: 'req-auth-002',
+      clientPlatform: 'ADMIN_WEB',
+      clientVersion: '1.0.0',
+      summary: '管理员 MFA 动态口令校验失败（连续尝试 2 次）',
+      // 真实后端只保存部署密钥 HMAC 哈希，不保存原始 IP 地址
+      metadata: { failureReason: 'MFA_CODE_MISMATCH', attemptCount: 2, ipHash: 'hmac-sha256:5d41402abc4b2a76b9719d911017c592abe8f495f5700c291d28023d01d4c1d0' },
+      containsSensitiveContent: false,
+      retentionUntil: new Date(now.getTime() + 86400_000 * 365),
+      legalHold: false,
+      previousEventHash: 'a1b2c3d4e5f67890a1b2c3d4e5f67890a1b2c3d4e5f67890a1b2c3d4e5f67890',
+      eventHash: 'b2c3d4e5f67890a1b2c3d4e5f67890a1b2c3d4e5f67890a1b2c3d4e5f67890a1',
+    } satisfies AuditEvent,
+    {
+      eventId: 'evt-ai-001',
+      occurredAt: new Date(now.getTime() - 3600_000 * 12),
+      category: AuditEventCategoryEnum.Ai,
+      eventType: 'ai.generation.completed',
+      outcome: AuditEventOutcomeEnum.Succeeded,
+      severity: AuditEventSeverityEnum.Info,
+      actorType: AuditEventActorTypeEnum.User,
+      actorId: 'user-001',
+      userId: 'user-001',
+      requestId: 'req-ai-1001',
+      generationId: 'gen-20240809-001',
+      providerId: 'prov-ai-001',
+      summary: '恋爱高情商回复生成完成（耗时 1250ms）',
+      metadata: { scenario: 'ReplyGeneration', tokensUsed: 380, model: 'gpt-4o-mini' },
+      containsSensitiveContent: true,
+      sensitivePayloadDigest: 'sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+      retentionUntil: new Date(now.getTime() + 86400_000 * 365),
+      legalHold: false,
+      previousEventHash: 'b2c3d4e5f67890a1b2c3d4e5f67890a1b2c3d4e5f67890a1b2c3d4e5f67890a1',
+      eventHash: 'c3d4e5f67890a1b2c3d4e5f67890a1b2c3d4e5f67890a1b2c3d4e5f67890a1b2',
+    } satisfies AuditEvent,
+    {
+      eventId: 'evt-ai-002',
+      occurredAt: new Date(now.getTime() - 3600_000 * 18),
+      category: AuditEventCategoryEnum.Ai,
+      eventType: 'content.moderated',
+      outcome: AuditEventOutcomeEnum.Failed,
+      severity: AuditEventSeverityEnum.High,
+      actorType: AuditEventActorTypeEnum.User,
+      actorId: 'user-003',
+      userId: 'user-003',
+      requestId: 'req-ai-1002',
+      generationId: 'gen-20240809-002',
+      summary: '风控策略阻断违规提示词输入',
+      metadata: { ruleId: 'RULE_PROMPT_INJECTION_001', action: 'BLOCK' },
+      containsSensitiveContent: true,
+      sensitivePayloadDigest: 'sha256:8f434346648f6b96df89dda901c5176b10a6d83961dd3c1ac88b59b2dc327aa4',
+      retentionUntil: new Date(now.getTime() + 86400_000 * 365),
+      legalHold: true,
+      previousEventHash: 'c3d4e5f67890a1b2c3d4e5f67890a1b2c3d4e5f67890a1b2c3d4e5f67890a1b2',
+      eventHash: 'd4e5f67890a1b2c3d4e5f67890a1b2c3d4e5f67890a1b2c3d4e5f67890a1b2c3',
+    } satisfies AuditEvent,
+    {
+      eventId: 'evt-pay-001',
+      occurredAt: new Date(now.getTime() - 3600_000 * 24),
+      category: AuditEventCategoryEnum.Payment,
+      eventType: 'order.created',
+      outcome: AuditEventOutcomeEnum.Succeeded,
+      severity: AuditEventSeverityEnum.Info,
+      actorType: AuditEventActorTypeEnum.User,
+      actorId: 'user-001',
+      userId: 'user-001',
+      orderId: 'ord-20240801-001',
+      summary: '创建基础月度套餐购买订单 (¥9.90)',
+      metadata: { amountMinor: 990, currency: 'CNY', productCode: 'MONTHLY_BASIC' },
+      containsSensitiveContent: false,
+      retentionUntil: new Date(now.getTime() + 86400_000 * 365),
+      legalHold: false,
+      previousEventHash: 'd4e5f67890a1b2c3d4e5f67890a1b2c3d4e5f67890a1b2c3d4e5f67890a1b2c3',
+      eventHash: 'e5f67890a1b2c3d4e5f67890a1b2c3d4e5f67890a1b2c3d4e5f67890a1b2c3d4',
+    } satisfies AuditEvent,
+    {
+      eventId: 'evt-pay-002',
+      occurredAt: new Date(now.getTime() - 3600_000 * 23.5),
+      category: AuditEventCategoryEnum.Payment,
+      eventType: 'payment.succeeded',
+      outcome: AuditEventOutcomeEnum.Succeeded,
+      severity: AuditEventSeverityEnum.Info,
+      actorType: AuditEventActorTypeEnum.System,
+      userId: 'user-001',
+      orderId: 'ord-20240801-001',
+      providerId: 'prov-pay-001',
+      summary: '易支付网关支付回调校验成功并自动到账',
+      metadata: { paymentMethod: 'ALIPAY', paidAmountMinor: 990, gatewayTxnId: 'epay_txn_99887711' },
+      containsSensitiveContent: false,
+      retentionUntil: new Date(now.getTime() + 86400_000 * 365),
+      legalHold: false,
+      previousEventHash: 'e5f67890a1b2c3d4e5f67890a1b2c3d4e5f67890a1b2c3d4e5f67890a1b2c3d4',
+      eventHash: 'f67890a1b2c3d4e5f67890a1b2c3d4e5f67890a1b2c3d4e5f67890a1b2c3d4e5',
+    } satisfies AuditEvent,
+    {
+      eventId: 'evt-admin-001',
+      occurredAt: new Date(now.getTime() - 3600_000 * 30),
+      category: AuditEventCategoryEnum.Admin,
+      eventType: 'provider.updated',
+      outcome: AuditEventOutcomeEnum.Succeeded,
+      severity: AuditEventSeverityEnum.Critical,
+      actorType: AuditEventActorTypeEnum.Admin,
+      actorId: 'admin-001',
+      adminId: 'admin-001',
+      resourceType: 'PROVIDER',
+      resourceId: 'prov-ai-001',
+      summary: '管理员安全轮换 OpenAI 上游 API Key 凭据',
+      metadata: { auditReason: '例行安全密钥轮换及凭据合规审计' },
+      containsSensitiveContent: false,
+      retentionUntil: new Date(now.getTime() + 86400_000 * 365),
+      legalHold: false,
+      previousEventHash: 'f67890a1b2c3d4e5f67890a1b2c3d4e5f67890a1b2c3d4e5f67890a1b2c3d4e5',
+      eventHash: '7890a1b2c3d4e5f67890a1b2c3d4e5f67890a1b2c3d4e5f67890a1b2c3d4e5f6',
+    } satisfies AuditEvent,
+    {
+      eventId: 'evt-ops-001',
+      occurredAt: new Date(now.getTime() - 3600_000 * 36),
+      category: AuditEventCategoryEnum.Operations,
+      eventType: 'system.error',
+      outcome: AuditEventOutcomeEnum.Failed,
+      severity: AuditEventSeverityEnum.Error,
+      actorType: AuditEventActorTypeEnum.System,
+      requestId: 'req-err-9901',
+      summary: '数据库主从同步延迟引发连接池瞬间超时',
+      metadata: { errorStack: 'DBPoolTimeoutException: Timeout waiting for connection', poolSize: 50 },
+      containsSensitiveContent: false,
+      retentionUntil: new Date(now.getTime() + 86400_000 * 365),
+      legalHold: false,
+      previousEventHash: '7890a1b2c3d4e5f67890a1b2c3d4e5f67890a1b2c3d4e5f67890a1b2c3d4e5f6',
+      eventHash: '890a1b2c3d4e5f67890a1b2c3d4e5f67890a1b2c3d4e5f67890a1b2c3d4e5f67',
+    } satisfies AuditEvent,
+  ],
+};
+
+const mockSensitiveStore: Record<string, Record<string, any>> = {
+  'evt-ai-001': {
+    userPrompt: '对方发送：“今天加班好累啊，感觉整个人都被掏空了”，我该如何回应？',
+    aiReply: '推荐回复：“辛苦啦！赶紧泡个热水澡放松一下，今晚啥都别想，好好休息，做个好梦~”',
+    contextMetadata: { tone: 'EMPATHETIC', length: 'SHORT', style: 'WARM' },
+  },
+  'evt-ai-002': {
+    rawInputText: '用户在对话框中尝试调试异常控制流指令...',
+    blockedRule: 'RULE_PROMPT_INJECTION_001',
+    safetyAnalysis: { riskScore: 0.96, category: 'PROMPT_INJECTION' },
+  },
 };
 
 /* ── Mock 仓库 ── */
@@ -1242,6 +1461,118 @@ const mockRepository: Repository = {
       },
     };
   },
+
+  /* ── 合规审计 Mock 实现 ── */
+  async getAuditEvents(filter) {
+    let list = [...mockState.auditEvents];
+    if (filter?.category && filter.category !== 'ALL') {
+      list = list.filter((e) => e.category === filter.category);
+    }
+    if (filter?.outcome && filter.outcome !== 'ALL') {
+      list = list.filter((e) => e.outcome === filter.outcome);
+    }
+    if (filter?.userId?.trim()) {
+      const uId = filter.userId.trim().toLowerCase();
+      list = list.filter((e) => e.userId?.toLowerCase().includes(uId));
+    }
+    if (filter?.adminId?.trim()) {
+      const aId = filter.adminId.trim().toLowerCase();
+      list = list.filter((e) => e.adminId?.toLowerCase().includes(aId));
+    }
+    if (filter?.orderId?.trim()) {
+      const oId = filter.orderId.trim().toLowerCase();
+      list = list.filter((e) => e.orderId?.toLowerCase().includes(oId));
+    }
+    if (filter?.generationId?.trim()) {
+      const gId = filter.generationId.trim().toLowerCase();
+      list = list.filter((e) => e.generationId?.toLowerCase().includes(gId));
+    }
+    if (filter?.requestId?.trim()) {
+      const rId = filter.requestId.trim().toLowerCase();
+      list = list.filter((e) => e.requestId?.toLowerCase().includes(rId));
+    }
+    if (filter?.from) {
+      const fromTime = new Date(filter.from).getTime();
+      list = list.filter((e) => e.occurredAt.getTime() >= fromTime);
+    }
+    if (filter?.to) {
+      const toTime = new Date(filter.to).getTime();
+      list = list.filter((e) => e.occurredAt.getTime() <= toTime);
+    }
+    list.sort((a, b) => b.occurredAt.getTime() - a.occurredAt.getTime());
+    return { events: list };
+  },
+
+  async verifyAuditIntegrity() {
+    return {
+      valid: true,
+      checkedCount: mockState.auditEvents.length,
+      firstInvalidEventId: null,
+    };
+  },
+
+  async readAuditSensitiveContent(eventId, reason) {
+    if (!reason || reason.trim().length < 8) {
+      throw new Error('审查敏感正文必须填写至少 8 个字符的具体理由');
+    }
+    const content = mockSensitiveStore[eventId] || {
+      notice: '该日志已被严格脱敏安全归档',
+      context: '系统敏感正文数据哈希校验一致，没有敏感凭据泄漏风险',
+    };
+    return { eventId, content };
+  },
+
+  async changeAuditLegalHold(eventId, enabled, reason) {
+    if (!reason || reason.trim().length < 8) {
+      throw new Error('法务冻结控制必须填写至少 8 个字符的具体理由');
+    }
+    const evt = mockState.auditEvents.find((e) => e.eventId === eventId);
+    if (!evt) {
+      throw new Error(`未找到 ID 为 ${eventId} 的审计日志`);
+    }
+    evt.legalHold = enabled;
+    return { ...evt };
+  },
+
+  async createAuditExport(request) {
+    if (!request.auditReason || request.auditReason.trim().length < 8) {
+      throw new Error('创建审计导出包必须填写至少 8 个字符的具体理由');
+    }
+    const exportId = `exp-${Date.now()}`;
+    const expiresAt = new Date(Date.now() + 3600_000 * 24);
+    return {
+      exportId,
+      includeSensitiveContent: request.includeSensitiveContent,
+      eventCount: mockState.auditEvents.length,
+      bundleDigest: 'sha256:7f83b1657ff1...[防篡改签名链]',
+      createdAt: new Date(),
+      expiresAt,
+    };
+  },
+
+  async readAuditExport(exportId, reason) {
+    if (!reason || reason.trim().length < 8) {
+      throw new Error('读取导出数据必须填写至少 8 个字符的具体理由');
+    }
+    return {
+      exportId,
+      bundle: {
+        exportId,
+        readReason: reason,
+        generatedAt: new Date().toISOString(),
+        totalRecords: mockState.auditEvents.length,
+        integrityStatus: 'VERIFIED_CHAIN_OK',
+        records: mockState.auditEvents.map((e: AuditEvent) => ({
+          eventId: e.eventId,
+          occurredAt: e.occurredAt.toISOString(),
+          category: e.category,
+          eventType: e.eventType,
+          summary: e.summary,
+          eventHash: e.eventHash,
+        })),
+      },
+    };
+  },
 };
 
 /* ── HTTP 仓库 ── */
@@ -1731,6 +2062,77 @@ const httpRepository: Repository = {
       publish,
       rollback,
     };
+  },
+
+  /* ── 合规审计 HTTP 实现 ── */
+  async getAuditEvents(filter) {
+    const api = new ADMINRBACApi(getConfiguration());
+    const res = await api.listAdminAuditEvents({
+      ...commonHeaders,
+      cursor: filter?.cursor,
+      limit: filter?.limit,
+      category: filter?.category as any,
+      eventType: filter?.eventType,
+      outcome: filter?.outcome as any,
+      userId: filter?.userId,
+      adminId: filter?.adminId,
+      requestId: filter?.requestId,
+      orderId: filter?.orderId,
+      generationId: filter?.generationId,
+      from: filter?.from,
+      to: filter?.to,
+    });
+    return {
+      events: res.data?.items ?? [],
+      nextCursor: res.data?.nextCursor ?? undefined,
+    };
+  },
+
+  async verifyAuditIntegrity() {
+    const api = new ADMINRBACApi(getConfiguration());
+    const res = await api.verifyAdminAuditIntegrity({
+      ...commonHeaders,
+    });
+    return res.data;
+  },
+
+  async readAuditSensitiveContent(eventId, reason) {
+    const api = new ADMINRBACApi(getConfiguration());
+    const res = await api.readAdminAuditSensitiveContent({
+      eventId,
+      ...commonHeaders,
+      sensitiveContentReadRequest: { auditReason: reason },
+    });
+    return res.data;
+  },
+
+  async changeAuditLegalHold(eventId, enabled, reason) {
+    const api = new ADMINRBACApi(getConfiguration());
+    const res = await api.changeAdminAuditLegalHold({
+      eventId,
+      ...commonHeaders,
+      legalHoldRequest: { enabled, auditReason: reason },
+    });
+    return res.data;
+  },
+
+  async createAuditExport(request) {
+    const api = new ADMINRBACApi(getConfiguration());
+    const res = await api.createAdminAuditExport({
+      ...commonHeaders,
+      auditExportRequest: request,
+    });
+    return res.data;
+  },
+
+  async readAuditExport(exportId, reason) {
+    const api = new ADMINRBACApi(getConfiguration());
+    const res = await api.readAdminAuditExport({
+      exportId,
+      ...commonHeaders,
+      auditExportReadRequest: { auditReason: reason },
+    });
+    return res.data;
   },
 };
 

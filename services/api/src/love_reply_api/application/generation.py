@@ -8,6 +8,7 @@ from uuid import uuid4
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from love_reply_api.application.audit import ComplianceAuditService
 from love_reply_api.application.errors import ApiError
 from love_reply_api.application.referrals import ReferralService
 from love_reply_api.application.runtime_config import RuntimeConfigService
@@ -90,6 +91,7 @@ class GenerationService:
         self._session = session
         self._settings = settings
         self._referrals = ReferralService(session=session, settings=settings)
+        self._audit = ComplianceAuditService(session=session, settings=settings)
 
     @staticmethod
     def request_hash(
@@ -332,6 +334,26 @@ class GenerationService:
             "task.accepted",
             {"generationId": generation_id, "reservedEnergy": quote.estimated_energy},
             now,
+        )
+        await self._audit.record_event(
+            category="AI",
+            event_type="AI_GENERATION_ACCEPTED",
+            outcome="SUCCEEDED",
+            severity="INFO",
+            actor_type="USER",
+            actor_id=user_id,
+            user_id=user_id,
+            resource_type="GENERATION",
+            resource_id=generation_id,
+            generation_id=generation_id,
+            summary="用户提交了 AI 回复生成请求",
+            metadata={
+                "modelId": model_id,
+                "chargedFrom": quote.charged_from,
+                "reservedEnergy": quote.estimated_energy,
+                "saveToHistory": save_to_history,
+            },
+            sensitive_payload={"input": input_data, "context": context_data},
         )
         await self._session.commit()
         return task
@@ -747,6 +769,37 @@ class GenerationService:
             {"resourceVersion": task.resource_version},
             now,
         )
+        await self._audit.record_event(
+            category="AI",
+            event_type="AI_GENERATION_COMPLETED",
+            outcome="SUCCEEDED",
+            severity="INFO",
+            actor_type="SYSTEM",
+            user_id=task.user_id,
+            resource_type="GENERATION",
+            resource_id=task.generation_id,
+            generation_id=task.generation_id,
+            summary="AI 回复生成完成并通过安全检查",
+            metadata={
+                "modelId": task.model_id,
+                "inputTokens": generated.input_tokens,
+                "outputTokens": generated.output_tokens,
+                "chargedEnergy": charged_energy,
+                "candidateCount": len(generated.candidates),
+            },
+            sensitive_payload={
+                "analysis": analysis,
+                "candidates": [
+                    {
+                        "strategy": item.strategy.value,
+                        "styleId": item.style_id,
+                        "text": item.text,
+                        "safetyStatus": item.safety_status.value,
+                    }
+                    for item in generated.candidates
+                ],
+            },
+        )
         await self._referrals.record_milestone(
             invitee_user_id=task.user_id,
             milestone_code="FIRST_GENERATION",
@@ -805,6 +858,29 @@ class GenerationService:
             else {"resourceVersion": task.resource_version}
         )
         await self._append_event(task, event_type, payload, now)
+        await self._audit.record_event(
+            category="AI",
+            event_type=(
+                "AI_GENERATION_FAILED"
+                if terminal_status == GenerationStatus.FAILED
+                else "AI_GENERATION_CANCELLED"
+            ),
+            outcome=("FAILED" if terminal_status == GenerationStatus.FAILED else "CANCELLED"),
+            severity=("ERROR" if terminal_status == GenerationStatus.FAILED else "INFO"),
+            actor_type="SYSTEM",
+            user_id=task.user_id,
+            resource_type="GENERATION",
+            resource_id=task.generation_id,
+            generation_id=task.generation_id,
+            summary="AI 回复生成失败并释放预留额度"
+            if terminal_status == GenerationStatus.FAILED
+            else "AI 回复生成已取消并释放预留额度",
+            metadata={
+                "failureCode": failure_code,
+                "chargedFrom": task.charged_from,
+                "releasedEnergy": task.reserved_energy,
+            },
+        )
         await self._session.commit()
 
     async def _append_event(

@@ -192,6 +192,7 @@ a {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  min-width: 0;
 }
 
 .topbar {
@@ -208,12 +209,23 @@ a {
   flex: 1;
   overflow-y: auto;
   padding: 24px;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .page-title-group, .toolbar, .metrics-grid, .activity-list {
   max-width: 1400px;
   margin-left: auto;
   margin-right: auto;
+  width: 100%;
+  min-width: 0;
+}
+
+.audit-operations-page {
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 /* 卡片 */
@@ -222,6 +234,9 @@ a {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   padding: 20px;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 .card-header {
   display: flex;
@@ -240,6 +255,9 @@ a {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   overflow-x: auto;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 table {
   width: 100%;
@@ -292,10 +310,11 @@ tr:last-child td {
   background: var(--color-surface-main);
   border-radius: var(--radius-md);
   width: 400px;
-  max-width: 90vw;
+  max-width: calc(100vw - 32px);
   box-shadow: var(--shadow-md);
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
 .dialog-header {
   padding: 16px 20px;
@@ -325,6 +344,7 @@ tr:last-child td {
   box-shadow: var(--shadow-md);
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
 
 /* 响应式 */
@@ -351,6 +371,7 @@ tr:last-child td {
   }
   .page-container {
     padding: 16px;
+    overflow-x: hidden;
   }
   .page-title-group, .toolbar {
     flex-direction: column;
@@ -378,6 +399,8 @@ tr:last-child td {
     border-radius: var(--radius-md);
     border: 1px solid var(--color-border);
     padding: 8px 0;
+    min-width: 0;
+    box-sizing: border-box;
   }
   .responsive-table td {
     display: flex;
@@ -385,9 +408,13 @@ tr:last-child td {
     border-bottom: 1px solid var(--color-surface-sub);
     padding: 8px 16px;
     word-break: break-word;
+    overflow-wrap: anywhere;
+    min-width: 0;
+    box-sizing: border-box;
   }
-  .responsive-table td:last-child {
-    border-bottom: none;
+  .responsive-table td > * {
+    min-width: 0;
+    max-width: 100%;
   }
   .responsive-table td::before {
     content: attr(data-label);
@@ -397,10 +424,19 @@ tr:last-child td {
     color: var(--color-text-secondary);
   }
   .responsive-table td[data-label="操作"] {
-    display: block;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
   }
   .responsive-table td[data-label="操作"]::before {
     display: none;
+  }
+  .responsive-table td code,
+  .responsive-table td pre {
+    white-space: pre-wrap;
+    word-break: break-all;
+    overflow-wrap: anywhere;
+    max-width: 100%;
   }
   .responsive-table td[data-label="ID"],
   .responsive-table td[data-label="订单ID"],
@@ -420,6 +456,17 @@ tr:last-child td {
   border-bottom: 1px solid var(--color-border);
   margin-bottom: 20px;
   overflow-x: auto;
+  max-width: 100%;
+  min-width: 0;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+}
+.tabs-header::-webkit-scrollbar {
+  height: 4px;
+}
+.tabs-header::-webkit-scrollbar-thumb {
+  background: var(--color-border-hover);
+  border-radius: 2px;
 }
 .tab-button {
   padding: 10px 16px;
@@ -432,6 +479,7 @@ tr:last-child td {
   cursor: pointer;
   white-space: nowrap;
   transition: all 0.2s;
+  flex-shrink: 0;
 }
 .tab-button:hover {
   color: var(--color-primary);

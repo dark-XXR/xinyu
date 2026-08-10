@@ -15,6 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from love_reply_api.application.admin_auth import AdminAuthService
 from love_reply_api.application.ai_admin import AiGatewayAdminService
 from love_reply_api.application.ai_gateway import AiHttpTransport, RegistryAiProvider
+from love_reply_api.application.audit import ComplianceAuditService
 from love_reply_api.application.auth import AuthService, EmailSender, SmsSender
 from love_reply_api.application.commerce import CommerceService
 from love_reply_api.application.commerce_admin import CommerceAdminService
@@ -181,7 +182,15 @@ def get_ai_admin_service(
     return AiGatewayAdminService(session=session)
 
 
+def get_compliance_audit_service(
+    session: Annotated[AsyncSession, Depends(get_session)],
+    settings: Annotated[Settings, Depends(get_settings)],
+) -> ComplianceAuditService:
+    return ComplianceAuditService(session=session, settings=settings)
+
+
 async def get_admin_context(
+    request: Request,
     client: Annotated[AdminClientContext, Depends(get_admin_client_context)],
     credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer)],
     service: Annotated[AdminAuthService, Depends(get_admin_auth_service)],
@@ -194,6 +203,10 @@ async def get_admin_context(
             message="Administrator bearer token is required.",
         )
     admin, session = await service.authenticate_access(access_token=credentials.credentials)
+    request.state.audit_actor_type = "ADMIN"
+    request.state.audit_actor_id = admin.admin_id
+    request.state.audit_admin_id = admin.admin_id
+    request.state.audit_session_id = session.session_id
     return AdminContext(admin=admin, session=session)
 
 
@@ -241,6 +254,7 @@ def get_commerce_service(
         session=session,
         gateway=gateway,
         referrals=ReferralService(session=session, settings=settings),
+        audit=ComplianceAuditService(session=session, settings=settings),
     )
 
 
@@ -284,6 +298,7 @@ def get_ai_provider(
 
 
 async def get_auth_context(
+    request: Request,
     client: Annotated[ClientContext, Depends(get_client_context)],
     credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer)],
     session: Annotated[AsyncSession, Depends(get_session)],
@@ -311,6 +326,10 @@ async def get_auth_context(
             code="AUTH_DEVICE_MISMATCH",
             message="Access token does not belong to this device.",
         )
+    request.state.audit_actor_type = "USER"
+    request.state.audit_actor_id = claims.user_id
+    request.state.audit_user_id = claims.user_id
+    request.state.audit_session_id = claims.session_id
     return AuthContext(
         user_id=claims.user_id,
         session_id=claims.session_id,
