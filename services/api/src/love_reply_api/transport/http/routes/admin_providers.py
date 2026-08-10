@@ -8,6 +8,7 @@ from love_reply_api.schemas import SuccessEnvelope
 from love_reply_api.transport.http.admin_provider_schemas import (
     CredentialRotationData,
     CredentialRotationResponse,
+    DisableProviderRequest,
     HealthCheckRequest,
     ProviderData,
     ProviderHealthCheckData,
@@ -276,6 +277,38 @@ async def rollback_admin_provider(
         expected_version=_expected_version(if_match),
         admin_id=context.admin.admin_id,
         target_resource_version=body.target_resource_version,
+        audit_reason=body.audit_reason,
+    )
+    return SuccessEnvelope(
+        data=ProviderData.model_validate(result, from_attributes=True),
+        request_id=_request_id(request),
+    )
+
+
+@router.post(
+    "/{providerId}/disable",
+    operation_id="disableAdminProvider",
+    response_model=ProviderResponse,
+)
+async def disable_admin_provider(
+    provider_id: Annotated[
+        str, Path(alias="providerId", min_length=8, max_length=128)
+    ],
+    body: DisableProviderRequest,
+    request: Request,
+    context: Annotated[
+        AdminContext, Depends(require_admin_permission("PROVIDER_DISABLE"))
+    ],
+    idempotency_key: Annotated[str, Header(alias="Idempotency-Key")],
+    if_match: Annotated[str, Header(alias="If-Match")],
+    service: Annotated[ProviderService, Depends(get_provider_service)],
+) -> ProviderResponse:
+    """紧急停用线上供应商；保留版本历史，运行时流量立即归零。"""
+    del idempotency_key
+    result = await service.disable(
+        provider_id=provider_id,
+        expected_version=_expected_version(if_match),
+        admin_id=context.admin.admin_id,
         audit_reason=body.audit_reason,
     )
     return SuccessEnvelope(

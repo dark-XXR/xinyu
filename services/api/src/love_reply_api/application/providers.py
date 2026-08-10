@@ -78,6 +78,9 @@ class ProviderView:
     credential_rotated_at: datetime | None
     last_health_status: str | None
     effective_at: datetime | None
+    published_resource_version: int | None
+    published_rollout_percentage: int
+    published_effective_at: datetime | None
     resource_version: int
     created_at: datetime
     updated_at: datetime
@@ -568,6 +571,66 @@ class ProviderService:
         await self._session.commit()
         return await self._view(provider)
 
+    async def disable(
+        self,
+        *,
+        provider_id: str,
+        expected_version: int,
+        admin_id: str,
+        audit_reason: str,
+    ) -> ProviderView:
+        """立即将供应商移出运行时选择，同时保留发布版本和凭据历史。"""
+        provider = await self._get_locked(provider_id)
+        self._assert_version(provider, expected_version)
+        if provider.status == "DISABLED":
+            raise ApiError(
+                status_code=409,
+                code="PROVIDER_ALREADY_DISABLED",
+                message="Provider is already disabled.",
+            )
+        if (
+            provider.published_resource_version is None
+            or provider.published_rollout_percentage <= 0
+        ):
+            raise ApiError(
+                status_code=409,
+                code="PROVIDER_NOT_ACTIVE",
+                message="Provider has no active published traffic to disable.",
+            )
+
+        previous_rollout = provider.published_rollout_percentage
+        previous_effective_at = provider.published_effective_at
+        provider.status = "DISABLED"
+        provider.rollout_percentage = 0
+        provider.effective_at = None
+        # 保留 published_resource_version 作为取证和回滚锚点，但将线上流量立即归零。
+        provider.published_rollout_percentage = 0
+        await self._advance(provider=provider, admin_id=admin_id, action="DISABLE")
+        credentials = (
+            await self._credentials(provider.active_credential_version_id)
+            if provider.active_credential_version_id is not None
+            else {}
+        )
+        self._audit(
+            provider_id=provider_id,
+            admin_id=admin_id,
+            action="PROVIDER_DISABLED",
+            reason=self._redact_text(audit_reason, list(credentials.values())),
+            metadata={
+                "publishedResourceVersion": provider.published_resource_version,
+                "previousRolloutPercentage": previous_rollout,
+                "previousEffectiveAt": (
+                    previous_effective_at.isoformat()
+                    if previous_effective_at is not None
+                    else None
+                ),
+                "resourceVersion": provider.resource_version,
+            },
+            now=provider.updated_at,
+        )
+        await self._session.commit()
+        return await self._view(provider)
+
     async def _get(self, provider_id: str) -> ProviderRecord:
         provider = await self._session.get(ProviderRecord, provider_id)
         if provider is None:
@@ -625,6 +688,9 @@ class ProviderService:
             credential_rotated_at=credential.rotated_at if credential is not None else None,
             last_health_status=provider.last_health_status,
             effective_at=provider.effective_at,
+            published_resource_version=provider.published_resource_version,
+            published_rollout_percentage=provider.published_rollout_percentage,
+            published_effective_at=provider.published_effective_at,
             resource_version=provider.resource_version,
             created_at=provider.created_at,
             updated_at=provider.updated_at,

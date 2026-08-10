@@ -132,6 +132,24 @@ export interface Provider {
      */
     effectiveAt?: Date | null;
     /**
+     * The immutable version currently selected for online traffic or retained as a disabled rollback anchor.
+     * @type {number}
+     * @memberof Provider
+     */
+    publishedResourceVersion: number | null;
+    /**
+     * Actual online traffic percentage; zero means the provider is not selected at runtime.
+     * @type {number}
+     * @memberof Provider
+     */
+    publishedRolloutPercentage: number;
+    /**
+     *
+     * @type {Date}
+     * @memberof Provider
+     */
+    publishedEffectiveAt: Date | null;
+    /**
      *
      * @type {number}
      * @memberof Provider
@@ -176,6 +194,9 @@ export function instanceOfProvider(value: object): value is Provider {
     if (!('priority' in value) || value['priority'] === undefined) return false;
     if (!('rolloutPercentage' in value) || value['rolloutPercentage'] === undefined) return false;
     if (!('credentialConfigured' in value) || value['credentialConfigured'] === undefined) return false;
+    if (!('publishedResourceVersion' in value) || value['publishedResourceVersion'] === undefined) return false;
+    if (!('publishedRolloutPercentage' in value) || value['publishedRolloutPercentage'] === undefined) return false;
+    if (!('publishedEffectiveAt' in value) || value['publishedEffectiveAt'] === undefined) return false;
     if (!('resourceVersion' in value) || value['resourceVersion'] === undefined) return false;
     if (!('createdAt' in value) || value['createdAt'] === undefined) return false;
     if (!('updatedAt' in value) || value['updatedAt'] === undefined) return false;
@@ -207,6 +228,9 @@ export function ProviderFromJSONTyped(json: any, ignoreDiscriminator: boolean): 
         'credentialRotatedAt': json['credentialRotatedAt'] === undefined ? undefined : json['credentialRotatedAt'] === null ? null : (new Date(json['credentialRotatedAt'])),
         'lastHealthStatus': json['lastHealthStatus'] === undefined ? undefined : json['lastHealthStatus'] === null ? null : json['lastHealthStatus'],
         'effectiveAt': json['effectiveAt'] === undefined ? undefined : json['effectiveAt'] === null ? null : (new Date(json['effectiveAt'])),
+        'publishedResourceVersion': json['publishedResourceVersion'],
+        'publishedRolloutPercentage': json['publishedRolloutPercentage'],
+        'publishedEffectiveAt': (json['publishedEffectiveAt'] == null ? null : new Date(json['publishedEffectiveAt'])),
         'resourceVersion': json['resourceVersion'],
         'createdAt': (new Date(json['createdAt'])),
         'updatedAt': (new Date(json['updatedAt'])),
@@ -239,6 +263,9 @@ export function ProviderToJSONTyped(value?: Provider | null, ignoreDiscriminator
         'credentialRotatedAt': value['credentialRotatedAt'] == null ? value['credentialRotatedAt'] : value['credentialRotatedAt'].toISOString(),
         'lastHealthStatus': value['lastHealthStatus'],
         'effectiveAt': value['effectiveAt'] == null ? value['effectiveAt'] : value['effectiveAt'].toISOString(),
+        'publishedResourceVersion': value['publishedResourceVersion'],
+        'publishedRolloutPercentage': value['publishedRolloutPercentage'],
+        'publishedEffectiveAt': value['publishedEffectiveAt'] == null ? value['publishedEffectiveAt'] : value['publishedEffectiveAt'].toISOString(),
         'resourceVersion': value['resourceVersion'],
         'createdAt': value['createdAt'].toISOString(),
         'updatedAt': value['updatedAt'].toISOString(),

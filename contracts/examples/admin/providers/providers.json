@@ -87,6 +87,9 @@
           "credentialRotatedAt": null,
           "lastHealthStatus": null,
           "effectiveAt": null,
+          "publishedResourceVersion": null,
+          "publishedRolloutPercentage": 0,
+          "publishedEffectiveAt": null,
           "resourceVersion": 1,
           "createdAt": "2026-08-08T18:01:00Z",
           "updatedAt": "2026-08-08T18:01:00Z"
@@ -142,6 +145,9 @@
           "credentialRotatedAt": "2026-08-08T18:02:00Z",
           "lastHealthStatus": "HEALTHY",
           "effectiveAt": null,
+          "publishedResourceVersion": null,
+          "publishedRolloutPercentage": 0,
+          "publishedEffectiveAt": null,
           "resourceVersion": 3,
           "createdAt": "2026-08-08T18:01:00Z",
           "updatedAt": "2026-08-08T18:03:00Z"
@@ -220,6 +226,9 @@
           "credentialRotatedAt": "2026-08-08T18:02:00Z",
           "lastHealthStatus": null,
           "effectiveAt": null,
+          "publishedResourceVersion": null,
+          "publishedRolloutPercentage": 0,
+          "publishedEffectiveAt": null,
           "resourceVersion": 4,
           "createdAt": "2026-08-08T18:01:00Z",
           "updatedAt": "2026-08-08T18:04:00Z"
@@ -373,6 +382,9 @@
           "credentialRotatedAt": "2026-08-08T18:05:00Z",
           "lastHealthStatus": "HEALTHY",
           "effectiveAt": "2026-08-08T19:00:00Z",
+          "publishedResourceVersion": 5,
+          "publishedRolloutPercentage": 10,
+          "publishedEffectiveAt": "2026-08-08T19:00:00Z",
           "resourceVersion": 6,
           "createdAt": "2026-08-08T18:01:00Z",
           "updatedAt": "2026-08-08T18:07:00Z"
@@ -437,6 +449,9 @@
           "credentialRotatedAt": "2026-08-08T18:05:00Z",
           "lastHealthStatus": "HEALTHY",
           "effectiveAt": "2026-08-08T18:08:00Z",
+          "publishedResourceVersion": 5,
+          "publishedRolloutPercentage": 100,
+          "publishedEffectiveAt": "2026-08-08T18:08:00Z",
           "resourceVersion": 7,
           "createdAt": "2026-08-08T18:01:00Z",
           "updatedAt": "2026-08-08T18:08:00Z"
@@ -457,6 +472,72 @@
         "error": {"retryable": false, "fieldErrors": [], "details": {}},
         "requestId": "req_admin_provider_rollback_02",
         "timestamp": "2026-08-08T18:08:01Z"
+      }
+    },
+    {
+      "id": "admin-provider-disable-request",
+      "operationId": "disableAdminProvider",
+      "kind": "request",
+      "value": {
+        "auditReason": "Emergency stop after elevated delivery failures"
+      }
+    },
+    {
+      "id": "admin-provider-disable-success",
+      "operationId": "disableAdminProvider",
+      "kind": "response",
+      "statusCode": 200,
+      "value": {
+        "code": "OK",
+        "message": "success",
+        "data": {
+          "providerId": "prv_email_primary_01",
+          "providerName": "Transactional email primary",
+          "kind": "EMAIL",
+          "status": "DISABLED",
+          "configuration": {
+            "adapterType": "SMTP",
+            "host": "smtp.example.test",
+            "port": 587,
+            "tlsMode": "STARTTLS",
+            "senderAddress": "noreply@example.test",
+            "senderName": "Love Reply",
+            "replyToAddress": null,
+            "timeoutMs": 10000
+          },
+          "dataRegion": "CN",
+          "retentionStatement": "Delivery metadata retained for 30 days.",
+          "retryLimit": 1,
+          "priority": 100,
+          "rolloutPercentage": 0,
+          "credentialConfigured": true,
+          "credentialFingerprint": "sha256:fixturefingerprint",
+          "credentialRotatedAt": "2026-08-08T18:05:00Z",
+          "lastHealthStatus": "HEALTHY",
+          "effectiveAt": null,
+          "publishedResourceVersion": 5,
+          "publishedRolloutPercentage": 0,
+          "publishedEffectiveAt": "2026-08-08T18:08:00Z",
+          "resourceVersion": 8,
+          "createdAt": "2026-08-08T18:01:00Z",
+          "updatedAt": "2026-08-08T18:09:00Z"
+        },
+        "requestId": "req_admin_provider_disable_01",
+        "timestamp": "2026-08-08T18:09:00Z"
+      }
+    },
+    {
+      "id": "admin-provider-disable-error",
+      "operationId": "disableAdminProvider",
+      "kind": "response",
+      "statusCode": 409,
+      "value": {
+        "code": "PROVIDER_ALREADY_DISABLED",
+        "message": "provider is already disabled",
+        "data": null,
+        "error": {"retryable": false, "fieldErrors": [], "details": {}},
+        "requestId": "req_admin_provider_disable_02",
+        "timestamp": "2026-08-08T18:09:01Z"
       }
     }
   ]

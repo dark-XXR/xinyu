@@ -39,10 +39,10 @@
 | W02 | 页面入口和路由表 | `apps/admin-web/src/main.tsx`、`apps/admin-web/src/App.tsx` | 已完成：初始化数据查询并注册工作台、供应商、AI、合规审计、商品和订单页面路由 |
 | W03 | 全局导航和移动菜单 | `apps/admin-web/src/components/Layout.tsx` | 已完成：桌面侧栏、移动端菜单、当前页面高亮和 Escape 关闭 |
 | W04 | 管理工作台页面 `/` | `apps/admin-web/src/pages/Dashboard.tsx` | 已完成：系统状态、待办指标、已发布商品、最近活动和快捷入口 |
-| W05 | 供应商配置页面 `/providers` | `apps/admin-web/src/pages/Providers.tsx` | 已完成首批：AI、邮件、短信、易支付草稿，筛选、健康检查、密钥轮换、发布和回滚；禁用仍待开发 |
+| W05 | 供应商配置页面 `/providers` | `apps/admin-web/src/pages/Providers.tsx` | 已完成：12 种 AI/邮件/短信/易支付适配器表单、按适配器凭据、配置与真实线上状态、健康检查、发布、回滚和紧急停用；高风险操作要求至少 8 字理由，停用还要求供应商全名二次确认 |
 | W06 | 套餐与价格页面 `/commerce/products` | `apps/admin-web/src/pages/commerce/Products.tsx` | 已完成：价格、次数、权益、销售渠道和版本均由后台数据维护，支持发布与真实历史版本回滚 |
 | W07 | 订单与退款页面 `/commerce/orders` | `apps/admin-web/src/pages/commerce/Orders.tsx` | 已完成：订单搜索、支付尝试、商品快照、退款审批和退款执行 |
-| W08 | 前端数据接口切换层 | `apps/admin-web/src/api/repository.ts` | 已完成首批：统一 Mock/HTTP 调用，包含 AI 配置和合规审计检索、敏感正文、法务冻结、完整性检查与监管导出；HTTP 使用自动生成客户端，密钥只写不读 |
+| W08 | 前端数据接口切换层 | `apps/admin-web/src/api/repository.ts` | 已完成：统一 Mock/HTTP 调用，包含供应商紧急停用、真实线上版本字段、AI 配置和合规审计；供应商写操作使用纯十进制 `If-Match`，HTTP 使用自动生成客户端，密钥只写不读 |
 | W09 | 自动生成模型的引用入口 | `apps/admin-web/src/api/models.ts` | 已完成：集中导出页面使用的供应商、商业、AI 和合规审计接口类型与枚举；不要在此写业务值 |
 | W10 | 全局 UI 参数 | `apps/admin-web/src/styles/design-system.css` | 已完成首批：颜色、字号、间距、页签、表格、抽屉、对话框和 390px 卡片布局 |
 | W11 | 通用按钮、输入和状态标签 | `apps/admin-web/src/components/ui/Button.tsx`、`Input.tsx`、`Badge.tsx` | 已完成：修改按钮外观、输入框和状态颜色时使用这些文件 |
@@ -60,8 +60,8 @@
 | B02 | 普通用户注册/登录接口 | `services/api/src/love_reply_api/transport/http/routes/auth.py` | 邮箱和短信验证码、登录、刷新与退出接口 |
 | B03 | 注册/登录业务规则 | `services/api/src/love_reply_api/application/auth.py` | 验证码、频率限制、渠道策略、账号与会话创建 |
 | B04 | 管理员登录与 MFA | `services/api/src/love_reply_api/application/admin_auth.py` | 管理员密码、TOTP、多因素会话和权限 |
-| B05 | 外部供应商管理接口 | `services/api/src/love_reply_api/transport/http/routes/admin_providers.py` | 新增、更新、密钥、健康检查、发布和回滚 |
-| B06 | 外部供应商业务服务 | `services/api/src/love_reply_api/application/providers.py` | 加密密钥、不可变版本、审计与发布规则 |
+| B05 | 外部供应商管理接口 | `services/api/src/love_reply_api/transport/http/routes/admin_providers.py` | 列表、新增、读取、更新、密钥、健康检查、发布、回滚和独立权限紧急停用共 9 个操作 |
+| B06 | 外部供应商业务服务 | `services/api/src/love_reply_api/application/providers.py` | 加密密钥、不可变版本、审计、发布与停用运行时熔断；停用将线上灰度归零但保留发布锚点供回滚恢复 |
 | B07 | 邮件/短信供应商运行时 | `services/api/src/love_reply_api/application/provider_runtime.py` | 解析已发布供应商并发送邮件或短信 |
 | B07.1 | 邮件/短信原生协议与签名 | `services/api/src/love_reply_api/application/delivery_adapters.py` | SES、SendGrid、Resend、Mailgun、阿里云和腾讯云请求与签名 |
 | B07.2 | 易支付原生协议与验签 | `services/api/src/love_reply_api/application/payment_adapters.py` | 收银台、查询、退款、MD5 签名和服务端回调验签 |
@@ -99,14 +99,15 @@
 | D08 | 邀请推广数据表 | `services/api/src/love_reply_api/infrastructure/referral_records.py` | 活动版本、邀请码、绑定、支付身份哈希、奖励和审计记录 |
 | D09 | 邀请推广升级文件 | `database/migrations/versions/a6ce441f72d8_add_referral_runtime.py` | 创建邀请推广运行时全部数据表和索引 |
 | D10 | 合规审计账本与监管导出表 | `services/api/src/love_reply_api/infrastructure/audit_records.py`、`database/migrations/versions/b91e63a4d2f0_add_compliance_audit_ledger.py` | 追加式统一审计事件、加密正文摘要、保留截止、法务冻结、前序哈希、事件哈希和短效加密导出包 |
+| D11 | 供应商紧急停用权限升级 | `database/migrations/versions/c42f19e7ab31_add_provider_disable_permission.py` | 新增 `PROVIDER_DISABLE` 权限并为已有平台所有者安全回填；降级时仅移除该权限 |
 
 ## 契约与配置
 
 | 编号 | 功能 | 文件路径 | 说明 |
 | --- | --- | --- | --- |
 | C01 | OpenAPI 总入口 | `contracts/openapi/openapi.yaml` | 前后端共享接口总目录 |
-| C02 | 外部供应商接口契约 | `contracts/openapi/admin/providers.yaml` | 供应商后台接口定义 |
-| C03 | 外部供应商数据结构 | `contracts/openapi/schemas/admin-providers.yaml` | AI、邮件、短信和易支付配置字段 |
+| C02 | 外部供应商接口契约 | `contracts/openapi/admin/providers.yaml` | 供应商后台 9 个操作，包含独立紧急停用、乐观锁、审计理由和冲突错误 |
+| C03 | 外部供应商数据结构 | `contracts/openapi/schemas/admin-providers.yaml` | AI、邮件、短信、易支付配置，以及真实线上版本/灰度/生效时间和停用请求结构 |
 | C04 | AI 管理接口契约 | `contracts/openapi/admin/model-gateway.yaml` 等 | AI 模型、提示词、评测和风控接口 |
 | C05 | AI 管理数据结构 | `contracts/openapi/schemas/admin-ai.yaml` | AI 价格、次数、预算、安全阈值和版本字段 |
 | C06 | 产品与套餐建议规格 | `docs/product/provider-and-subscription-spec.md` | 产品决策参考；最终运行值由后台配置发布 |
@@ -124,3 +125,9 @@
 3. 移动或重命名文件时，同一提交内更新本文档。
 4. 新增第三方接口时，在“后端接口与业务文件”和“契约与配置”各补一行。
 5. 每次开发进度报告应说明本目录是否同步更新。
+
+## 工程质量配置
+
+| 编号 | 功能 | 文件路径 | 说明 |
+| --- | --- | --- | --- |
+| Q01 | Python 依赖与质量门禁 | `pyproject.toml` | Ruff、严格 MyPy、Pytest 配置；集成测试统一使用会话级 asyncio 循环，避免 Windows 下共享 asyncpg 连接池复用已关闭循环 |

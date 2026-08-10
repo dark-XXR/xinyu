@@ -19,6 +19,11 @@ import {
     CredentialRotationResponseToJSON,
 } from '../models/CredentialRotationResponse';
 import {
+    type DisableProviderRequest,
+    DisableProviderRequestFromJSON,
+    DisableProviderRequestToJSON,
+} from '../models/DisableProviderRequest';
+import {
     type ErrorResponse,
     ErrorResponseFromJSON,
     ErrorResponseToJSON,
@@ -80,6 +85,17 @@ export interface CreateAdminProviderRequest {
     acceptLanguage: string;
     idempotencyKey: string;
     providerWriteRequest: ProviderWriteRequest;
+    xRequestId?: string;
+}
+
+export interface DisableAdminProviderRequest {
+    providerId: string;
+    xClientVersion: string;
+    xPlatform: DisableAdminProviderXPlatformEnum;
+    acceptLanguage: string;
+    idempotencyKey: string;
+    ifMatch: string;
+    disableProviderRequest: DisableProviderRequest;
     xRequestId?: string;
 }
 
@@ -218,6 +234,44 @@ export interface ADMINPROVIDERApiInterface {
      * Create a provider draft
      */
     createAdminProvider(requestParameters: CreateAdminProviderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ProviderResponse>;
+
+    /**
+     * Creates request options for disableAdminProvider without sending the request
+     * @param {string} providerId
+     * @param {string} xClientVersion Semantic application version used for compatibility enforcement.
+     * @param {'ANDROID' | 'ADMIN_WEB'} xPlatform
+     * @param {string} acceptLanguage
+     * @param {string} idempotencyKey Unique key scoped to authenticated actor, operation, and request fingerprint.
+     * @param {string} ifMatch Decimal resourceVersion expected by the caller.
+     * @param {DisableProviderRequest} disableProviderRequest
+     * @param {string} [xRequestId] Client correlation ID. The server returns the final accepted value.
+     * @throws {RequiredError}
+     * @memberof ADMINPROVIDERApiInterface
+     */
+    disableAdminProviderRequestOpts(requestParameters: DisableAdminProviderRequest): Promise<runtime.RequestOpts>;
+
+    /**
+     * Preserves encrypted credentials and immutable published history for audit and rollback while setting online traffic to zero.
+     * @summary Immediately remove a published provider from runtime selection
+     * @param {string} providerId
+     * @param {string} xClientVersion Semantic application version used for compatibility enforcement.
+     * @param {'ANDROID' | 'ADMIN_WEB'} xPlatform
+     * @param {string} acceptLanguage
+     * @param {string} idempotencyKey Unique key scoped to authenticated actor, operation, and request fingerprint.
+     * @param {string} ifMatch Decimal resourceVersion expected by the caller.
+     * @param {DisableProviderRequest} disableProviderRequest
+     * @param {string} [xRequestId] Client correlation ID. The server returns the final accepted value.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ADMINPROVIDERApiInterface
+     */
+    disableAdminProviderRaw(requestParameters: DisableAdminProviderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ProviderResponse>>;
+
+    /**
+     * Preserves encrypted credentials and immutable published history for audit and rollback while setting online traffic to zero.
+     * Immediately remove a published provider from runtime selection
+     */
+    disableAdminProvider(requestParameters: DisableAdminProviderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ProviderResponse>;
 
     /**
      * Creates request options for getAdminProvider without sending the request
@@ -649,6 +703,130 @@ export class ADMINPROVIDERApi extends runtime.BaseAPI implements ADMINPROVIDERAp
      */
     async createAdminProvider(requestParameters: CreateAdminProviderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ProviderResponse> {
         const response = await this.createAdminProviderRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Creates request options for disableAdminProvider without sending the request
+     */
+    async disableAdminProviderRequestOpts(requestParameters: DisableAdminProviderRequest): Promise<runtime.RequestOpts> {
+        if (requestParameters['providerId'] == null) {
+            throw new runtime.RequiredError(
+                'providerId',
+                'Required parameter "providerId" was null or undefined when calling disableAdminProvider().'
+            );
+        }
+
+        if (requestParameters['xClientVersion'] == null) {
+            throw new runtime.RequiredError(
+                'xClientVersion',
+                'Required parameter "xClientVersion" was null or undefined when calling disableAdminProvider().'
+            );
+        }
+
+        if (requestParameters['xPlatform'] == null) {
+            throw new runtime.RequiredError(
+                'xPlatform',
+                'Required parameter "xPlatform" was null or undefined when calling disableAdminProvider().'
+            );
+        }
+
+        if (requestParameters['acceptLanguage'] == null) {
+            throw new runtime.RequiredError(
+                'acceptLanguage',
+                'Required parameter "acceptLanguage" was null or undefined when calling disableAdminProvider().'
+            );
+        }
+
+        if (requestParameters['idempotencyKey'] == null) {
+            throw new runtime.RequiredError(
+                'idempotencyKey',
+                'Required parameter "idempotencyKey" was null or undefined when calling disableAdminProvider().'
+            );
+        }
+
+        if (requestParameters['ifMatch'] == null) {
+            throw new runtime.RequiredError(
+                'ifMatch',
+                'Required parameter "ifMatch" was null or undefined when calling disableAdminProvider().'
+            );
+        }
+
+        if (requestParameters['disableProviderRequest'] == null) {
+            throw new runtime.RequiredError(
+                'disableProviderRequest',
+                'Required parameter "disableProviderRequest" was null or undefined when calling disableAdminProvider().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (requestParameters['xRequestId'] != null) {
+            headerParameters['X-Request-Id'] = String(requestParameters['xRequestId']);
+        }
+
+        if (requestParameters['xClientVersion'] != null) {
+            headerParameters['X-Client-Version'] = String(requestParameters['xClientVersion']);
+        }
+
+        if (requestParameters['xPlatform'] != null) {
+            headerParameters['X-Platform'] = String(requestParameters['xPlatform']);
+        }
+
+        if (requestParameters['acceptLanguage'] != null) {
+            headerParameters['Accept-Language'] = String(requestParameters['acceptLanguage']);
+        }
+
+        if (requestParameters['idempotencyKey'] != null) {
+            headerParameters['Idempotency-Key'] = String(requestParameters['idempotencyKey']);
+        }
+
+        if (requestParameters['ifMatch'] != null) {
+            headerParameters['If-Match'] = String(requestParameters['ifMatch']);
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("adminBearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/admin/v1/providers/{providerId}/disable`;
+        urlPath = urlPath.replace('{providerId}', encodeURIComponent(String(requestParameters['providerId'])));
+
+        return {
+            path: urlPath,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: DisableProviderRequestToJSON(requestParameters['disableProviderRequest']),
+        };
+    }
+
+    /**
+     * Preserves encrypted credentials and immutable published history for audit and rollback while setting online traffic to zero.
+     * Immediately remove a published provider from runtime selection
+     */
+    async disableAdminProviderRaw(requestParameters: DisableAdminProviderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ProviderResponse>> {
+        const requestOptions = await this.disableAdminProviderRequestOpts(requestParameters);
+        const response = await this.request(requestOptions, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ProviderResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Preserves encrypted credentials and immutable published history for audit and rollback while setting online traffic to zero.
+     * Immediately remove a published provider from runtime selection
+     */
+    async disableAdminProvider(requestParameters: DisableAdminProviderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ProviderResponse> {
+        const response = await this.disableAdminProviderRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -1338,6 +1516,14 @@ export const CreateAdminProviderXPlatformEnum = {
     AdminWeb: 'ADMIN_WEB'
 } as const;
 export type CreateAdminProviderXPlatformEnum = typeof CreateAdminProviderXPlatformEnum[keyof typeof CreateAdminProviderXPlatformEnum];
+/**
+ * @export
+ */
+export const DisableAdminProviderXPlatformEnum = {
+    Android: 'ANDROID',
+    AdminWeb: 'ADMIN_WEB'
+} as const;
+export type DisableAdminProviderXPlatformEnum = typeof DisableAdminProviderXPlatformEnum[keyof typeof DisableAdminProviderXPlatformEnum];
 /**
  * @export
  */

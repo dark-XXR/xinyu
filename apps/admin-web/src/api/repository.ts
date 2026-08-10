@@ -116,10 +116,11 @@ export interface Repository {
 
   getProviders(): Promise<Provider[]>;
   saveProviderDraft(provider: ProviderWriteRequest, id?: string, resourceVersion?: number): Promise<void>;
-  publishProvider(id: string, resourceVersion: number): Promise<void>;
+  publishProvider(id: string, resourceVersion: number, rolloutPercentage: number, effectiveAt: Date, auditReason: string): Promise<void>;
   rotateProviderCredentials(providerId: string, resourceVersion: number, secrets: CredentialSecretInput[], auditReason: string): Promise<void>;
-  rollbackProvider(id: string, resourceVersion: number, targetVersion: number): Promise<void>;
-  checkProviderHealth(id: string): Promise<void>;
+  rollbackProvider(id: string, resourceVersion: number, targetVersion: number, auditReason: string): Promise<void>;
+  disableProvider(providerId: string, resourceVersion: number, auditReason: string): Promise<void>;
+  checkProviderHealth(id: string, administratorTestDestination?: string | null, auditReason?: string): Promise<void>;
 
   getProducts(): Promise<AdminProductVersion[]>;
   saveProductDraft(product: AdminProductWriteRequest, id?: string, resourceVersion?: number): Promise<void>;
@@ -246,10 +247,15 @@ const mockState: {
       kind: ProviderKind.Ai,
       status: ProviderStatus.Active,
       _configuration: aiConfig,
+      dataRegion: 'US-EAST',
+      retentionStatement: '30-day log retention',
       retryLimit: 3,
       priority: 1,
       rolloutPercentage: 100,
       credentialConfigured: true,
+      publishedResourceVersion: 2,
+      publishedRolloutPercentage: 100,
+      publishedEffectiveAt: yesterday,
       resourceVersion: 2,
       createdAt: yesterday,
       updatedAt: now,
@@ -260,10 +266,15 @@ const mockState: {
       kind: ProviderKind.Email,
       status: ProviderStatus.Draft,
       _configuration: smtpConfig,
+      dataRegion: 'CN-SOUTH',
+      retentionStatement: 'No log retention',
       retryLimit: 2,
       priority: 1,
       rolloutPercentage: 0,
       credentialConfigured: false,
+      publishedResourceVersion: null,
+      publishedRolloutPercentage: 0,
+      publishedEffectiveAt: null,
       resourceVersion: 1,
       createdAt: yesterday,
       updatedAt: yesterday,
@@ -274,10 +285,15 @@ const mockState: {
       kind: ProviderKind.Sms,
       status: ProviderStatus.Active,
       _configuration: smsConfig,
+      dataRegion: 'CN-HANGZHOU',
+      retentionStatement: '90-day log retention',
       retryLimit: 3,
       priority: 1,
       rolloutPercentage: 100,
       credentialConfigured: true,
+      publishedResourceVersion: 3,
+      publishedRolloutPercentage: 100,
+      publishedEffectiveAt: yesterday,
       resourceVersion: 3,
       createdAt: yesterday,
       updatedAt: now,
@@ -288,10 +304,15 @@ const mockState: {
       kind: ProviderKind.Payment,
       status: ProviderStatus.Active,
       _configuration: epayConfig,
+      dataRegion: 'CN-SHANGHAI',
+      retentionStatement: 'Financial log retention',
       retryLimit: 2,
       priority: 1,
       rolloutPercentage: 100,
       credentialConfigured: true,
+      publishedResourceVersion: 4,
+      publishedRolloutPercentage: 100,
+      publishedEffectiveAt: yesterday,
       resourceVersion: 4,
       createdAt: yesterday,
       updatedAt: now,
@@ -869,8 +890,14 @@ const mockRepository: Repository = {
           providerName: req.providerName,
           kind: req.kind,
           _configuration: req._configuration,
+          dataRegion: req.dataRegion ?? null,
+          retentionStatement: req.retentionStatement ?? null,
           retryLimit: req.retryLimit,
           priority: req.priority,
+          status: ProviderStatus.Draft,
+          rolloutPercentage: 0,
+          effectiveAt: null,
+          lastHealthStatus: null,
           resourceVersion: existing.resourceVersion + 1,
           updatedAt: new Date(),
         };
@@ -882,10 +909,16 @@ const mockRepository: Repository = {
         kind: req.kind,
         status: ProviderStatus.Draft,
         _configuration: req._configuration,
+        dataRegion: req.dataRegion ?? null,
+        retentionStatement: req.retentionStatement ?? null,
         retryLimit: req.retryLimit,
         priority: req.priority,
         rolloutPercentage: 0,
         credentialConfigured: false,
+        publishedResourceVersion: null,
+        publishedRolloutPercentage: 0,
+        publishedEffectiveAt: null,
+        lastHealthStatus: null,
         resourceVersion: 1,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -893,21 +926,42 @@ const mockRepository: Repository = {
     }
   },
 
-  async publishProvider(id) {
+  async publishProvider(id, _rv, rolloutPercentage, effectiveAt, _auditReason) {
     const p = mockState.providers.find((item) => item.providerId === id);
     if (p) {
       p.status = ProviderStatus.Active;
-      p.rolloutPercentage = 100;
+      p.rolloutPercentage = rolloutPercentage;
+      p.effectiveAt = effectiveAt;
+      p.publishedResourceVersion = p.resourceVersion;
+      p.publishedRolloutPercentage = rolloutPercentage;
+      p.publishedEffectiveAt = effectiveAt;
       p.resourceVersion += 1;
       p.updatedAt = new Date();
     }
   },
 
-  async rollbackProvider(id, _rv, _tv) {
+  async rollbackProvider(id, _rv, targetVersion, _auditReason) {
     const p = mockState.providers.find((item) => item.providerId === id);
     if (p) {
-      p.status = ProviderStatus.Draft;
+      const now = new Date();
+      p.status = ProviderStatus.Active;
+      p.rolloutPercentage = 100;
+      p.effectiveAt = now;
+      p.publishedResourceVersion = targetVersion;
+      p.publishedRolloutPercentage = 100;
+      p.publishedEffectiveAt = now;
+      p.resourceVersion += 1;
+      p.updatedAt = now;
+    }
+  },
+
+  async disableProvider(providerId, _rv, _auditReason) {
+    const p = mockState.providers.find((item) => item.providerId === providerId);
+    if (p) {
+      p.status = ProviderStatus.Disabled;
       p.rolloutPercentage = 0;
+      p.effectiveAt = null;
+      p.publishedRolloutPercentage = 0;
       p.resourceVersion += 1;
       p.updatedAt = new Date();
     }
@@ -917,6 +971,12 @@ const mockRepository: Repository = {
     const p = mockState.providers.find((item) => item.providerId === providerId);
     if (p) {
       p.credentialConfigured = true;
+      p.status = ProviderStatus.Draft;
+      p.lastHealthStatus = null;
+      // 凭据轮换成功后，生成草稿，设置灰度比例为 0% 且生效时间置空
+      p.rolloutPercentage = 0;
+      p.effectiveAt = null;
+      // 保留 publishedResourceVersion、publishedRolloutPercentage、publishedEffectiveAt，以模拟旧线上快照继续运行
       Object.assign(p, {
         credentialFingerprint: 'mock-fingerprint-' + Date.now(),
         credentialRotatedAt: new Date(),
@@ -926,8 +986,14 @@ const mockRepository: Repository = {
     }
   },
 
-  async checkProviderHealth() {
-    /* mock 健康检查 - 无副作用 */
+  async checkProviderHealth(id, _administratorTestDestination, _auditReason) {
+    const p = mockState.providers.find((item) => item.providerId === id);
+    if (p && p.credentialConfigured) {
+      p.lastHealthStatus = 'HEALTHY';
+      p.status = ProviderStatus.Ready;
+      p.resourceVersion += 1;
+      p.updatedAt = new Date();
+    }
   },
 
   async getProducts() {
@@ -1623,7 +1689,7 @@ const httpRepository: Repository = {
         providerId: id,
         ...commonHeaders,
         idempotencyKey: Date.now().toString(),
-        ifMatch: `W/"${resourceVersion}"`,
+        ifMatch: String(resourceVersion),
         providerWriteRequest: req,
       });
     } else {
@@ -1635,25 +1701,36 @@ const httpRepository: Repository = {
     }
   },
 
-  async publishProvider(id, resourceVersion) {
+  async publishProvider(id, resourceVersion, rolloutPercentage, effectiveAt, auditReason) {
     const api = new ADMINPROVIDERApi(getConfiguration());
     await api.publishAdminProvider({
       providerId: id,
       ...commonHeaders,
       idempotencyKey: Date.now().toString(),
-      ifMatch: `W/"${resourceVersion}"`,
-      publishProviderRequest: { rolloutPercentage: 100, effectiveAt: new Date(), auditReason: '管理后台发布' },
+      ifMatch: String(resourceVersion),
+      publishProviderRequest: { rolloutPercentage, effectiveAt, auditReason },
     });
   },
 
-  async rollbackProvider(id, resourceVersion, targetVersion) {
+  async rollbackProvider(id, resourceVersion, targetVersion, auditReason) {
     const api = new ADMINPROVIDERApi(getConfiguration());
     await api.rollbackAdminProvider({
       providerId: id,
       ...commonHeaders,
       idempotencyKey: Date.now().toString(),
-      ifMatch: `W/"${resourceVersion}"`,
-      rollbackProviderRequest: { targetResourceVersion: targetVersion, auditReason: '管理后台回滚' },
+      ifMatch: String(resourceVersion),
+      rollbackProviderRequest: { targetResourceVersion: targetVersion, auditReason },
+    });
+  },
+
+  async disableProvider(providerId, resourceVersion, auditReason) {
+    const api = new ADMINPROVIDERApi(getConfiguration());
+    await api.disableAdminProvider({
+      providerId,
+      ...commonHeaders,
+      idempotencyKey: Date.now().toString(),
+      ifMatch: String(resourceVersion),
+      disableProviderRequest: { auditReason },
     });
   },
 
@@ -1663,18 +1740,21 @@ const httpRepository: Repository = {
       providerId,
       ...commonHeaders,
       idempotencyKey: Date.now().toString(),
-      ifMatch: `W/"${resourceVersion}"`,
+      ifMatch: String(resourceVersion),
       rotateCredentialsRequest: { secrets, auditReason },
     });
   },
 
-  async checkProviderHealth(id) {
+  async checkProviderHealth(id, administratorTestDestination, auditReason) {
     const api = new ADMINPROVIDERApi(getConfiguration());
     await api.checkAdminProviderHealth({
       providerId: id,
       ...commonHeaders,
       idempotencyKey: Date.now().toString(),
-      healthCheckRequest: { auditReason: '管理后台检查' },
+      healthCheckRequest: {
+        administratorTestDestination: administratorTestDestination ?? null,
+        auditReason: auditReason || '管理员健康检查',
+      },
     });
   },
 

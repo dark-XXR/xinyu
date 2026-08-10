@@ -9,11 +9,17 @@
    - 最新系统活动动态追踪（最新操作及流水）
    - 快捷操作入口，一键管理各类资源
 
-2. **供应商管理 (Providers)**
-   - 支持 AI、邮件、短信及支付四类外部网关配置
-   - 发布/回滚能力与优先级、限流管理
-   - 安全的密钥配置与旋转机制 (Credential Rotations)，确保密码不落地回显
-   - 系统级接口连通性健康检查
+2. **供应商管理 (Providers - `/providers`)**
+   - **全面适配器支持**：支持 AI 推理（`OPENAI_COMPAT` 必填 Base URL 且可选 organization/project，以及 `OPENAI`、`ANTHROPIC`、`GEMINI` 原生，Base URL 可选）、邮件服务（`SMTP` 凭据/TLS、`SES_API` 必须 region、`SENDGRID_API`、`RESEND_API`、`MAILGUN_API` 必须 Base URL）、短信服务（`ALIYUN_SMS`、`TENCENT_SMS` 必须 applicationId）及支付网关（`EPAY_COMPAT` 支持可选 applicationId 和 `ALIPAY`/`WECHAT_PAY` 多选且至少选一种）
+   - **凭据按适配器区分**：凭据轮换按适配器 `adapterType` 自动解析密钥要求（AI / SendGrid / Resend / Mailgun 为 `apiKey`；SMTP 为 `username`+`password`；SES / 阿里云为 `accessKeyId`+`accessKeySecret`；腾讯云为 `secretId`+`secretKey`；易支付为 `merchantKey`）
+   - **就绪发布与阻断规则**：发布按钮仅在供应商配置状态处于 `READY` 时显示。保存草稿或轮换凭据后状态设为 `DRAFT` 且清空健康检查状态，必须先配置凭据并成功通过探针健康检查转为 `READY` 后方可发起发布，Mock 演示与真实后端保持一致
+   - **版本回滚与停用机制**：回滚（设为 `ACTIVE` 且灰度 100%）与停用（设为 `DISABLED` 且灰度 0%）保持版本自增与生效时间更新，并保留已发布线上历史版本（`publishedResourceVersion`），支持安全的版本演进与降级恢复
+   - **优先级机制**：优先级说明统一设定为数值越大越优先，运行时按降序规则选择可用供应商
+   - **线上版本与分流展示**：明确展示配置状态（DRAFT/READY/ACTIVE/DISABLED/SUPERSEDED）与线上运行状态（线上发布版本 `publishedResourceVersion`、灰度比例 `publishedRolloutPercentage` 和生效时间）。当处于 `DRAFT` 状态且 `publishedRolloutPercentage > 0` 时，清晰标示线上旧版本仍在线分流
+   - **危险停用机制**：停用按钮显示条件为 `publishedResourceVersion != null && publishedRolloutPercentage > 0`。停用弹窗详细解释会立即从邮件/短信/AI/支付运行时选择中移除（线上灰度比例降为 0%）但保留版本历史；要求填写至少 8 字审计理由并二次输入供应商完整名称确认
+   - **已停用恢复途径**：已停用项允许继续编辑、轮换凭据、健康检查和版本回滚；只有完成验证并重新发布或执行回滚后才能重新进入运行时
+   - **理由门禁与敏感信息清理**：发布、回滚、健康检查、凭据轮换和停用均强制要求至少 8 字审计理由。健康检查结果与审计理由留痕，测试目标脱敏处理。凭据与各类 Dialog 关闭时自动清理临时数据与理由输入
+   - **真实 If-Match 契约**：所有写操作（保存/发布/回滚/轮换/停用）If-Match 标头统一使用纯十进制字符串 `String(resourceVersion)`（如 `"2"`），不包含 `W/"..."` 弱 ETag 前缀
 
 3. **AI 运行配置 (AI Operations)**
    - 逻辑模型至供应商上游模型的动态绑定与成本、模态、Context Window 阈值管理

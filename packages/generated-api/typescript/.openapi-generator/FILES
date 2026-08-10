@@ -162,6 +162,7 @@ src/models/DeletionStatusResponse.ts
 src/models/Device.ts
 src/models/DeviceListData.ts
 src/models/DeviceListResponse.ts
+src/models/DisableProviderRequest.ts
 src/models/EmailApiConfiguration.ts
 src/models/EmailChallenge.ts
 src/models/EmailChallengeResponse.ts

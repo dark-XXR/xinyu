@@ -134,6 +134,7 @@ export * from './DeletionStatusResponse';
 export * from './Device';
 export * from './DeviceListData';
 export * from './DeviceListResponse';
+export * from './DisableProviderRequest';
 export * from './EmailApiConfiguration';
 export * from './EmailChallenge';
 export * from './EmailChallengeResponse';

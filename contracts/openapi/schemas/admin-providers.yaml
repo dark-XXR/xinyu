@@ -238,6 +238,9 @@ Provider:
     - priority
     - rolloutPercentage
     - credentialConfigured
+    - publishedResourceVersion
+    - publishedRolloutPercentage
+    - publishedEffectiveAt
     - resourceVersion
     - createdAt
     - updatedAt
@@ -284,6 +287,18 @@ Provider:
       type: [string, "null"]
       enum: [HEALTHY, DEGRADED, UNHEALTHY, null]
     effectiveAt:
+      type: [string, "null"]
+      format: date-time
+    publishedResourceVersion:
+      type: [integer, "null"]
+      minimum: 1
+      description: The immutable version currently selected for online traffic or retained as a disabled rollback anchor.
+    publishedRolloutPercentage:
+      type: integer
+      minimum: 0
+      maximum: 100
+      description: Actual online traffic percentage; zero means the provider is not selected at runtime.
+    publishedEffectiveAt:
       type: [string, "null"]
       format: date-time
     resourceVersion:
@@ -447,6 +462,16 @@ RollbackProviderRequest:
     targetResourceVersion:
       type: integer
       minimum: 1
+    auditReason:
+      type: string
+      minLength: 8
+      maxLength: 500
+
+DisableProviderRequest:
+  type: object
+  additionalProperties: false
+  required: [auditReason]
+  properties:
     auditReason:
       type: string
       minLength: 8

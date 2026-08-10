@@ -20,7 +20,16 @@ and `PAYMENT`. Provider records contain non-secret routing and compliance
 metadata; credentials are encrypted at rest, write-only through the admin API,
 and never returned to clients or logs. Configuration changes follow draft,
 validation, health check, publish, gray rollout, and rollback states. Every
-publish, secret rotation, and rollback is audited.
+publish, secret rotation, rollback, and emergency disable is audited. Editable
+draft state and immutable online publication state are separate, so editing a
+published provider does not silently replace or remove the online snapshot.
+
+Emergency disable is an immediate runtime circuit breaker with an independent
+permission and optimistic concurrency check. It sets online rollout to zero while
+retaining encrypted credentials, the last published version pointer, effective
+time, and immutable audit/version history. A disabled provider can return to
+runtime selection only after a new successful validation and publication or an
+explicit rollback to a previously published version.
 
 Use passwordless email OTP as the default login method. Email links may be added
 as a second email challenge mode. SMS remains available for account recovery,
@@ -46,3 +55,7 @@ defined in the product specification and can be changed before publication.
 - Production enablement requires provider terms, callback reachability, sandbox
   verification, and legal review even when the software integration is complete.
 - Existing SMS P0 operations remain compatible while email operations are added.
+- Operators can distinguish editable configuration state from real online traffic
+  through the published version, rollout percentage, and effective-time fields.
+- A mistaken disable does not destroy recovery material, but restoration remains
+  explicit, permission-scoped, and audited.

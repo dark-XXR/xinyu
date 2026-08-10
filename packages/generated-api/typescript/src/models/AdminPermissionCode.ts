@@ -72,6 +72,7 @@ export const AdminPermissionCode = {
     ProviderHealthCheck: 'PROVIDER_HEALTH_CHECK',
     ProviderPublish: 'PROVIDER_PUBLISH',
     ProviderRollback: 'PROVIDER_ROLLBACK',
+    ProviderDisable: 'PROVIDER_DISABLE',
     ReferralCampaignRead: 'REFERRAL_CAMPAIGN_READ',
     ReferralCampaignWrite: 'REFERRAL_CAMPAIGN_WRITE',
     ReferralCampaignPublish: 'REFERRAL_CAMPAIGN_PUBLISH',

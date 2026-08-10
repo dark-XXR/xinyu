@@ -43,6 +43,10 @@ where = ["services/api/src"]
 [tool.pytest.ini_options]
 addopts = "-q --strict-markers"
 testpaths = ["services/api/tests"]
+# Windows 下 asyncpg 连接与创建它的事件循环绑定。集成测试共享应用级连接池，
+# 因此统一使用会话级循环，避免跨测试复用已关闭循环中的数据库连接。
+asyncio_default_fixture_loop_scope = "session"
+asyncio_default_test_loop_scope = "session"
 
 [tool.ruff]
 line-length = 100

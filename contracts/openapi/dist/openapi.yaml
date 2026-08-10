@@ -2526,6 +2526,48 @@ paths:
           $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalError'
+  /admin/v1/providers/{providerId}/disable:
+    post:
+      operationId: disableAdminProvider
+      summary: Immediately remove a published provider from runtime selection
+      description: Preserves encrypted credentials and immutable published history for audit and rollback while setting online traffic to zero.
+      tags:
+        - ADMIN_PROVIDER
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/providerId'
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DisableProviderRequest'
+      responses:
+        '200':
+          description: Provider disabled and immediately excluded from runtime selection.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProviderResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
   /admin/v1/products:
     get:
       operationId: listAdminProducts
@@ -6991,6 +7033,7 @@ components:
         - PROVIDER_HEALTH_CHECK
         - PROVIDER_PUBLISH
         - PROVIDER_ROLLBACK
+        - PROVIDER_DISABLE
         - REFERRAL_CAMPAIGN_READ
         - REFERRAL_CAMPAIGN_WRITE
         - REFERRAL_CAMPAIGN_PUBLISH
@@ -7821,6 +7864,9 @@ components:
         - priority
         - rolloutPercentage
         - credentialConfigured
+        - publishedResourceVersion
+        - publishedRolloutPercentage
+        - publishedEffectiveAt
         - resourceVersion
         - createdAt
         - updatedAt
@@ -7881,6 +7927,22 @@ components:
             - UNHEALTHY
             - null
         effectiveAt:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        publishedResourceVersion:
+          type:
+            - integer
+            - 'null'
+          minimum: 1
+          description: The immutable version currently selected for online traffic or retained as a disabled rollback anchor.
+        publishedRolloutPercentage:
+          type: integer
+          minimum: 0
+          maximum: 100
+          description: Actual online traffic percentage; zero means the provider is not selected at runtime.
+        publishedEffectiveAt:
           type:
             - string
             - 'null'
@@ -8120,6 +8182,16 @@ components:
         targetResourceVersion:
           type: integer
           minimum: 1
+        auditReason:
+          type: string
+          minLength: 8
+          maxLength: 500
+    DisableProviderRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - auditReason
+      properties:
         auditReason:
           type: string
           minLength: 8

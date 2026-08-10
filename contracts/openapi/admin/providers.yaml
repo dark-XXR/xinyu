@@ -294,6 +294,48 @@ rollback:
       "500":
         $ref: ../components/responses.yaml#/InternalError
 
+disable:
+  post:
+    operationId: disableAdminProvider
+    summary: Immediately remove a published provider from runtime selection
+    description: Preserves encrypted credentials and immutable published history for audit and rollback while setting online traffic to zero.
+    tags: [ADMIN_PROVIDER]
+    security:
+      - adminBearerAuth: []
+    parameters:
+      - $ref: "#/components/providerId"
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+      - $ref: ../components/parameters.yaml#/IdempotencyKey
+      - $ref: ../components/parameters.yaml#/IfMatch
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/admin-providers.yaml#/DisableProviderRequest
+    responses:
+      "200":
+        description: Provider disabled and immediately excluded from runtime selection.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/admin-providers.yaml#/ProviderResponse
+      "400":
+        $ref: ../components/responses.yaml#/BadRequest
+      "401":
+        $ref: ../components/responses.yaml#/Unauthorized
+      "403":
+        $ref: ../components/responses.yaml#/Forbidden
+      "404":
+        $ref: ../components/responses.yaml#/NotFound
+      "409":
+        $ref: ../components/responses.yaml#/Conflict
+      "500":
+        $ref: ../components/responses.yaml#/InternalError
+
 components:
   providerId:
     name: providerId

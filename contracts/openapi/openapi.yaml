@@ -215,6 +215,8 @@ paths:
     $ref: ./admin/providers.yaml#/publish
   /admin/v1/providers/{providerId}/rollback:
     $ref: ./admin/providers.yaml#/rollback
+  /admin/v1/providers/{providerId}/disable:
+    $ref: ./admin/providers.yaml#/disable
   /admin/v1/products:
     $ref: ./admin/finance.yaml#/products
   /admin/v1/products/{productVersionId}:

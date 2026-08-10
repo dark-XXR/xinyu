@@ -171,6 +171,7 @@ src/main/kotlin/com/love_reply/generated/model/DeletionStatusResponse.kt
 src/main/kotlin/com/love_reply/generated/model/Device.kt
 src/main/kotlin/com/love_reply/generated/model/DeviceListData.kt
 src/main/kotlin/com/love_reply/generated/model/DeviceListResponse.kt
+src/main/kotlin/com/love_reply/generated/model/DisableProviderRequest.kt
 src/main/kotlin/com/love_reply/generated/model/EmailApiConfiguration.kt
 src/main/kotlin/com/love_reply/generated/model/EmailChallenge.kt
 src/main/kotlin/com/love_reply/generated/model/EmailChallengeResponse.kt

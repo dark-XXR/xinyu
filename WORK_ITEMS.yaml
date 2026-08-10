@@ -302,7 +302,7 @@ items:
       - provider_health_checks_are_redacted_and_audited
       - publish_gray_rollout_and_rollback_are_versioned
       - adapter_configuration_rejects_arbitrary_executable_content
-    handoffNotes: "Completed 8 administrator operations for list, create, read, update, credential rotation, redacted health checks, bounded publication, and rollback. Configuration is restricted to reviewed AI, SMTP/API email, Aliyun/Tencent SMS, and EPAY_COMPAT schemas; secrets are write-only. Twenty-two fixtures validate full success, error, and request coverage. Generated TypeScript and Kotlin clients compile."
+    handoffNotes: "Completed 9 administrator operations for list, create, read, update, credential rotation, redacted health checks, bounded publication, rollback, and audited emergency disable. Provider responses expose immutable online version, rollout, and effective-time fields separately from editable draft state. Configuration is restricted to reviewed AI, SMTP/API email, Aliyun/Tencent SMS, and EPAY_COMPAT schemas; secrets are write-only. Twenty-five fixtures validate full success, error, and request coverage. Generated TypeScript and Kotlin clients compile."
 
   - taskId: CONTRACT-FIXTURES-001
     title: Build shared success error SSE and webhook fixtures
@@ -324,7 +324,7 @@ items:
       - every_operation_has_success_or_expected_error_fixture
       - fixtures_validate_against_openapi_and_event_schemas
       - fixtures_contain_no_real_personal_data
-    handoffNotes: "Identity has 46 fixtures across 19 operations. P0 generation and billing have 30 fixtures across 12 operations, including text/event-stream. Admin providers have 22 fixtures across 8 operations. Commerce and ad rewards have 35 fixtures across 14 operations. Referral has 25 fixtures across 10 user and administrator operations. Remaining AI administration, business administration, and platform modules still require fixtures."
+    handoffNotes: "Identity has 46 fixtures across 19 operations. P0 generation and billing have 30 fixtures across 12 operations, including text/event-stream. Admin providers have 25 fixtures across 9 operations, including emergency disable and real online publication fields. Commerce and ad rewards have 35 fixtures across 14 operations. Referral has 25 fixtures across 10 user and administrator operations. Remaining AI administration, business administration, and platform modules still require fixtures."
 
   - taskId: CONTRACT-CODEGEN-001
     title: Configure Android TypeScript and backend contract generation
@@ -508,7 +508,7 @@ items:
       - health_checks_redact_credentials_and_sensitive_payloads
       - active_configuration_can_roll_back_atomically
       - ai_routes_fail_over_with_bounded_retry_and_cost
-    handoffNotes: "Encrypted provider persistence and all provider operations are implemented behind MFA-backed permissions. Configuration validation covers AI, SMTP/API email, Aliyun/Tencent SMS, and EPAY_COMPAT presets. Write-only credentials use authenticated encryption and keyed fingerprints; health results and audit reasons are redacted. Immutable versions preserve published snapshots while edits remain drafts, and rollback is atomic. Effective-time, priority, and stable gray rollout plus real authenticated-TLS SMTP delivery are complete. The AI runtime supports OpenAI-compatible, OpenAI, Anthropic, and Gemini protocols, logical model mappings, prompts, bounded budgets and token limits, deterministic rollout, bounded cross-provider failover, strict response validation, and redacted attempt records. All 22 administrator AI operations enforce MFA-backed permissions, optimistic concurrency, exact evaluation-version gates, provider and mapping references, worst-case retry cost, immutable online snapshots, and published-only rollback. Amazon SES v2, SendGrid, Resend, Mailgun, Aliyun SMS, and Tencent SMS use native authenticated APIs. EPAY_COMPAT now supports configurable callback/return URLs, canonical MD5 checkout signing, active query, refund, callback freshness and constant-time signature verification, published-registry resolution, health checks, and redacted errors. Fifty backend tests pass. Commerce persistence and HTTP settlement remain."
+    handoffNotes: "Encrypted provider persistence and all provider operations are implemented behind MFA-backed permissions. Configuration validation covers AI, SMTP/API email, Aliyun/Tencent SMS, and EPAY_COMPAT presets. Write-only credentials use authenticated encryption and keyed fingerprints; health results and audit reasons are redacted. Immutable versions preserve published snapshots while edits remain drafts, and rollback is atomic. Emergency disable has a distinct PROVIDER_DISABLE permission, immediately removes the online snapshot from runtime selection by setting published rollout to zero, retains credentials and the published version anchor, and writes an immutable PROVIDER_DISABLED audit. Effective-time, priority, and stable gray rollout plus real authenticated-TLS SMTP delivery are complete. The AI runtime supports OpenAI-compatible, OpenAI, Anthropic, and Gemini protocols, logical model mappings, prompts, bounded budgets and token limits, deterministic rollout, bounded cross-provider failover, strict response validation, and redacted attempt records. All 22 administrator AI operations enforce MFA-backed permissions, optimistic concurrency, exact evaluation-version gates, provider and mapping references, worst-case retry cost, immutable online snapshots, and published-only rollback. Amazon SES v2, SendGrid, Resend, Mailgun, Aliyun SMS, and Tencent SMS use native authenticated APIs. EPAY_COMPAT supports configurable callback/return URLs, canonical MD5 checkout signing, active query, refund, callback freshness and constant-time signature verification, published-registry resolution, health checks, and redacted errors."
 
   - taskId: BACKEND-COMMERCE-001
     title: Implement products subscriptions Epay orders callbacks refunds and reconciliation
@@ -535,7 +535,7 @@ items:
     title: Build provider AI commerce subscription and audit administration console
     moduleCode: ADMIN_RBAC
     owner: codex-root
-    status: in_progress
+    status: done
     allowedPaths:
       - apps/admin-web/**
     dependsOn: [BACKEND-PROVIDER-REGISTRY-001, BACKEND-COMMERCE-001, BACKEND-AUTH-CHANNELS-001]
@@ -545,7 +545,7 @@ items:
       - secret_values_are_never_rendered_after_submission
       - product_price_and_benefit_versions_require_confirmation
       - payment_and_provider_actions_have_audit_readback
-    handoffNotes: "In progress. The Antigravity CLI-built React console provides dashboard, provider, AI runtime, product/version, order/refund and unified compliance-audit operations. The /audit page searches login, AI input/output, payment, administrator configuration and website operation events; sensitive content, legal hold and encrypted export are reason-gated and audited again. Desktop 1440x900 and mobile 390x844 browser acceptance pass without page-level horizontal overflow. Provider disable remains before this task can be marked complete."
+    handoffNotes: "Complete. The Antigravity CLI-built React console provides dashboard, full AI/email/SMS/EPAY provider lifecycle, AI runtime, product/version, order/refund and unified compliance-audit operations. The provider page supports all 12 reviewed adapter presets, adapter-specific write-only credential fields, separate editable and real online status, gray publication, rollback, and audited emergency disable with reason plus provider-name confirmation. Provider writes use the contract's decimal If-Match value. The /audit page searches login, AI input/output, payment, administrator configuration and website operation events; sensitive content, legal hold and encrypted export are reason-gated and audited again. Desktop 1440x900 and mobile 390x844 browser acceptance pass without page-level horizontal overflow."
 
   - taskId: FRONTEND-ANDROID-AUTH-002
     title: Upgrade Android to email-first authentication with explicit SMS fallback

@@ -265,6 +265,12 @@ class RollbackProviderRequest(StrictApiModel):
     audit_reason: str = Field(min_length=8, max_length=500)
 
 
+class DisableProviderRequest(StrictApiModel):
+    """高风险停用操作只接收审计理由，版本并发控制由 If-Match 提供。"""
+
+    audit_reason: str = Field(min_length=8, max_length=500)
+
+
 class ProviderData(ApiModel):
     provider_id: str
     provider_name: str
@@ -281,6 +287,9 @@ class ProviderData(ApiModel):
     credential_rotated_at: datetime | None
     last_health_status: str | None
     effective_at: datetime | None
+    published_resource_version: int | None
+    published_rollout_percentage: int
+    published_effective_at: datetime | None
     resource_version: int
     created_at: datetime
     updated_at: datetime

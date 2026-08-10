@@ -42,6 +42,9 @@ import com.squareup.moshi.JsonClass
  * @param priority
  * @param rolloutPercentage
  * @param credentialConfigured
+ * @param publishedResourceVersion The immutable version currently selected for online traffic or retained as a disabled rollback anchor.
+ * @param publishedRolloutPercentage Actual online traffic percentage; zero means the provider is not selected at runtime.
+ * @param publishedEffectiveAt
  * @param resourceVersion
  * @param createdAt
  * @param updatedAt
@@ -82,6 +85,17 @@ data class Provider (
 
     @Json(name = "credentialConfigured")
     val credentialConfigured: kotlin.Boolean,
+
+    /* The immutable version currently selected for online traffic or retained as a disabled rollback anchor. */
+    @Json(name = "publishedResourceVersion")
+    val publishedResourceVersion: kotlin.Int?,
+
+    /* Actual online traffic percentage; zero means the provider is not selected at runtime. */
+    @Json(name = "publishedRolloutPercentage")
+    val publishedRolloutPercentage: kotlin.Int,
+
+    @Json(name = "publishedEffectiveAt")
+    val publishedEffectiveAt: java.time.OffsetDateTime?,
 
     @Json(name = "resourceVersion")
     val resourceVersion: kotlin.Int,

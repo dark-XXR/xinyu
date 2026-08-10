@@ -104,6 +104,7 @@ All URIs are relative to *http://localhost:8000*
 *ADMINCOMMERCEApi* | [**updateAdminProduct**](docs/ADMINCOMMERCEApi.md#updateadminproduct) | **PATCH** /admin/v1/products/{productVersionId} | Replace a draft with a new immutable product version
 *ADMINPROVIDERApi* | [**checkAdminProviderHealth**](docs/ADMINPROVIDERApi.md#checkadminproviderhealth) | **POST** /admin/v1/providers/{providerId}/health-checks | Execute an audited redacted provider health check
 *ADMINPROVIDERApi* | [**createAdminProvider**](docs/ADMINPROVIDERApi.md#createadminprovider) | **POST** /admin/v1/providers | Create a provider draft
+*ADMINPROVIDERApi* | [**disableAdminProvider**](docs/ADMINPROVIDERApi.md#disableadminprovider) | **POST** /admin/v1/providers/{providerId}/disable | Immediately remove a published provider from runtime selection
 *ADMINPROVIDERApi* | [**getAdminProvider**](docs/ADMINPROVIDERApi.md#getadminprovider) | **GET** /admin/v1/providers/{providerId} | Read one redacted provider configuration
 *ADMINPROVIDERApi* | [**listAdminProviders**](docs/ADMINPROVIDERApi.md#listadminproviders) | **GET** /admin/v1/providers | List configured external providers
 *ADMINPROVIDERApi* | [**publishAdminProvider**](docs/ADMINPROVIDERApi.md#publishadminprovider) | **POST** /admin/v1/providers/{providerId}/publish | Publish a validated provider with bounded rollout
@@ -316,6 +317,7 @@ All URIs are relative to *http://localhost:8000*
 - [Device](docs/Device.md)
 - [DeviceListData](docs/DeviceListData.md)
 - [DeviceListResponse](docs/DeviceListResponse.md)
+- [DisableProviderRequest](docs/DisableProviderRequest.md)
 - [EmailApiConfiguration](docs/EmailApiConfiguration.md)
 - [EmailChallenge](docs/EmailChallenge.md)
 - [EmailChallengeResponse](docs/EmailChallengeResponse.md)

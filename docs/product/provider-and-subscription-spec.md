@@ -1,8 +1,8 @@
 # Provider configuration and subscription catalog specification
 
 Status: Initial implementation specification
-Version: 1.0
-Date: 2026-08-08
+Version: 1.1
+Date: 2026-08-09
 
 This document defines implementation defaults. Prices and benefits are draft
 catalog data, not hardcoded client behavior or a final commercial commitment.
@@ -13,6 +13,13 @@ Administrators may edit drafts and publish versioned replacements.
 Every external provider uses a common lifecycle:
 
 `DRAFT -> VALIDATING -> READY -> ACTIVE -> DISABLED`
+
+The editable configuration state and the online publication state are separate.
+After an active provider is edited, its configuration returns to `DRAFT` while
+the last immutable published snapshot can continue serving traffic. Operators
+and clients must determine real online state from `publishedResourceVersion`,
+`publishedRolloutPercentage`, and `publishedEffectiveAt`, not from the editable
+status alone.
 
 An active version can be superseded or rolled back to a known version. The admin
 console must support:
@@ -25,6 +32,18 @@ console must support:
 - timeouts, retry limits, circuit breaking, rate limits, and fallback priority;
 - tenant/environment scope, gray percentage, effective time, and rollback;
 - audit reason, operator identity, approval state, and immutable audit events.
+
+Emergency disable is a distinct high-risk operation. It requires optimistic
+concurrency, the independent `PROVIDER_DISABLE` permission, an audit reason of at
+least eight characters, and an immutable audit event. A successful disable
+immediately changes the editable state to `DISABLED`, clears the current rollout
+and effective time, and sets the published rollout to zero so runtime resolvers
+stop selecting the provider. It retains the encrypted credentials, immutable
+version history, `publishedResourceVersion`, and `publishedEffectiveAt` as
+recovery evidence and a rollback anchor. Recovery requires credential rotation
+or draft editing as needed, a new successful health check followed by publication,
+or rollback to a previously published immutable version. Repeated disable and
+disable-before-first-publication fail with stable conflict responses.
 
 Secrets must be envelope-encrypted with a deployment master key or KMS. They are
 never included in list/detail responses, analytics, exception messages, or
@@ -67,6 +86,11 @@ The first adapter is standards-based SMTP with TLS. Provider presets may add API
 adapters for Amazon SES, SendGrid, Resend, Mailgun, or another service without
 changing auth domain logic.
 
+The administration form currently exposes `SMTP`, `SES_API`, `SENDGRID_API`,
+`RESEND_API`, and `MAILGUN_API`. Credential fields are selected by adapter: SMTP
+uses write-only username and password, SES uses write-only access key ID and
+secret, and SendGrid, Resend, and Mailgun use a write-only API key.
+
 Required SMTP fields: host, port, TLS mode, username, write-only password, sender
 address, sender name, reply-to address, template locale, and timeout. A health
 check sends only to a configured administrator test address.
@@ -77,6 +101,8 @@ SMS is optional and fail-closed when unconfigured. Presets should cover Alibaba
 Cloud SMS and Tencent Cloud SMS first, while the adapter contract remains vendor
 neutral. Required configuration includes region, application/signature ID,
 template ID, write-only credentials, sender identity, and delivery callback.
+The administration form exposes `ALIYUN_SMS` and `TENCENT_SMS` and requests only
+the credential names required by the selected adapter.
 
 ## 3. AI model gateway
 
@@ -88,6 +114,10 @@ The initial adapter set is:
 | `OPENAI` | Official OpenAI behavior and model metadata |
 | `ANTHROPIC` | Claude message API mapping |
 | `GEMINI` | Google Gemini content API mapping |
+
+The administration form supports all four adapter types. It requests a write-only
+API key for AI adapters and only displays organization, project, base URL, and
+other non-secret fields when the selected adapter supports them.
 
 An administrator can add providers, models, and routes. Model records define a
 logical model ID, provider model name, input/output modalities, context limit,
@@ -122,6 +152,10 @@ Admin-configurable fields:
 - signing preset, defaulting to canonical Epay MD5 for compatible gateways;
 - notify URL, return URL, query timeout, callback time window, and ACK text;
 - sandbox/production mode, IP allowlist option, and TLS certificate policy.
+
+The administration form requires at least one configured payment type, currently
+Alipay or WeChat Pay, and requests the write-only merchant key only during
+credential rotation. No credential value is returned after submission.
 
 The canonical Epay signing preset sorts non-empty parameters by ASCII key,
 excludes `sign` and `sign_type`, appends the merchant key according to the

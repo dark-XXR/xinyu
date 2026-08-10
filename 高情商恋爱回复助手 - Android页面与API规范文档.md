@@ -468,9 +468,13 @@ data: {"schemaVersion":"1.0","eventId":"18","eventType":"candidate.completed","o
 
 | 方法与路径 | 页面/用途 |
 |---|---|
-| `GET/POST /admin/v1/model-providers` | 供应商列表/新增；密钥只写不回显 |
-| `PATCH /admin/v1/model-providers/{providerId}` | 更新非密钥配置或轮换密钥 |
-| `POST /admin/v1/model-providers/{providerId}/health-checks` | 创建健康检查任务 |
+| `GET/POST /admin/v1/providers` | AI、邮件、短信和支付供应商列表/新增；密钥只写不回显 |
+| `GET/PATCH /admin/v1/providers/{providerId}` | 读取或更新非密钥草稿；更新使用纯十进制 `If-Match` 资源版本 |
+| `POST /admin/v1/providers/{providerId}/credentials` | 按适配器轮换写入式凭据；要求审计理由和资源版本 |
+| `POST /admin/v1/providers/{providerId}/health-checks` | 创建脱敏健康检查；邮件/短信使用管理员测试目标 |
+| `POST /admin/v1/providers/{providerId}/publish` | 发布指定灰度和生效时间；保留不可变版本 |
+| `POST /admin/v1/providers/{providerId}/rollback` | 回滚到历史已发布版本并恢复线上流量 |
+| `POST /admin/v1/providers/{providerId}/disable` | 紧急停用线上流量；独立权限、审计理由、`If-Match`，立即将线上灰度归零但保留恢复锚点 |
 | `GET/POST /admin/v1/models` | 模型目录和倍率 |
 | `GET/POST /admin/v1/model-routes` | 场景路由、超时、重试、降级和熔断 |
 | `PATCH /admin/v1/model-routes/{routeId}` | 带版本更新路由 |

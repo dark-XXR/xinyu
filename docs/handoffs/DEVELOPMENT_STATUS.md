@@ -4,10 +4,11 @@ Last updated: 2026-08-09
 
 ## Current checkpoint
 
-- Active task: `FRONTEND-ADMIN-CONSOLE-001`
-- State: `in_progress`
+- Last completed task: `FRONTEND-ADMIN-CONSOLE-001`
+- Next development area: invitation campaign administration page
 - Contract version: `1.0.0`
-- Current phase: administration console milestone 3 compliance audit is accepted; provider disable is next
+- Current phase: administration console provider lifecycle is accepted; invitation campaign administration is next
+- Strict work-item progress: `23/33 = 69.7%`
 
 ## Completed
 
@@ -27,7 +28,8 @@ Last updated: 2026-08-09
   intersects it with the authenticated entitlement.
 - Unified administrator provider contract now covers AI, SMTP/API email, Aliyun/Tencent SMS,
   and EPAY-compatible payment configuration, write-only credential rotation, redacted health
-  checks, bounded publication, and rollback. Twenty-two provider fixtures validate 8 operations.
+  checks, bounded publication, rollback, and audited emergency disable. Twenty-five provider
+  fixtures validate 9 operations and include real online publication fields.
 - AI administration contracts now define administrator-only upstream model mappings, bounded
   scenario routes, prompt versions, evaluation gates, risk policies, gray rollout, and rollback.
   Timeouts, retries, token limits, costs, budgets, and fallback order are published data rather
@@ -36,6 +38,12 @@ Last updated: 2026-08-09
   redacted health checks, immutable configuration snapshots, publication pointers, gray rollout,
   atomic rollback, and audit events. Editing a published provider cannot change its online snapshot.
   Keyed credential fingerprints resist offline guessing and secrets are never returned by the API.
+- Provider emergency disable now has the independent `PROVIDER_DISABLE` permission. It immediately
+  sets current and published rollout to zero so runtime resolvers stop selecting the provider, while
+  retaining encrypted credentials, immutable versions, the last publication pointer, and effective
+  time. Duplicate disable and disable-before-first-publication return stable conflicts; recovery is
+  explicit through a new health-checked publication or rollback. `PROVIDER_DISABLED` is recorded in
+  both the provider audit trail and the unified HTTP compliance ledger.
 - Published providers are now resolved from immutable snapshots by effective time, priority, adapter,
   and a server-keyed stable rollout bucket. SMTP uses authenticated TLS, database-published localized
   templates, encrypted credentials, and a real synthetic-delivery health check. The auth channel
@@ -105,7 +113,7 @@ Last updated: 2026-08-09
 - Debug APK assembles successfully with compile SDK 35 and Java 17.
 - Real emulator-to-local-API SMS login, entitlement, quote, generation failure, and quota release
   flow verified. The default unavailable AI provider still fails closed without fake replies.
-- Antigravity CLI `1.107.0` is installed. All future frontend implementation will use its CLI
+- Antigravity CLI `1.1.11` is installed. All future frontend implementation will use its CLI
   agent/edit modes only; the IDE will not be launched or controlled. Browser and emulator
   screenshots plus automated viewport tests remain the visual acceptance path.
 - Login, composer, quote, success, and failure states were exported and inspected at `1080x2400`
@@ -116,8 +124,14 @@ Last updated: 2026-08-09
   quotas, benefit amounts, provider credentials, or resource versions in page components.
 - Administration routes `/`, `/providers`, `/commerce/products`, and `/commerce/orders` now cover
   operational metrics, provider drafts and filters, write-only credential rotation, provider health
-  checks, provider publication/rollback, versioned products and benefits, immutable order readback,
-  refund review, and refund execution. Destructive and publication actions require confirmation.
+  checks, provider publication/rollback/emergency disable, versioned products and benefits, immutable
+  order readback, refund review, and refund execution. Destructive and publication actions require
+  reason-gated confirmation.
+- The `/providers` page now exposes all 12 reviewed adapter presets: OpenAI-compatible, OpenAI,
+  Anthropic, Gemini, SMTP, SES, SendGrid, Resend, Mailgun, Aliyun SMS, Tencent SMS, and EPAY_COMPAT.
+  Credential fields change by adapter and remain write-only. Editable configuration state is shown
+  separately from the real online publication version, rollout, and effective time, including when
+  a new draft coexists with an older online snapshot.
 - The first administration UI milestone passed strict TypeScript, oxlint, production build, and real
   browser acceptance at `1440x900` and `390x844`. Mobile data tables become labeled card rows,
   all checked pages have zero horizontal overflow, menus and dialogs close with Escape, and the
@@ -165,20 +179,23 @@ Last results: 5 unit tests, 6 default-size device UI tests, 6 compact-size UI te
 Android Lint, and Debug APK assembly all passed.
 
 Administration web results: TypeScript project references, oxlint (0 warnings/errors), and Vite
-production build pass. The production bundle is 367.77 kB JavaScript (103.14 kB gzip) and 7.91 kB
-CSS (2.13 kB gzip). Real-browser acceptance covers the current routes at desktop size; `/ai` and
-`/audit` passed their functional and `390x844` responsive checks with root/page widths equal to the
-viewport.
+production build pass. The production bundle is 388.69 kB JavaScript (108.85 kB gzip) and 7.91 kB
+CSS (2.13 kB gzip). Real-browser acceptance covers the current routes at desktop size. `/providers`,
+`/ai`, and `/audit` passed their functional and `390x844` responsive checks with root/page widths
+equal to the viewport.
 
 Identity contract validation now covers 46 fixtures across 19 tagged operations. Generated
 Kotlin and TypeScript clients both compile with the new email/channel models and operations.
 
-Backend verification now covers 60 PostgreSQL integration and transport tests. The email/auth,
-administrator authentication, provider-registry, and AI-gateway migrations passed
-upgrade, downgrade, and re-upgrade. The commerce administration migration also passed its own
-downgrade/upgrade loop. Referral and compliance-audit tables also passed downgrade/upgrade. Ruff,
-strict MyPy across 66 source files, OpenAPI lint/bundle, referral fixture validation, generated
-TypeScript build, generated Kotlin build, Android unit tests, Android Lint, and Debug APK assembly pass.
+Backend verification now covers 62 PostgreSQL integration and transport tests. The email/auth,
+administrator authentication, provider-registry, and AI-gateway migrations passed upgrade,
+downgrade, and re-upgrade. The new provider-disable permission migration also passed its own
+downgrade/upgrade loop. Commerce administration, referral, and compliance-audit migrations pass.
+Ruff, strict MyPy across 66 source files, targeted provider/compliance integration tests, OpenAPI
+lint/bundle, 25 provider fixtures across 9 operations, generated TypeScript and Kotlin builds,
+Android unit tests, Android Lint, and Debug APK assembly pass.
+The pytest-asyncio integration suite now uses one session-scoped event loop so the shared asyncpg
+pool never reuses a connection bound to a closed Windows event loop; production pooling is unchanged.
 
 ## External inputs
 
@@ -196,6 +213,13 @@ console. The administration UI milestone uses a restrained neutral/coral operati
 has been accepted from actual browser output. All frontend implementation continues through
 Antigravity CLI only; the IDE is not launched or controlled.
 
+The provider route was re-accepted at `1440x900` and `390x844`. The page is non-blank, exposes
+configuration and online status separately, and has no console warnings/errors or horizontal page
+overflow. Emergency disable remains disabled until an audit reason of at least eight characters and
+the exact provider name are entered; success produces `DISABLED`, zero online rollout, and a retained
+published-version anchor. The mock demonstration also passes credential rotation, health transition
+to `READY`, and reason-gated publication back to `ACTIVE`.
+
 ## Accepted provider and commerce direction
 
 - Email OTP is the primary login method; SMS remains fallback, recovery, and step-up.
@@ -208,9 +232,7 @@ Antigravity CLI only; the IDE is not launched or controlled.
 
 ## Next exact actions
 
-1. Add provider disable to finish the remaining administration console acceptance criterion; its
-   operation and result will automatically enter the unified audit ledger.
-2. Add the invitation campaign administration page for configurable milestones, rewards, rollout,
+1. Add the invitation campaign administration page for configurable milestones, rewards, rollout,
    publication, and rollback.
-3. Redesign the Android UI through Antigravity CLI and verify it on emulator viewports.
-4. Add invite sharing, progress and reward history to the redesigned Android experience.
+2. Redesign the Android UI through Antigravity CLI and verify it on emulator viewports.
+3. Add invite sharing, progress and reward history to the redesigned Android experience.

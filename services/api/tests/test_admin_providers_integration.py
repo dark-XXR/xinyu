@@ -364,6 +364,8 @@ async def test_provider_registry_encrypts_versions_publishes_and_rolls_back(
         assert published["status"] == "ACTIVE"
         assert published["resourceVersion"] == 4
         assert published["rolloutPercentage"] == 10
+        assert published["publishedResourceVersion"] == 3
+        assert published["publishedRolloutPercentage"] == 10
 
         update_response = await client.patch(
             f"/admin/v1/providers/{provider_id}",
@@ -403,12 +405,55 @@ async def test_provider_registry_encrypts_versions_publishes_and_rolls_back(
             assert resolved.resource_version == 3
             assert resolved.configuration["port"] == 587
 
+        disable = await client.post(
+            f"/admin/v1/providers/{provider_id}/disable",
+            headers=_headers(
+                access_token=access_token,
+                idempotency_key="idem-provider-disable",
+                resource_version=5,
+            ),
+            json={"auditReason": "Emergency stop after elevated delivery failures"},
+        )
+        assert disable.status_code == 200
+        disabled = disable.json()["data"]
+        assert disabled["status"] == "DISABLED"
+        assert disabled["resourceVersion"] == 6
+        assert disabled["rolloutPercentage"] == 0
+        assert disabled["publishedResourceVersion"] == 3
+        assert disabled["publishedRolloutPercentage"] == 0
+
+        async with session_factory() as session:
+            resolver = PublishedProviderResolver(
+                session=session,
+                settings=provider_settings,
+            )
+            assert (
+                await resolver.resolve(
+                    kind="EMAIL",
+                    routing_key=routing_key,
+                    adapter_types={"SMTP"},
+                )
+                is None
+            )
+
+        duplicate_disable = await client.post(
+            f"/admin/v1/providers/{provider_id}/disable",
+            headers=_headers(
+                access_token=access_token,
+                idempotency_key="idem-provider-disable-again",
+                resource_version=6,
+            ),
+            json={"auditReason": "Reject duplicate emergency disable request"},
+        )
+        assert duplicate_disable.status_code == 409
+        assert duplicate_disable.json()["code"] == "PROVIDER_ALREADY_DISABLED"
+
         invalid_rollback = await client.post(
             f"/admin/v1/providers/{provider_id}/rollback",
             headers=_headers(
                 access_token=access_token,
                 idempotency_key="idem-provider-invalid-rollback",
-                resource_version=5,
+                resource_version=6,
             ),
             json={
                 "targetResourceVersion": 2,
@@ -437,7 +482,7 @@ async def test_provider_registry_encrypts_versions_publishes_and_rolls_back(
             headers=_headers(
                 access_token=access_token,
                 idempotency_key="idem-provider-rollback",
-                resource_version=5,
+                resource_version=6,
             ),
             json={
                 "targetResourceVersion": 3,
@@ -449,7 +494,9 @@ async def test_provider_registry_encrypts_versions_publishes_and_rolls_back(
         assert rolled_back["status"] == "ACTIVE"
         assert rolled_back["configuration"]["port"] == 587
         assert rolled_back["rolloutPercentage"] == 100
-        assert rolled_back["resourceVersion"] == 6
+        assert rolled_back["resourceVersion"] == 7
+        assert rolled_back["publishedResourceVersion"] == 3
+        assert rolled_back["publishedRolloutPercentage"] == 100
 
         user_headers = {
             "X-Request-Id": "req-registry-email-auth",
@@ -528,13 +575,14 @@ async def test_provider_registry_encrypts_versions_publishes_and_rolls_back(
             )
             assert "smtp-password-secret" not in serialized_audits
             assert "admin-test@example.com" not in serialized_audits
+            assert any(item.action == "PROVIDER_DISABLED" for item in audits)
 
             admin = await session.scalar(select(AdminUserRecord))
             assert admin is not None
             admin.permissions = [
                 permission
                 for permission in admin.permissions
-                if permission != "PROVIDER_WRITE"
+                if permission not in {"PROVIDER_WRITE", "PROVIDER_DISABLE"}
             ]
             await session.commit()
 
@@ -548,3 +596,15 @@ async def test_provider_registry_encrypts_versions_publishes_and_rolls_back(
         )
         assert denied.status_code == 403
         assert denied.json()["code"] == "PERMISSION_DENIED"
+
+        disable_denied = await client.post(
+            f"/admin/v1/providers/{provider_id}/disable",
+            headers=_headers(
+                access_token=access_token,
+                idempotency_key="idem-provider-disable-permission-denied",
+                resource_version=8,
+            ),
+            json={"auditReason": "Permission denial must happen before state checks"},
+        )
+        assert disable_denied.status_code == 403
+        assert disable_denied.json()["code"] == "PERMISSION_DENIED"
