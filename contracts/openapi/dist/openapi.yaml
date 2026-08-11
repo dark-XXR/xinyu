@@ -47,6 +47,8 @@ tags:
     description: Signed advertising provider completion callbacks.
   - name: REFERRAL
     description: Single-level invitation binding, qualification, and rewards.
+  - name: SUPPORT
+    description: Authenticated user support tickets and replies.
   - name: GENERATION
     description: Quotes, generation tasks, snapshots, and SSE events.
   - name: CANDIDATE
@@ -61,6 +63,10 @@ tags:
     description: Logical models, bounded routes, prompts, evaluations, and AI risk policies.
   - name: ADMIN_REFERRAL
     description: Versioned referral campaign administration and rollout.
+  - name: ADMIN_PLATFORM
+    description: User operations, notices, and versioned website identity configuration.
+  - name: ADMIN_SUPPORT
+    description: Support queues, conversations, assignment, priority, and resolution.
 paths:
   /health:
     get:
@@ -121,6 +127,28 @@ paths:
           $ref: '#/components/responses/InternalError'
         '503':
           $ref: '#/components/responses/ServiceUnavailable'
+  /v1/app/notices:
+    get:
+      operationId: listPublicNotices
+      summary: List announcements active for this client
+      tags:
+        - APP_CONFIG
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/XDeviceId'
+        - $ref: '#/components/parameters/AcceptLanguage'
+      responses:
+        '200':
+          description: Active notices.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NoticeListResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
   /v1/auth/sms/send:
     post:
       operationId: sendSmsChallenge
@@ -1392,6 +1420,99 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '500':
           $ref: '#/components/responses/InternalError'
+  /v1/support/tickets:
+    get:
+      operationId: listMySupportTickets
+      summary: List current user's support tickets
+      tags:
+        - SUPPORT
+      parameters:
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/XDeviceId'
+        - $ref: '#/components/parameters/AcceptLanguage'
+      responses:
+        '200':
+          description: Tickets.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportTicketListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      operationId: createSupportTicket
+      summary: Create a support ticket
+      tags:
+        - SUPPORT
+      parameters:
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/XDeviceId'
+        - $ref: '#/components/parameters/AcceptLanguage'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSupportTicketRequest'
+      responses:
+        '201':
+          description: Created ticket.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportTicketResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+  /v1/support/tickets/{ticketId}:
+    get:
+      operationId: getMySupportTicket
+      summary: Read one owned support ticket
+      tags:
+        - SUPPORT
+      parameters:
+        - $ref: '#/components/parameters/ticketId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/XDeviceId'
+        - $ref: '#/components/parameters/AcceptLanguage'
+      responses:
+        '200':
+          description: Ticket conversation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportTicketDetailResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/support/tickets/{ticketId}/messages:
+    post:
+      operationId: addMySupportMessage
+      summary: Reply to an owned support ticket
+      tags:
+        - SUPPORT
+      parameters:
+        - $ref: '#/components/parameters/ticketId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/XDeviceId'
+        - $ref: '#/components/parameters/AcceptLanguage'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddSupportMessageRequest'
+      responses:
+        '200':
+          description: Updated ticket.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportTicketResponse'
+        '409':
+          $ref: '#/components/responses/Conflict'
   /v1/generations/quote:
     post:
       operationId: quoteGeneration
@@ -2228,6 +2349,439 @@ paths:
                 $ref: '#/components/schemas/AuditExportContentResponse'
         '403':
           $ref: '#/components/responses/Forbidden'
+  /admin/v1/users:
+    get:
+      operationId: listAdminUsers
+      summary: List and search masked user accounts
+      tags:
+        - ADMIN_PLATFORM
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - name: search
+          in: query
+          schema:
+            type:
+              - string
+              - 'null'
+        - name: status
+          in: query
+          schema:
+            type:
+              - string
+              - 'null'
+            enum:
+              - ACTIVE
+              - SUSPENDED
+              - DELETION_PENDING
+              - null
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Masked users.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminUserListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /admin/v1/users/{userId}:
+    get:
+      operationId: getAdminUser
+      summary: Read one user with devices and consents
+      tags:
+        - ADMIN_PLATFORM
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/userId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+      responses:
+        '200':
+          description: User detail.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminUserDetailResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /admin/v1/users/{userId}/status:
+    patch:
+      operationId: changeAdminUserStatus
+      summary: Suspend or restore a user and revoke active sessions
+      tags:
+        - ADMIN_PLATFORM
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/userId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminUserStatusRequest'
+      responses:
+        '200':
+          description: Updated user.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminUserResponse'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /admin/v1/users/{userId}/entitlements:
+    get:
+      operationId: getAdminUserEntitlements
+      summary: Read user entitlement and wallet facts
+      tags:
+        - ADMIN_PLATFORM
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/userId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+      responses:
+        '200':
+          description: Entitlement facts.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminUserEntitlementResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /admin/v1/users/{userId}/ledger:
+    get:
+      operationId: listAdminUserLedger
+      summary: List immutable user wallet ledger entries
+      tags:
+        - ADMIN_PLATFORM
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/userId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Ledger entries.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminWalletLedgerListResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /admin/v1/system-config:
+    get:
+      operationId: getAdminSystemConfig
+      summary: Read latest website configuration draft or published version
+      tags:
+        - ADMIN_PLATFORM
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - name: publishedOnly
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: Latest version.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SystemConfigResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    patch:
+      operationId: updateAdminSystemConfig
+      summary: Save a website configuration draft
+      tags:
+        - ADMIN_PLATFORM
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SystemConfigWriteRequest'
+      responses:
+        '200':
+          description: Saved draft.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SystemConfigResponse'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /admin/v1/system-config/publish:
+    post:
+      operationId: publishAdminSystemConfig
+      summary: Publish the current website configuration draft
+      tags:
+        - ADMIN_PLATFORM
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuditReasonRequest'
+      responses:
+        '200':
+          description: Published version.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SystemConfigResponse'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /admin/v1/notices:
+    get:
+      operationId: listAdminNotices
+      summary: List latest announcement versions
+      tags:
+        - ADMIN_PLATFORM
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+      responses:
+        '200':
+          description: Notices.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NoticeListResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      operationId: createAdminNotice
+      summary: Create an announcement draft
+      tags:
+        - ADMIN_PLATFORM
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NoticeWriteRequest'
+      responses:
+        '201':
+          description: Created draft.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NoticeResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+  /admin/v1/notices/{noticeId}:
+    patch:
+      operationId: updateAdminNotice
+      summary: Save an announcement draft
+      tags:
+        - ADMIN_PLATFORM
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/noticeId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NoticeWriteRequest'
+      responses:
+        '200':
+          description: Saved draft.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NoticeResponse'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /admin/v1/notices/{noticeId}/publish:
+    post:
+      operationId: publishAdminNotice
+      summary: Publish an announcement draft
+      tags:
+        - ADMIN_PLATFORM
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/noticeId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuditReasonRequest'
+      responses:
+        '200':
+          description: Published notice.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NoticeResponse'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /admin/v1/notices/{noticeId}/revoke:
+    post:
+      operationId: revokeAdminNotice
+      summary: Revoke a published announcement immediately
+      tags:
+        - ADMIN_PLATFORM
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/noticeId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuditReasonRequest'
+      responses:
+        '200':
+          description: Revoked notice.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NoticeResponse'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /admin/v1/support/tickets:
+    get:
+      operationId: listAdminSupportTickets
+      summary: List support queue
+      tags:
+        - ADMIN_SUPPORT
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - name: status
+          in: query
+          schema:
+            type:
+              - string
+              - 'null'
+      responses:
+        '200':
+          description: Support queue.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportTicketListResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /admin/v1/support/tickets/{ticketId}:
+    get:
+      operationId: getAdminSupportTicket
+      summary: Read ticket conversation including internal notes
+      tags:
+        - ADMIN_SUPPORT
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ticketId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+      responses:
+        '200':
+          description: Ticket conversation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportTicketDetailResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      operationId: updateAdminSupportTicket
+      summary: Reply, add internal note, assign, prioritize, or resolve a ticket
+      tags:
+        - ADMIN_SUPPORT
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ticketId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminUpdateSupportTicketRequest'
+      responses:
+        '200':
+          description: Updated ticket.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportTicketResponse'
+        '409':
+          $ref: '#/components/responses/Conflict'
   /admin/v1/providers:
     get:
       operationId: listAdminProviders
@@ -4218,6 +4772,12 @@ components:
         type: string
         minLength: 8
         maxLength: 128
+    ticketId:
+      name: ticketId
+      in: path
+      required: true
+      schema:
+        type: string
     LastEventId:
       name: Last-Event-ID
       in: header
@@ -4227,6 +4787,18 @@ components:
         type: string
         minLength: 8
         maxLength: 128
+    userId:
+      name: userId
+      in: path
+      required: true
+      schema:
+        type: string
+    noticeId:
+      name: noticeId
+      in: path
+      required: true
+      schema:
+        type: string
     providerId:
       name: providerId
       in: path
@@ -4512,6 +5084,58 @@ components:
       additionalProperties:
         type: boolean
       description: Published feature availability keyed by stable feature code.
+    SystemIdentityConfig:
+      type: object
+      additionalProperties: false
+      required:
+        - websiteName
+        - appName
+        - companyName
+        - customerServiceEmail
+        - privacyEmail
+        - defaultLocale
+        - maintenanceMode
+      properties:
+        websiteName:
+          type: string
+          minLength: 1
+          maxLength: 80
+        appName:
+          type: string
+          minLength: 1
+          maxLength: 80
+        companyName:
+          type: string
+          minLength: 1
+          maxLength: 160
+        logoUrl:
+          type:
+            - string
+            - 'null'
+          format: uri
+        customerServiceEmail:
+          type: string
+          format: email
+        privacyEmail:
+          type: string
+          format: email
+        defaultLocale:
+          type: string
+        officialWebsiteUrl:
+          type:
+            - string
+            - 'null'
+          format: uri
+        filingInformation:
+          type:
+            - string
+            - 'null'
+        maintenanceMode:
+          type: boolean
+        maintenanceMessage:
+          type:
+            - string
+            - 'null'
     AppBootstrap:
       type: object
       additionalProperties: false
@@ -4523,6 +5147,7 @@ components:
         - generationPolicy
         - freeEntitlement
         - featureFlags
+        - siteIdentity
       properties:
         configVersion:
           type: integer
@@ -4546,6 +5171,8 @@ components:
           $ref: '#/components/schemas/FreeEntitlementTemplate'
         featureFlags:
           $ref: '#/components/schemas/FeatureFlags'
+        siteIdentity:
+          $ref: '#/components/schemas/SystemIdentityConfig'
     AppBootstrapResponse:
       allOf:
         - $ref: '#/components/schemas/BaseSuccessEnvelope'
@@ -4553,6 +5180,82 @@ components:
           properties:
             data:
               $ref: '#/components/schemas/AppBootstrap'
+    NoticeVersion:
+      type: object
+      additionalProperties: true
+      required:
+        - noticeVersionId
+        - noticeId
+        - version
+        - status
+        - title
+        - body
+        - noticeType
+        - targetPlatforms
+        - targetLocales
+        - displayFrequency
+        - startsAt
+        - resourceVersion
+        - createdByAdminId
+        - createdAt
+        - updatedAt
+      properties:
+        noticeVersionId:
+          type: string
+        noticeId:
+          type: string
+        version:
+          type: integer
+        status:
+          type: string
+          enum:
+            - DRAFT
+            - PUBLISHED
+            - SUPERSEDED
+            - REVOKED
+        title:
+          type: string
+        body:
+          type: string
+        noticeType:
+          type: string
+        targetPlatforms:
+          type: array
+          items:
+            type: string
+        targetLocales:
+          type: array
+          items:
+            type: string
+        displayFrequency:
+          type: string
+        startsAt:
+          type: string
+          format: date-time
+        resourceVersion:
+          type: integer
+        createdByAdminId:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    NoticeListResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              type: object
+              required:
+                - items
+              properties:
+                items:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/NoticeVersion'
     SmsPurpose:
       type: string
       enum:
@@ -6305,6 +7008,162 @@ components:
           properties:
             data:
               $ref: '#/components/schemas/ReferralRewardListData'
+    SupportTicket:
+      type: object
+      additionalProperties: false
+      required:
+        - ticketId
+        - userId
+        - category
+        - subject
+        - status
+        - priority
+        - lastMessageAt
+        - resourceVersion
+        - createdAt
+        - updatedAt
+      properties:
+        ticketId:
+          type: string
+        userId:
+          type: string
+        category:
+          type: string
+        subject:
+          type: string
+        status:
+          type: string
+          enum:
+            - OPEN
+            - WAITING_SUPPORT
+            - WAITING_USER
+            - RESOLVED
+            - CLOSED
+        priority:
+          type: string
+          enum:
+            - LOW
+            - NORMAL
+            - HIGH
+            - URGENT
+        assignedAdminId:
+          type:
+            - string
+            - 'null'
+        lastMessageAt:
+          type: string
+          format: date-time
+        resourceVersion:
+          type: integer
+          minimum: 1
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    SupportTicketListResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              type: object
+              required:
+                - items
+              properties:
+                items:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/SupportTicket'
+    CreateSupportTicketRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - category
+        - subject
+        - body
+      properties:
+        category:
+          type: string
+          enum:
+            - GENERAL
+            - ACCOUNT
+            - PAYMENT
+            - PRIVACY
+            - COMPLAINT
+        subject:
+          type: string
+          minLength: 2
+          maxLength: 160
+        body:
+          type: string
+          minLength: 2
+          maxLength: 20000
+    SupportTicketResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/SupportTicket'
+    SupportMessage:
+      type: object
+      additionalProperties: false
+      required:
+        - messageId
+        - ticketId
+        - senderType
+        - senderId
+        - body
+        - internal
+        - createdAt
+      properties:
+        messageId:
+          type: string
+        ticketId:
+          type: string
+        senderType:
+          type: string
+          enum:
+            - USER
+            - ADMIN
+        senderId:
+          type: string
+        body:
+          type: string
+        internal:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+    SupportTicketDetailResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              type: object
+              required:
+                - ticket
+                - messages
+              properties:
+                ticket:
+                  $ref: '#/components/schemas/SupportTicket'
+                messages:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/SupportMessage'
+    AddSupportMessageRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - body
+      properties:
+        body:
+          type: string
+          minLength: 2
+          maxLength: 20000
     GenerationInput:
       type: object
       additionalProperties: false
@@ -7572,6 +8431,353 @@ components:
           properties:
             data:
               $ref: '#/components/schemas/AuditExportContentData'
+    AdminUserSummary:
+      type: object
+      additionalProperties: false
+      required:
+        - userId
+        - status
+        - locale
+        - timeZone
+        - textRemaining
+        - visionRemaining
+        - energyBalance
+        - deviceCount
+        - resourceVersion
+        - createdAt
+        - updatedAt
+      properties:
+        userId:
+          type: string
+        status:
+          type: string
+          enum:
+            - ACTIVE
+            - SUSPENDED
+            - DELETION_PENDING
+        maskedEmail:
+          type:
+            - string
+            - 'null'
+        maskedPhone:
+          type:
+            - string
+            - 'null'
+        nickname:
+          type:
+            - string
+            - 'null'
+        locale:
+          type: string
+        timeZone:
+          type: string
+        planCode:
+          type:
+            - string
+            - 'null'
+        planExpiresAt:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        textRemaining:
+          type: integer
+        visionRemaining:
+          type: integer
+        energyBalance:
+          type: integer
+        deviceCount:
+          type: integer
+          minimum: 0
+        resourceVersion:
+          type: integer
+          minimum: 1
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    AdminUserListData:
+      type: object
+      required:
+        - items
+        - hasMore
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/AdminUserSummary'
+        nextCursor:
+          type:
+            - string
+            - 'null'
+        hasMore:
+          type: boolean
+    AdminUserListResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/AdminUserListData'
+    AdminUserDetail:
+      allOf:
+        - $ref: '#/components/schemas/AdminUserSummary'
+        - type: object
+          required:
+            - devices
+            - consents
+          properties:
+            devices:
+              type: array
+              items:
+                type: object
+                additionalProperties: true
+            consents:
+              type: array
+              items:
+                type: object
+                additionalProperties: true
+    AdminUserDetailResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/AdminUserDetail'
+    AdminUserStatusRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - status
+        - auditReason
+        - confirmationUserId
+      properties:
+        status:
+          type: string
+          enum:
+            - ACTIVE
+            - SUSPENDED
+        auditReason:
+          type: string
+          minLength: 8
+          maxLength: 500
+        confirmationUserId:
+          type: string
+    AdminUserResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/AdminUserSummary'
+    AdminUserEntitlementResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              type: object
+              additionalProperties: true
+    AdminWalletLedgerListResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              type: object
+              additionalProperties: true
+    SystemConfigVersion:
+      type: object
+      required:
+        - configId
+        - version
+        - status
+        - configuration
+        - resourceVersion
+        - createdByAdminId
+        - createdAt
+        - updatedAt
+      properties:
+        configId:
+          type: string
+        version:
+          type: integer
+          minimum: 1
+        status:
+          type: string
+          enum:
+            - DRAFT
+            - PUBLISHED
+            - SUPERSEDED
+        configuration:
+          $ref: '#/components/schemas/SystemIdentityConfig'
+        resourceVersion:
+          type: integer
+          minimum: 1
+        createdByAdminId:
+          type: string
+        publishedByAdminId:
+          type:
+            - string
+            - 'null'
+        publishedAt:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    SystemConfigResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/SystemConfigVersion'
+    SystemConfigWriteRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - configuration
+        - auditReason
+      properties:
+        configuration:
+          $ref: '#/components/schemas/SystemIdentityConfig'
+        auditReason:
+          type: string
+          minLength: 8
+          maxLength: 500
+    AuditReasonRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - auditReason
+      properties:
+        auditReason:
+          type: string
+          minLength: 8
+          maxLength: 500
+    NoticeWriteRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - title
+        - body
+        - noticeType
+        - targetPlatforms
+        - targetLocales
+        - displayFrequency
+        - startsAt
+        - auditReason
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 160
+        body:
+          type: string
+          minLength: 1
+          maxLength: 20000
+        noticeType:
+          type: string
+          enum:
+            - GENERAL
+            - MAINTENANCE
+            - PROMOTION
+            - SECURITY
+        targetPlatforms:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items:
+            type: string
+            enum:
+              - ANDROID
+              - ADMIN_WEB
+        targetLocales:
+          type: array
+          uniqueItems: true
+          items:
+            type: string
+        minClientVersion:
+          type:
+            - string
+            - 'null'
+        maxClientVersion:
+          type:
+            - string
+            - 'null'
+        displayFrequency:
+          type: string
+          enum:
+            - ONCE
+            - ONCE_PER_VERSION
+            - EVERY_LAUNCH
+        startsAt:
+          type: string
+          format: date-time
+        endsAt:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        auditReason:
+          type: string
+          minLength: 8
+          maxLength: 500
+    NoticeResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/NoticeVersion'
+    AdminUpdateSupportTicketRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - status
+        - priority
+        - internal
+        - auditReason
+      properties:
+        body:
+          type:
+            - string
+            - 'null'
+          minLength: 2
+          maxLength: 20000
+        internal:
+          type: boolean
+        status:
+          type: string
+          enum:
+            - OPEN
+            - WAITING_SUPPORT
+            - WAITING_USER
+            - RESOLVED
+            - CLOSED
+        priority:
+          type: string
+          enum:
+            - LOW
+            - NORMAL
+            - HIGH
+            - URGENT
+        assignedAdminId:
+          type:
+            - string
+            - 'null'
+        auditReason:
+          type: string
+          minLength: 8
+          maxLength: 500
     ProviderKind:
       type: string
       enum:
@@ -9702,6 +10908,18 @@ components:
           featureFlags:
             screenshotInput: false
             subscriptions: false
+          siteIdentity:
+            websiteName: 心语
+            appName: 心语
+            companyName: 示例运营主体
+            logoUrl: null
+            customerServiceEmail: support@example.com
+            privacyEmail: privacy@example.com
+            defaultLocale: zh-CN
+            officialWebsiteUrl: null
+            filingInformation: null
+            maintenanceMode: false
+            maintenanceMessage: null
         requestId: req_01JAPPBOOTSTRAP0001
         timestamp: '2026-08-08T16:00:01Z'
   responses:

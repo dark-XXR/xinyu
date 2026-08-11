@@ -6,6 +6,7 @@ from love_reply_api.infrastructure import (
     audit_records,  # noqa: F401
     generation_records,  # noqa: F401
     identity_records,  # noqa: F401
+    platform_records,  # noqa: F401
 )
 from love_reply_api.infrastructure.database import Base
 from sqlalchemy import pool

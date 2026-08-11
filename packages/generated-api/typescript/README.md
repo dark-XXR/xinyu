@@ -102,6 +102,19 @@ All URIs are relative to *http://localhost:8000*
 *ADMINCOMMERCEApi* | [**rollbackAdminProduct**](docs/ADMINCOMMERCEApi.md#rollbackadminproduct) | **POST** /admin/v1/products/{productCode}/rollback | Re-publish a previously published immutable version
 *ADMINCOMMERCEApi* | [**runAdminPaymentReconciliation**](docs/ADMINCOMMERCEApi.md#runadminpaymentreconciliation) | **POST** /admin/v1/payment-reconciliations | Reconcile stale payment attempts and recover interrupted grants
 *ADMINCOMMERCEApi* | [**updateAdminProduct**](docs/ADMINCOMMERCEApi.md#updateadminproduct) | **PATCH** /admin/v1/products/{productVersionId} | Replace a draft with a new immutable product version
+*ADMINPLATFORMApi* | [**changeAdminUserStatus**](docs/ADMINPLATFORMApi.md#changeadminuserstatus) | **PATCH** /admin/v1/users/{userId}/status | Suspend or restore a user and revoke active sessions
+*ADMINPLATFORMApi* | [**createAdminNotice**](docs/ADMINPLATFORMApi.md#createadminnotice) | **POST** /admin/v1/notices | Create an announcement draft
+*ADMINPLATFORMApi* | [**getAdminSystemConfig**](docs/ADMINPLATFORMApi.md#getadminsystemconfig) | **GET** /admin/v1/system-config | Read latest website configuration draft or published version
+*ADMINPLATFORMApi* | [**getAdminUser**](docs/ADMINPLATFORMApi.md#getadminuser) | **GET** /admin/v1/users/{userId} | Read one user with devices and consents
+*ADMINPLATFORMApi* | [**getAdminUserEntitlements**](docs/ADMINPLATFORMApi.md#getadminuserentitlements) | **GET** /admin/v1/users/{userId}/entitlements | Read user entitlement and wallet facts
+*ADMINPLATFORMApi* | [**listAdminNotices**](docs/ADMINPLATFORMApi.md#listadminnotices) | **GET** /admin/v1/notices | List latest announcement versions
+*ADMINPLATFORMApi* | [**listAdminUserLedger**](docs/ADMINPLATFORMApi.md#listadminuserledger) | **GET** /admin/v1/users/{userId}/ledger | List immutable user wallet ledger entries
+*ADMINPLATFORMApi* | [**listAdminUsers**](docs/ADMINPLATFORMApi.md#listadminusers) | **GET** /admin/v1/users | List and search masked user accounts
+*ADMINPLATFORMApi* | [**publishAdminNotice**](docs/ADMINPLATFORMApi.md#publishadminnotice) | **POST** /admin/v1/notices/{noticeId}/publish | Publish an announcement draft
+*ADMINPLATFORMApi* | [**publishAdminSystemConfig**](docs/ADMINPLATFORMApi.md#publishadminsystemconfig) | **POST** /admin/v1/system-config/publish | Publish the current website configuration draft
+*ADMINPLATFORMApi* | [**revokeAdminNotice**](docs/ADMINPLATFORMApi.md#revokeadminnotice) | **POST** /admin/v1/notices/{noticeId}/revoke | Revoke a published announcement immediately
+*ADMINPLATFORMApi* | [**updateAdminNotice**](docs/ADMINPLATFORMApi.md#updateadminnotice) | **PATCH** /admin/v1/notices/{noticeId} | Save an announcement draft
+*ADMINPLATFORMApi* | [**updateAdminSystemConfig**](docs/ADMINPLATFORMApi.md#updateadminsystemconfig) | **PATCH** /admin/v1/system-config | Save a website configuration draft
 *ADMINPROVIDERApi* | [**checkAdminProviderHealth**](docs/ADMINPROVIDERApi.md#checkadminproviderhealth) | **POST** /admin/v1/providers/{providerId}/health-checks | Execute an audited redacted provider health check
 *ADMINPROVIDERApi* | [**createAdminProvider**](docs/ADMINPROVIDERApi.md#createadminprovider) | **POST** /admin/v1/providers | Create a provider draft
 *ADMINPROVIDERApi* | [**disableAdminProvider**](docs/ADMINPROVIDERApi.md#disableadminprovider) | **POST** /admin/v1/providers/{providerId}/disable | Immediately remove a published provider from runtime selection
@@ -128,11 +141,15 @@ All URIs are relative to *http://localhost:8000*
 *ADMINREFERRALApi* | [**publishAdminReferralCampaign**](docs/ADMINREFERRALApi.md#publishadminreferralcampaign) | **POST** /admin/v1/referral-campaigns/{campaignId}/publish | Publish a referral campaign with bounded rollout
 *ADMINREFERRALApi* | [**rollbackAdminReferralCampaign**](docs/ADMINREFERRALApi.md#rollbackadminreferralcampaign) | **POST** /admin/v1/referral-campaigns/{campaignId}/rollback | Restore a previously published campaign version for new bindings
 *ADMINREFERRALApi* | [**updateAdminReferralCampaign**](docs/ADMINREFERRALApi.md#updateadminreferralcampaign) | **PATCH** /admin/v1/referral-campaigns/{campaignId} | Replace a referral campaign draft configuration
+*ADMINSUPPORTApi* | [**getAdminSupportTicket**](docs/ADMINSUPPORTApi.md#getadminsupportticket) | **GET** /admin/v1/support/tickets/{ticketId} | Read ticket conversation including internal notes
+*ADMINSUPPORTApi* | [**listAdminSupportTickets**](docs/ADMINSUPPORTApi.md#listadminsupporttickets) | **GET** /admin/v1/support/tickets | List support queue
+*ADMINSUPPORTApi* | [**updateAdminSupportTicket**](docs/ADMINSUPPORTApi.md#updateadminsupportticket) | **PATCH** /admin/v1/support/tickets/{ticketId} | Reply, add internal note, assign, prioritize, or resolve a ticket
 *ADREWARDApi* | [**createAdRewardSession**](docs/ADREWARDApi.md#createadrewardsessionoperation) | **POST** /v1/ad-rewards/sessions | Create a short-lived server-bound advertising reward session
 *ADREWARDApi* | [**getAdRewardSession**](docs/ADREWARDApi.md#getadrewardsession) | **GET** /v1/ad-rewards/sessions/{rewardSessionId} | Read the verified advertising reward state
 *ADWEBHOOKApi* | [**receiveAdRewardCallback**](docs/ADWEBHOOKApi.md#receiveadrewardcallback) | **POST** /webhooks/v1/ads/{providerId} | Verify a server-to-server advertising completion callback
 *APPCONFIGApi* | [**getAppBootstrap**](docs/APPCONFIGApi.md#getappbootstrap) | **GET** /v1/app/bootstrap | Read the published application configuration
 *APPCONFIGApi* | [**getHealth**](docs/APPCONFIGApi.md#gethealth) | **GET** /health | Read service health
+*APPCONFIGApi* | [**listPublicNotices**](docs/APPCONFIGApi.md#listpublicnotices) | **GET** /v1/app/notices | List announcements active for this client
 *AUTHApi* | [**getAuthChannels**](docs/AUTHApi.md#getauthchannels) | **GET** /v1/auth/channels | Read the public authentication channel policy
 *AUTHApi* | [**loginWithEmail**](docs/AUTHApi.md#loginwithemail) | **POST** /v1/auth/email/login | Login or register with a verified email challenge
 *AUTHApi* | [**loginWithSms**](docs/AUTHApi.md#loginwithsms) | **POST** /v1/auth/sms/login | Login or register with a verified SMS challenge
@@ -173,6 +190,10 @@ All URIs are relative to *http://localhost:8000*
 *RISKApi* | [**appealRiskEvent**](docs/RISKApi.md#appealriskevent) | **POST** /v1/risk-events/{riskEventId}/appeals | Appeal a safety decision without bypassing it
 *SUBSCRIPTIONApi* | [**cancelSubscription**](docs/SUBSCRIPTIONApi.md#cancelsubscriptionoperation) | **POST** /v1/subscriptions/{subscriptionId}/cancel | Cancel renewal or schedule cancellation at period end
 *SUBSCRIPTIONApi* | [**listSubscriptions**](docs/SUBSCRIPTIONApi.md#listsubscriptions) | **GET** /v1/subscriptions | List owned prepaid terms and recurring mandates
+*SUPPORTApi* | [**addMySupportMessage**](docs/SUPPORTApi.md#addmysupportmessage) | **POST** /v1/support/tickets/{ticketId}/messages | Reply to an owned support ticket
+*SUPPORTApi* | [**createSupportTicket**](docs/SUPPORTApi.md#createsupportticketoperation) | **POST** /v1/support/tickets | Create a support ticket
+*SUPPORTApi* | [**getMySupportTicket**](docs/SUPPORTApi.md#getmysupportticket) | **GET** /v1/support/tickets/{ticketId} | Read one owned support ticket
+*SUPPORTApi* | [**listMySupportTickets**](docs/SUPPORTApi.md#listmysupporttickets) | **GET** /v1/support/tickets | List current user\&#39;s support tickets
 *USERApi* | [**getCurrentUser**](docs/USERApi.md#getcurrentuser) | **GET** /v1/me | Get the current account
 *USERApi* | [**listDevices**](docs/USERApi.md#listdevices) | **GET** /v1/me/devices | List authenticated devices
 *USERApi* | [**revokeDevice**](docs/USERApi.md#revokedevice) | **DELETE** /v1/me/devices/{deviceId} | Revoke one authenticated device
@@ -188,6 +209,7 @@ All URIs are relative to *http://localhost:8000*
 - [AdRewardSession](docs/AdRewardSession.md)
 - [AdRewardSessionResponse](docs/AdRewardSessionResponse.md)
 - [AdRewardStatus](docs/AdRewardStatus.md)
+- [AddSupportMessageRequest](docs/AddSupportMessageRequest.md)
 - [AdminAccountStatus](docs/AdminAccountStatus.md)
 - [AdminAuthErrorCode](docs/AdminAuthErrorCode.md)
 - [AdminAuthErrorResponse](docs/AdminAuthErrorResponse.md)
@@ -228,6 +250,16 @@ All URIs are relative to *http://localhost:8000*
 - [AdminTokenData](docs/AdminTokenData.md)
 - [AdminTokenPair](docs/AdminTokenPair.md)
 - [AdminTokenResponse](docs/AdminTokenResponse.md)
+- [AdminUpdateSupportTicketRequest](docs/AdminUpdateSupportTicketRequest.md)
+- [AdminUserDetail](docs/AdminUserDetail.md)
+- [AdminUserDetailResponse](docs/AdminUserDetailResponse.md)
+- [AdminUserEntitlementResponse](docs/AdminUserEntitlementResponse.md)
+- [AdminUserListData](docs/AdminUserListData.md)
+- [AdminUserListResponse](docs/AdminUserListResponse.md)
+- [AdminUserResponse](docs/AdminUserResponse.md)
+- [AdminUserStatusRequest](docs/AdminUserStatusRequest.md)
+- [AdminUserSummary](docs/AdminUserSummary.md)
+- [AdminWalletLedgerListResponse](docs/AdminWalletLedgerListResponse.md)
 - [AiEvaluationRun](docs/AiEvaluationRun.md)
 - [AiEvaluationRunRequest](docs/AiEvaluationRunRequest.md)
 - [AiEvaluationRunResponse](docs/AiEvaluationRunResponse.md)
@@ -274,6 +306,7 @@ All URIs are relative to *http://localhost:8000*
 - [AuditExportResponse](docs/AuditExportResponse.md)
 - [AuditIntegrityData](docs/AuditIntegrityData.md)
 - [AuditIntegrityResponse](docs/AuditIntegrityResponse.md)
+- [AuditReasonRequest](docs/AuditReasonRequest.md)
 - [AuthChallengeMode](docs/AuthChallengeMode.md)
 - [AuthChannel](docs/AuthChannel.md)
 - [AuthChannelAvailability](docs/AuthChannelAvailability.md)
@@ -303,6 +336,7 @@ All URIs are relative to *http://localhost:8000*
 - [CreateOrderRequest](docs/CreateOrderRequest.md)
 - [CreatePaymentAttemptRequest](docs/CreatePaymentAttemptRequest.md)
 - [CreateRefundRequest](docs/CreateRefundRequest.md)
+- [CreateSupportTicketRequest](docs/CreateSupportTicketRequest.md)
 - [CredentialName](docs/CredentialName.md)
 - [CredentialRotation](docs/CredentialRotation.md)
 - [CredentialRotationResponse](docs/CredentialRotationResponse.md)
@@ -358,6 +392,11 @@ All URIs are relative to *http://localhost:8000*
 - [LoginResponse](docs/LoginResponse.md)
 - [ModelQuoteOption](docs/ModelQuoteOption.md)
 - [NativeAiConfiguration](docs/NativeAiConfiguration.md)
+- [NoticeListResponse](docs/NoticeListResponse.md)
+- [NoticeListResponseAllOfData](docs/NoticeListResponseAllOfData.md)
+- [NoticeResponse](docs/NoticeResponse.md)
+- [NoticeVersion](docs/NoticeVersion.md)
+- [NoticeWriteRequest](docs/NoticeWriteRequest.md)
 - [OpenAiCompatibleConfiguration](docs/OpenAiCompatibleConfiguration.md)
 - [Order](docs/Order.md)
 - [OrderResponse](docs/OrderResponse.md)
@@ -440,6 +479,17 @@ All URIs are relative to *http://localhost:8000*
 - [SubscriptionListResponse](docs/SubscriptionListResponse.md)
 - [SubscriptionResponse](docs/SubscriptionResponse.md)
 - [SubscriptionStatus](docs/SubscriptionStatus.md)
+- [SupportMessage](docs/SupportMessage.md)
+- [SupportTicket](docs/SupportTicket.md)
+- [SupportTicketDetailResponse](docs/SupportTicketDetailResponse.md)
+- [SupportTicketDetailResponseAllOfData](docs/SupportTicketDetailResponseAllOfData.md)
+- [SupportTicketListResponse](docs/SupportTicketListResponse.md)
+- [SupportTicketListResponseAllOfData](docs/SupportTicketListResponseAllOfData.md)
+- [SupportTicketResponse](docs/SupportTicketResponse.md)
+- [SystemConfigResponse](docs/SystemConfigResponse.md)
+- [SystemConfigVersion](docs/SystemConfigVersion.md)
+- [SystemConfigWriteRequest](docs/SystemConfigWriteRequest.md)
+- [SystemIdentityConfig](docs/SystemIdentityConfig.md)
 - [TlsMode](docs/TlsMode.md)
 - [TokenPair](docs/TokenPair.md)
 - [TokenResponse](docs/TokenResponse.md)

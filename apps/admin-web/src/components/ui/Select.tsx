@@ -11,19 +11,21 @@ export interface SelectOption {
 
 interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
   label?: string;
-  options: SelectOption[];
+  options?: SelectOption[];
 }
 
-export const Select: React.FC<SelectProps> = ({ label, options, className = '', ...props }) => {
+export const Select: React.FC<SelectProps> = ({ label, options, children, className = '', ...props }) => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '12px' }}>
       {label && <label style={{ fontSize: '13px', fontWeight: 500 }}>{label}</label>}
       <select className={`input ${className}`} {...props}>
-        {options.map((opt) => (
-          <option key={opt.value} value={opt.value}>
-            {opt.label}
-          </option>
-        ))}
+        {options
+          ? options.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))
+          : children}
       </select>
     </div>
   );

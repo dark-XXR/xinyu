@@ -9,6 +9,7 @@ import com.squareup.moshi.Json
 import com.love_reply.generated.model.AppBootstrapResponse
 import com.love_reply.generated.model.ErrorResponse
 import com.love_reply.generated.model.HealthSuccessResponse
+import com.love_reply.generated.model.NoticeListResponse
 
 interface APPCONFIGApi {
 
@@ -54,5 +55,32 @@ interface APPCONFIGApi {
      */
     @GET("health")
     suspend fun getHealth(@Header("X-Request-Id") xRequestId: kotlin.String? = null): Response<HealthSuccessResponse>
+
+
+    /**
+    * enum for parameter xPlatform
+    */
+    enum class XPlatformListPublicNotices(val value: kotlin.String) {
+        @Json(name = "ANDROID") ANDROID("ANDROID"),
+        @Json(name = "ADMIN_WEB") ADMIN_WEB("ADMIN_WEB")
+    }
+
+    /**
+     * GET v1/app/notices
+     * List announcements active for this client
+     *
+     * Responses:
+     *  - 200: Active notices.
+     *  - 400: Request syntax or fields are invalid.
+     *
+     * @param xClientVersion Semantic application version used for compatibility enforcement.
+     * @param xPlatform
+     * @param xDeviceId Opaque installation ID. It is not an authentication credential.
+     * @param acceptLanguage  (default to "zh-CN")
+     * @param xRequestId Client correlation ID. The server returns the final accepted value. (optional)
+     * @return [NoticeListResponse]
+     */
+    @GET("v1/app/notices")
+    suspend fun listPublicNotices(@Header("X-Client-Version") xClientVersion: kotlin.String, @Header("X-Platform") xPlatform: XPlatformListPublicNotices, @Header("X-Device-Id") xDeviceId: kotlin.String, @Header("Accept-Language") acceptLanguage: kotlin.String = "zh-CN", @Header("X-Request-Id") xRequestId: kotlin.String? = null): Response<NoticeListResponse>
 
 }

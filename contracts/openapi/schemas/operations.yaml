@@ -88,6 +88,7 @@ AppBootstrap:
     - generationPolicy
     - freeEntitlement
     - featureFlags
+    - siteIdentity
   properties:
     configVersion:
       type: integer
@@ -111,6 +112,8 @@ AppBootstrap:
       $ref: "#/FreeEntitlementTemplate"
     featureFlags:
       $ref: "#/FeatureFlags"
+    siteIdentity:
+      $ref: ./admin-platform.yaml#/SystemIdentityConfig
 
 AppBootstrapResponse:
   allOf:

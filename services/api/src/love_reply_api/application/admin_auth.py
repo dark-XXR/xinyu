@@ -55,6 +55,17 @@ BOOTSTRAP_PERMISSIONS = [
     "REFERRAL_WRITE",
     "REFERRAL_PUBLISH",
     "REFERRAL_ROLLBACK",
+    "USER_READ",
+    "USER_STATUS_WRITE",
+    "SYSTEM_CONFIG_READ",
+    "SYSTEM_CONFIG_WRITE",
+    "SYSTEM_CONFIG_PUBLISH",
+    "NOTICE_READ",
+    "NOTICE_WRITE",
+    "NOTICE_PUBLISH",
+    "NOTICE_REVOKE",
+    "SUPPORT_READ",
+    "SUPPORT_WRITE",
 ]
 
 
@@ -414,11 +425,7 @@ class AdminAuthService:
     ) -> tuple[AdminUserRecord, AdminSessionRecord]:
         claims = self._tokens.decode_access_token(access_token)
         session = await self._session.get(AdminSessionRecord, claims.session_id)
-        if (
-            session is None
-            or session.revoked_at is not None
-            or session.admin_id != claims.admin_id
-        ):
+        if session is None or session.revoked_at is not None or session.admin_id != claims.admin_id:
             raise ApiError(
                 status_code=401,
                 code="TOKEN_REVOKED",

@@ -36,8 +36,8 @@
 | 编号 | 功能或页面 | 主要文件与位置 | 当前状态 |
 | --- | --- | --- | --- |
 | W01 | 管理后台工程与运行说明 | `apps/admin-web/package.json`、`apps/admin-web/README.zh-CN.md` | 已创建：安装、启动、类型检查、代码检查和生产构建命令 |
-| W02 | 页面入口和路由表 | `apps/admin-web/src/main.tsx`、`apps/admin-web/src/App.tsx` | 已完成：初始化数据查询并注册工作台、供应商、AI、合规审计、商品和订单页面路由 |
-| W03 | 全局导航和移动菜单 | `apps/admin-web/src/components/Layout.tsx` | 已完成：桌面侧栏、移动端菜单、当前页面高亮和 Escape 关闭 |
+| W02 | 页面入口和路由表 | `apps/admin-web/src/main.tsx`、`apps/admin-web/src/App.tsx` | 已完成：注册工作台、用户、公告、客服、商品、订单、支付、供应商、AI、审计和网站设置路由 |
+| W03 | 全局导航和移动菜单 | `apps/admin-web/src/components/Layout.tsx` | 已完成：平台/商业/技术合规分组、动态已发布品牌名、移动菜单、当前页高亮和 Escape 关闭 |
 | W04 | 管理工作台页面 `/` | `apps/admin-web/src/pages/Dashboard.tsx` | 已完成：系统状态、待办指标、已发布商品、最近活动和快捷入口 |
 | W05 | 供应商配置页面 `/providers` | `apps/admin-web/src/pages/Providers.tsx` | 已完成：12 种 AI/邮件/短信/易支付适配器表单、按适配器凭据、配置与真实线上状态、健康检查、发布、回滚和紧急停用；高风险操作要求至少 8 字理由，停用还要求供应商全名二次确认 |
 | W06 | 套餐与价格页面 `/commerce/products` | `apps/admin-web/src/pages/commerce/Products.tsx` | 已完成：价格、次数、权益、销售渠道和版本均由后台数据维护，支持发布与真实历史版本回滚 |
@@ -51,6 +51,11 @@
 | W14 | 合规审计与监管取证页面 `/audit` | `apps/admin-web/src/pages/audit/AuditOperations.tsx` | 已完成：登录、AI 输入输出、充值支付、管理员配置和网站运行日志检索；敏感正文默认不读取，必须填写理由后二次确认；支持法务冻结、哈希链检查和加密导出 |
 | W15 | 邀请推广页面 | 计划位于 `apps/admin-web/src/pages/referrals/` | 待开发：活动、门槛、奖励和回滚配置 |
 | W16 | AI 表单下拉框与多行输入 | `apps/admin-web/src/components/ui/Select.tsx`、`apps/admin-web/src/components/ui/Textarea.tsx` | 已完成：AI 配置页的枚举选择、Prompt、JSON Schema 和审计原因输入；错误信息可直接显示在输入框下方 |
+| W17 | 用户管理页面 `/users` | `apps/admin-web/src/pages/users/UsersPage.tsx` | 已完成：脱敏搜索、详情、设备、授权、权益、钱包流水及理由+用户 ID 双确认的冻结/恢复 |
+| W18 | 公告运营页面 `/operations/notices` | `apps/admin-web/src/pages/operations/NoticesPage.tsx` | 已完成：草稿、类型、平台/语言/版本/频次/时间定向、发布和撤回 |
+| W19 | 网站设置页面 `/system/settings` | `apps/admin-web/src/pages/system/SettingsPage.tsx` | 已完成：网站/App 名、主体、Logo、客服/隐私邮箱、语言、备案、维护模式及草稿/发布分离 |
+| W20 | 支付运营页面 `/commerce/payments` | `apps/admin-web/src/pages/commerce/PaymentsPage.tsx` | 已完成：易支付线上摘要、支付方式、回调地址、订单退款指标和参数化主动对账；不显示商户密钥 |
+| W21 | 客服工单页面 `/support` | `apps/admin-web/src/pages/support/SupportPage.tsx` | 已完成：队列、会话、公开回复、内部备注、状态、优先级、分派和审计理由 |
 
 ## 后端接口与业务文件
 
@@ -84,6 +89,10 @@
 | B20 | 统一合规审计业务服务 | `services/api/src/love_reply_api/application/audit.py` | 敏感正文加密、凭据脱敏、HMAC-SHA256 哈希链、筛选、法务冻结、完整性校验和加密监管导出 |
 | B21 | 管理员合规审计接口 | `services/api/src/love_reply_api/transport/http/routes/admin_audit.py` | 日志列表、敏感正文受控读取、法务冻结、完整性检查、监管导出创建和读取共 6 个操作 |
 | B22 | 合规审计接口参数 | `services/api/src/love_reply_api/transport/http/audit_schemas.py` | 审计筛选、正文读取理由、冻结理由和导出理由校验；理由最少 8 字由后端契约控制 |
+| B23 | 用户/公告/网站设置管理接口 | `services/api/src/love_reply_api/transport/http/routes/admin_platform.py` | 用户检索和状态、网站配置草稿/发布、公告草稿/发布/撤回；全部高风险操作使用独立权限、理由和乐观锁 |
+| B24 | 平台运营业务规则 | `services/api/src/love_reply_api/application/admin_platform.py` | 用户脱敏及会话撤销、网站配置版本、公告平台/语言/客户端版本/时间定向和追加式业务审计 |
+| B25 | 客服用户与管理员接口 | `services/api/src/love_reply_api/transport/http/routes/support.py`、`admin_support.py` | 本人工单创建/读取/回复及管理员队列、内部备注、分派、优先级和解决关闭 |
+| B26 | 客服工单业务规则 | `services/api/src/love_reply_api/application/support.py` | 工单归属隔离、关闭门禁、内部备注可见性、乐观锁和管理员审计；正文进入加密敏感审计 |
 
 ## 数据表和迁移
 
@@ -100,6 +109,8 @@
 | D09 | 邀请推广升级文件 | `database/migrations/versions/a6ce441f72d8_add_referral_runtime.py` | 创建邀请推广运行时全部数据表和索引 |
 | D10 | 合规审计账本与监管导出表 | `services/api/src/love_reply_api/infrastructure/audit_records.py`、`database/migrations/versions/b91e63a4d2f0_add_compliance_audit_ledger.py` | 追加式统一审计事件、加密正文摘要、保留截止、法务冻结、前序哈希、事件哈希和短效加密导出包 |
 | D11 | 供应商紧急停用权限升级 | `database/migrations/versions/c42f19e7ab31_add_provider_disable_permission.py` | 新增 `PROVIDER_DISABLE` 权限并为已有平台所有者安全回填；降级时仅移除该权限 |
+| D12 | 平台运营数据表和升级 | `services/api/src/love_reply_api/infrastructure/platform_records.py`、`database/migrations/versions/e31a6d8c4f20_add_core_admin_platform.py` | 网站配置版本、公告版本和平台业务审计 |
+| D13 | 客服工单升级 | `database/migrations/versions/f7c216b8a904_add_support_tickets.py` | 工单、消息、索引及客服读写权限回填 |
 
 ## 契约与配置
 
@@ -117,6 +128,9 @@
 | C09 | 管理员商业数据结构 | `contracts/openapi/schemas/admin-business.yaml` | 后台商品价格、次数、权益、审批和财务操作字段 |
 | C10 | 邀请推广接口契约 | `contracts/openapi/paths/referrals.yaml`、`contracts/openapi/admin/referrals.yaml` | 用户邀请流程和管理员活动版本操作 |
 | C11 | 邀请推广数据结构 | `contracts/openapi/schemas/referrals.yaml` | 活动、里程碑、奖励、风控和绑定状态字段 |
+| C12 | 管理后台全量功能矩阵 | `docs/product/admin-console-feature-matrix.md` | 对照产品文档跟踪用户、客服、公告、支付运营、CMS、网站配置、RBAC、告警和数据治理，防止局部完成被误报为全部完成 |
+| C13 | 用户、公告和网站配置契约 | `contracts/openapi/admin/platform.yaml`、`contracts/openapi/schemas/admin-platform.yaml` | 管理员用户状态、配置版本、公告版本及公共公告接口 |
+| C14 | 客服工单契约 | `contracts/openapi/paths/support.yaml`、`contracts/openapi/admin/support.yaml`、`contracts/openapi/schemas/support.yaml` | 用户工单与管理员队列、会话、内部备注和处理字段 |
 
 ## 目录维护规则
 

@@ -39,6 +39,7 @@ class AppBootstrapData(ApiModel):
     generation_policy: GenerationPolicyData
     free_entitlement: FreeEntitlementTemplateData
     feature_flags: dict[str, bool]
+    site_identity: dict[str, object]
 
 
 AppBootstrapResponse = SuccessEnvelope[AppBootstrapData]

@@ -4,11 +4,15 @@
  */
 import React from 'react';
 
-export const Card: React.FC<{ children: React.ReactNode; title?: string; extra?: React.ReactNode }> = (
-  { children, title, extra },
-) => {
+interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
+  children: React.ReactNode;
+  title?: string;
+  extra?: React.ReactNode;
+}
+
+export const Card: React.FC<CardProps> = ({ children, title, extra, className = '', ...props }) => {
   return (
-    <div className="card">
+    <div className={`card ${className}`} {...props}>
       {(title || extra) && (
         <div className="card-header">
           {title && <div className="card-title">{title}</div>}

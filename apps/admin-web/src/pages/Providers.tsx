@@ -231,7 +231,7 @@ function providerToForm(p: Provider): ProviderFormDTO {
       base.email_baseUrl = c.baseUrl ?? '';
       base.email_senderAddress = c.senderAddress ?? '';
       base.email_senderName = c.senderName ?? '';
-      base.email_replyToAddress = (c as any).replyToAddress ?? '';
+      base.email_replyToAddress = 'replyToAddress' in c ? (c as { replyToAddress?: string }).replyToAddress ?? '' : '';
       base.email_timeoutMs = c.timeoutMs ?? 10000;
     } else if (
       cfg.adapterType === SmsConfigurationAdapterTypeEnum.AliyunSms ||
@@ -314,7 +314,7 @@ function buildConfiguration(form: ProviderFormDTO): ProviderConfiguration {
         timeoutMs: form.email_timeoutMs,
       };
       if (form.email_replyToAddress.trim()) {
-        (cfg as any).replyToAddress = form.email_replyToAddress.trim();
+        Object.assign(cfg, { replyToAddress: form.email_replyToAddress.trim() });
       }
       return cfg;
     }

@@ -47,6 +47,8 @@ tags:
     description: Signed advertising provider completion callbacks.
   - name: REFERRAL
     description: Single-level invitation binding, qualification, and rewards.
+  - name: SUPPORT
+    description: Authenticated user support tickets and replies.
   - name: GENERATION
     description: Quotes, generation tasks, snapshots, and SSE events.
   - name: CANDIDATE
@@ -61,6 +63,10 @@ tags:
     description: Logical models, bounded routes, prompts, evaluations, and AI risk policies.
   - name: ADMIN_REFERRAL
     description: Versioned referral campaign administration and rollout.
+  - name: ADMIN_PLATFORM
+    description: User operations, notices, and versioned website identity configuration.
+  - name: ADMIN_SUPPORT
+    description: Support queues, conversations, assignment, priority, and resolution.
 paths:
   /health:
     get:
@@ -89,6 +95,8 @@ paths:
           $ref: ./components/responses.yaml#/InternalError
   /v1/app/bootstrap:
     $ref: ./paths/app.yaml#/bootstrap
+  /v1/app/notices:
+    $ref: ./paths/notices.yaml#/notices
   /v1/auth/sms/send:
     $ref: ./paths/auth.yaml#/smsSend
   /v1/auth/sms/login:
@@ -163,6 +171,12 @@ paths:
     $ref: ./paths/referrals.yaml#/invites
   /v1/referrals/rewards:
     $ref: ./paths/referrals.yaml#/rewards
+  /v1/support/tickets:
+    $ref: ./paths/support.yaml#/tickets
+  /v1/support/tickets/{ticketId}:
+    $ref: ./paths/support.yaml#/ticket
+  /v1/support/tickets/{ticketId}/messages:
+    $ref: ./paths/support.yaml#/messages
   /v1/generations/quote:
     $ref: ./paths/generations.yaml#/quote
   /v1/generations:
@@ -203,6 +217,32 @@ paths:
     $ref: ./admin/audit.yaml#/exports
   /admin/v1/audit-events/exports/{exportId}/content:
     $ref: ./admin/audit.yaml#/exportContent
+  /admin/v1/users:
+    $ref: ./admin/platform.yaml#/users
+  /admin/v1/users/{userId}:
+    $ref: ./admin/platform.yaml#/user
+  /admin/v1/users/{userId}/status:
+    $ref: ./admin/platform.yaml#/userStatus
+  /admin/v1/users/{userId}/entitlements:
+    $ref: ./admin/platform.yaml#/userEntitlements
+  /admin/v1/users/{userId}/ledger:
+    $ref: ./admin/platform.yaml#/userLedger
+  /admin/v1/system-config:
+    $ref: ./admin/platform.yaml#/systemConfig
+  /admin/v1/system-config/publish:
+    $ref: ./admin/platform.yaml#/systemConfigPublish
+  /admin/v1/notices:
+    $ref: ./admin/platform.yaml#/notices
+  /admin/v1/notices/{noticeId}:
+    $ref: ./admin/platform.yaml#/notice
+  /admin/v1/notices/{noticeId}/publish:
+    $ref: ./admin/platform.yaml#/noticePublish
+  /admin/v1/notices/{noticeId}/revoke:
+    $ref: ./admin/platform.yaml#/noticeRevoke
+  /admin/v1/support/tickets:
+    $ref: ./admin/support.yaml#/tickets
+  /admin/v1/support/tickets/{ticketId}:
+    $ref: ./admin/support.yaml#/ticket
   /admin/v1/providers:
     $ref: ./admin/providers.yaml#/providers
   /admin/v1/providers/{providerId}:

@@ -27,6 +27,13 @@ import {
     LogicalModelToJSON,
     LogicalModelToJSONTyped,
 } from './LogicalModel';
+import type { SystemIdentityConfig } from './SystemIdentityConfig';
+import {
+    SystemIdentityConfigFromJSON,
+    SystemIdentityConfigFromJSONTyped,
+    SystemIdentityConfigToJSON,
+    SystemIdentityConfigToJSONTyped,
+} from './SystemIdentityConfig';
 import type { GenerationPolicy } from './GenerationPolicy';
 import {
     GenerationPolicyFromJSON,
@@ -90,6 +97,12 @@ export interface AppBootstrap {
      * @memberof AppBootstrap
      */
     featureFlags: { [key: string]: boolean; };
+    /**
+     *
+     * @type {SystemIdentityConfig}
+     * @memberof AppBootstrap
+     */
+    siteIdentity: SystemIdentityConfig;
 }
 
 /**
@@ -103,6 +116,7 @@ export function instanceOfAppBootstrap(value: object): value is AppBootstrap {
     if (!('generationPolicy' in value) || value['generationPolicy'] === undefined) return false;
     if (!('freeEntitlement' in value) || value['freeEntitlement'] === undefined) return false;
     if (!('featureFlags' in value) || value['featureFlags'] === undefined) return false;
+    if (!('siteIdentity' in value) || value['siteIdentity'] === undefined) return false;
     return true;
 }
 
@@ -123,6 +137,7 @@ export function AppBootstrapFromJSONTyped(json: any, ignoreDiscriminator: boolea
         'generationPolicy': GenerationPolicyFromJSON(json['generationPolicy']),
         'freeEntitlement': FreeEntitlementTemplateFromJSON(json['freeEntitlement']),
         'featureFlags': json['featureFlags'],
+        'siteIdentity': SystemIdentityConfigFromJSON(json['siteIdentity']),
     };
 }
 
@@ -144,5 +159,6 @@ export function AppBootstrapToJSONTyped(value?: AppBootstrap | null, ignoreDiscr
         'generationPolicy': GenerationPolicyToJSON(value['generationPolicy']),
         'freeEntitlement': FreeEntitlementTemplateToJSON(value['freeEntitlement']),
         'featureFlags': value['featureFlags'],
+        'siteIdentity': SystemIdentityConfigToJSON(value['siteIdentity']),
     };
 }

@@ -1,0 +1,36 @@
+tickets:
+  get:
+    operationId: listAdminSupportTickets
+    summary: List support queue
+    tags: [ADMIN_SUPPORT]
+    security: [{adminBearerAuth: []}]
+    parameters:
+      - {$ref: ../components/parameters.yaml#/XClientVersion}
+      - {$ref: ../components/parameters.yaml#/XPlatform}
+      - {$ref: ../components/parameters.yaml#/AcceptLanguage}
+      - {name: status, in: query, schema: {type: [string, "null"]}}
+    responses:
+      '200': {description: Support queue., content: {application/json: {schema: {$ref: ../schemas/support.yaml#/SupportTicketListResponse}}}}
+      '403': {$ref: ../components/responses.yaml#/Forbidden}
+ticket:
+  get:
+    operationId: getAdminSupportTicket
+    summary: Read ticket conversation including internal notes
+    tags: [ADMIN_SUPPORT]
+    security: [{adminBearerAuth: []}]
+    parameters: [{$ref: '#/components/ticketId'}, {$ref: ../components/parameters.yaml#/XClientVersion}, {$ref: ../components/parameters.yaml#/XPlatform}, {$ref: ../components/parameters.yaml#/AcceptLanguage}]
+    responses:
+      '200': {description: Ticket conversation., content: {application/json: {schema: {$ref: ../schemas/support.yaml#/SupportTicketDetailResponse}}}}
+      '404': {$ref: ../components/responses.yaml#/NotFound}
+  patch:
+    operationId: updateAdminSupportTicket
+    summary: Reply, add internal note, assign, prioritize, or resolve a ticket
+    tags: [ADMIN_SUPPORT]
+    security: [{adminBearerAuth: []}]
+    parameters: [{$ref: '#/components/ticketId'}, {$ref: ../components/parameters.yaml#/XClientVersion}, {$ref: ../components/parameters.yaml#/XPlatform}, {$ref: ../components/parameters.yaml#/AcceptLanguage}, {$ref: ../components/parameters.yaml#/IfMatch}]
+    requestBody: {required: true, content: {application/json: {schema: {$ref: ../schemas/support.yaml#/AdminUpdateSupportTicketRequest}}}}
+    responses:
+      '200': {description: Updated ticket., content: {application/json: {schema: {$ref: ../schemas/support.yaml#/SupportTicketResponse}}}}
+      '409': {$ref: ../components/responses.yaml#/Conflict}
+components:
+  ticketId: {name: ticketId, in: path, required: true, schema: {type: string}}

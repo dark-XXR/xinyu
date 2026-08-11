@@ -1,0 +1,151 @@
+users:
+  get:
+    operationId: listAdminUsers
+    summary: List and search masked user accounts
+    tags: [ADMIN_PLATFORM]
+    security: [{adminBearerAuth: []}]
+    parameters:
+      - {$ref: ../components/parameters.yaml#/XRequestId}
+      - {$ref: ../components/parameters.yaml#/XClientVersion}
+      - {$ref: ../components/parameters.yaml#/XPlatform}
+      - {$ref: ../components/parameters.yaml#/AcceptLanguage}
+      - {name: search, in: query, schema: {type: [string, "null"]}}
+      - {name: status, in: query, schema: {type: [string, "null"], enum: [ACTIVE, SUSPENDED, DELETION_PENDING, null]}}
+      - {$ref: ../components/parameters.yaml#/Cursor}
+      - {$ref: ../components/parameters.yaml#/Limit}
+    responses:
+      '200': {description: Masked users., content: {application/json: {schema: {$ref: ../schemas/admin-platform.yaml#/AdminUserListResponse}}}}
+      '401': {$ref: ../components/responses.yaml#/Unauthorized}
+      '403': {$ref: ../components/responses.yaml#/Forbidden}
+user:
+  get:
+    operationId: getAdminUser
+    summary: Read one user with devices and consents
+    tags: [ADMIN_PLATFORM]
+    security: [{adminBearerAuth: []}]
+    parameters: [{$ref: '#/components/userId'}, {$ref: ../components/parameters.yaml#/XClientVersion}, {$ref: ../components/parameters.yaml#/XPlatform}, {$ref: ../components/parameters.yaml#/AcceptLanguage}]
+    responses:
+      '200': {description: User detail., content: {application/json: {schema: {$ref: ../schemas/admin-platform.yaml#/AdminUserDetailResponse}}}}
+      '404': {$ref: ../components/responses.yaml#/NotFound}
+userStatus:
+  patch:
+    operationId: changeAdminUserStatus
+    summary: Suspend or restore a user and revoke active sessions
+    tags: [ADMIN_PLATFORM]
+    security: [{adminBearerAuth: []}]
+    parameters: [{$ref: '#/components/userId'}, {$ref: ../components/parameters.yaml#/XClientVersion}, {$ref: ../components/parameters.yaml#/XPlatform}, {$ref: ../components/parameters.yaml#/AcceptLanguage}, {$ref: ../components/parameters.yaml#/IfMatch}]
+    requestBody: {required: true, content: {application/json: {schema: {$ref: ../schemas/admin-platform.yaml#/AdminUserStatusRequest}}}}
+    responses:
+      '200': {description: Updated user., content: {application/json: {schema: {$ref: ../schemas/admin-platform.yaml#/AdminUserResponse}}}}
+      '409': {$ref: ../components/responses.yaml#/Conflict}
+userEntitlements:
+  get:
+    operationId: getAdminUserEntitlements
+    summary: Read user entitlement and wallet facts
+    tags: [ADMIN_PLATFORM]
+    security: [{adminBearerAuth: []}]
+    parameters: [{$ref: '#/components/userId'}, {$ref: ../components/parameters.yaml#/XClientVersion}, {$ref: ../components/parameters.yaml#/XPlatform}, {$ref: ../components/parameters.yaml#/AcceptLanguage}]
+    responses:
+      '200': {description: Entitlement facts., content: {application/json: {schema: {$ref: ../schemas/admin-platform.yaml#/AdminUserEntitlementResponse}}}}
+      '403': {$ref: ../components/responses.yaml#/Forbidden}
+userLedger:
+  get:
+    operationId: listAdminUserLedger
+    summary: List immutable user wallet ledger entries
+    tags: [ADMIN_PLATFORM]
+    security: [{adminBearerAuth: []}]
+    parameters: [{$ref: '#/components/userId'}, {$ref: ../components/parameters.yaml#/XClientVersion}, {$ref: ../components/parameters.yaml#/XPlatform}, {$ref: ../components/parameters.yaml#/AcceptLanguage}, {$ref: ../components/parameters.yaml#/Cursor}, {$ref: ../components/parameters.yaml#/Limit}]
+    responses:
+      '200': {description: Ledger entries., content: {application/json: {schema: {$ref: ../schemas/admin-platform.yaml#/AdminWalletLedgerListResponse}}}}
+      '403': {$ref: ../components/responses.yaml#/Forbidden}
+systemConfig:
+  get:
+    operationId: getAdminSystemConfig
+    summary: Read latest website configuration draft or published version
+    tags: [ADMIN_PLATFORM]
+    security: [{adminBearerAuth: []}]
+    parameters:
+      - {$ref: ../components/parameters.yaml#/XClientVersion}
+      - {$ref: ../components/parameters.yaml#/XPlatform}
+      - {$ref: ../components/parameters.yaml#/AcceptLanguage}
+      - {name: publishedOnly, in: query, required: false, schema: {type: boolean, default: false}}
+    responses:
+      '200': {description: Latest version., content: {application/json: {schema: {$ref: ../schemas/admin-platform.yaml#/SystemConfigResponse}}}}
+      '403': {$ref: ../components/responses.yaml#/Forbidden}
+  patch:
+    operationId: updateAdminSystemConfig
+    summary: Save a website configuration draft
+    tags: [ADMIN_PLATFORM]
+    security: [{adminBearerAuth: []}]
+    parameters: [{$ref: ../components/parameters.yaml#/XClientVersion}, {$ref: ../components/parameters.yaml#/XPlatform}, {$ref: ../components/parameters.yaml#/AcceptLanguage}, {$ref: ../components/parameters.yaml#/IfMatch}]
+    requestBody: {required: true, content: {application/json: {schema: {$ref: ../schemas/admin-platform.yaml#/SystemConfigWriteRequest}}}}
+    responses:
+      '200': {description: Saved draft., content: {application/json: {schema: {$ref: ../schemas/admin-platform.yaml#/SystemConfigResponse}}}}
+      '409': {$ref: ../components/responses.yaml#/Conflict}
+systemConfigPublish:
+  post:
+    operationId: publishAdminSystemConfig
+    summary: Publish the current website configuration draft
+    tags: [ADMIN_PLATFORM]
+    security: [{adminBearerAuth: []}]
+    parameters: [{$ref: ../components/parameters.yaml#/XClientVersion}, {$ref: ../components/parameters.yaml#/XPlatform}, {$ref: ../components/parameters.yaml#/AcceptLanguage}, {$ref: ../components/parameters.yaml#/IfMatch}]
+    requestBody: {required: true, content: {application/json: {schema: {$ref: ../schemas/admin-platform.yaml#/AuditReasonRequest}}}}
+    responses:
+      '200': {description: Published version., content: {application/json: {schema: {$ref: ../schemas/admin-platform.yaml#/SystemConfigResponse}}}}
+      '409': {$ref: ../components/responses.yaml#/Conflict}
+notices:
+  get:
+    operationId: listAdminNotices
+    summary: List latest announcement versions
+    tags: [ADMIN_PLATFORM]
+    security: [{adminBearerAuth: []}]
+    parameters: [{$ref: ../components/parameters.yaml#/XClientVersion}, {$ref: ../components/parameters.yaml#/XPlatform}, {$ref: ../components/parameters.yaml#/AcceptLanguage}]
+    responses:
+      '200': {description: Notices., content: {application/json: {schema: {$ref: ../schemas/admin-platform.yaml#/NoticeListResponse}}}}
+      '403': {$ref: ../components/responses.yaml#/Forbidden}
+  post:
+    operationId: createAdminNotice
+    summary: Create an announcement draft
+    tags: [ADMIN_PLATFORM]
+    security: [{adminBearerAuth: []}]
+    parameters: [{$ref: ../components/parameters.yaml#/XClientVersion}, {$ref: ../components/parameters.yaml#/XPlatform}, {$ref: ../components/parameters.yaml#/AcceptLanguage}]
+    requestBody: {required: true, content: {application/json: {schema: {$ref: ../schemas/admin-platform.yaml#/NoticeWriteRequest}}}}
+    responses:
+      '201': {description: Created draft., content: {application/json: {schema: {$ref: ../schemas/admin-platform.yaml#/NoticeResponse}}}}
+      '400': {$ref: ../components/responses.yaml#/BadRequest}
+notice:
+  patch:
+    operationId: updateAdminNotice
+    summary: Save an announcement draft
+    tags: [ADMIN_PLATFORM]
+    security: [{adminBearerAuth: []}]
+    parameters: [{$ref: '#/components/noticeId'}, {$ref: ../components/parameters.yaml#/XClientVersion}, {$ref: ../components/parameters.yaml#/XPlatform}, {$ref: ../components/parameters.yaml#/AcceptLanguage}, {$ref: ../components/parameters.yaml#/IfMatch}]
+    requestBody: {required: true, content: {application/json: {schema: {$ref: ../schemas/admin-platform.yaml#/NoticeWriteRequest}}}}
+    responses:
+      '200': {description: Saved draft., content: {application/json: {schema: {$ref: ../schemas/admin-platform.yaml#/NoticeResponse}}}}
+      '409': {$ref: ../components/responses.yaml#/Conflict}
+noticePublish:
+  post:
+    operationId: publishAdminNotice
+    summary: Publish an announcement draft
+    tags: [ADMIN_PLATFORM]
+    security: [{adminBearerAuth: []}]
+    parameters: [{$ref: '#/components/noticeId'}, {$ref: ../components/parameters.yaml#/XClientVersion}, {$ref: ../components/parameters.yaml#/XPlatform}, {$ref: ../components/parameters.yaml#/AcceptLanguage}, {$ref: ../components/parameters.yaml#/IfMatch}]
+    requestBody: {required: true, content: {application/json: {schema: {$ref: ../schemas/admin-platform.yaml#/AuditReasonRequest}}}}
+    responses:
+      '200': {description: Published notice., content: {application/json: {schema: {$ref: ../schemas/admin-platform.yaml#/NoticeResponse}}}}
+      '409': {$ref: ../components/responses.yaml#/Conflict}
+noticeRevoke:
+  post:
+    operationId: revokeAdminNotice
+    summary: Revoke a published announcement immediately
+    tags: [ADMIN_PLATFORM]
+    security: [{adminBearerAuth: []}]
+    parameters: [{$ref: '#/components/noticeId'}, {$ref: ../components/parameters.yaml#/XClientVersion}, {$ref: ../components/parameters.yaml#/XPlatform}, {$ref: ../components/parameters.yaml#/AcceptLanguage}, {$ref: ../components/parameters.yaml#/IfMatch}]
+    requestBody: {required: true, content: {application/json: {schema: {$ref: ../schemas/admin-platform.yaml#/AuditReasonRequest}}}}
+    responses:
+      '200': {description: Revoked notice., content: {application/json: {schema: {$ref: ../schemas/admin-platform.yaml#/NoticeResponse}}}}
+      '409': {$ref: ../components/responses.yaml#/Conflict}
+components:
+  userId: {name: userId, in: path, required: true, schema: {type: string}}
+  noticeId: {name: noticeId, in: path, required: true, schema: {type: string}}

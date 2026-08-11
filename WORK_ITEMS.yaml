@@ -270,8 +270,8 @@ items:
   - taskId: CONTRACT-ADMIN-PLATFORM-001
     title: Define dynamic operations system risk data governance RBAC and audit
     moduleCode: ADMIN_RBAC
-    owner: unassigned
-    status: planned
+    owner: codex-root
+    status: in_progress
     allowedPaths:
       - contracts/openapi/admin/dynamic-operations.yaml
       - contracts/openapi/admin/system.yaml
@@ -284,7 +284,7 @@ items:
       - high_risk_admin_operations_require_audit_reason
       - published_config_has_version_gray_release_and_rollback
       - data_export_requires_approval_and_expiry
-    handoffNotes: ""
+    handoffNotes: "Core platform delivery now covers masked user operations and session-revoking suspension, versioned website/application identity drafts and publication, versioned notices with platform/locale/client-version/time targeting, and public bootstrap/notices. Remaining platform scope includes themes/i18n/experiments, releases, integrations, legal documents, telemetry, RBAC, alerts, incidents, and data governance."
 
   - taskId: CONTRACT-ADMIN-PROVIDERS-001
     title: Define unified AI email SMS and payment provider administration contracts
@@ -535,7 +535,7 @@ items:
     title: Build provider AI commerce subscription and audit administration console
     moduleCode: ADMIN_RBAC
     owner: codex-root
-    status: done
+    status: in_progress
     allowedPaths:
       - apps/admin-web/**
     dependsOn: [BACKEND-PROVIDER-REGISTRY-001, BACKEND-COMMERCE-001, BACKEND-AUTH-CHANNELS-001]
@@ -545,7 +545,7 @@ items:
       - secret_values_are_never_rendered_after_submission
       - product_price_and_benefit_versions_require_confirmation
       - payment_and_provider_actions_have_audit_readback
-    handoffNotes: "Complete. The Antigravity CLI-built React console provides dashboard, full AI/email/SMS/EPAY provider lifecycle, AI runtime, product/version, order/refund and unified compliance-audit operations. The provider page supports all 12 reviewed adapter presets, adapter-specific write-only credential fields, separate editable and real online status, gray publication, rollback, and audited emergency disable with reason plus provider-name confirmation. Provider writes use the contract's decimal If-Match value. The /audit page searches login, AI input/output, payment, administrator configuration and website operation events; sensitive content, legal hold and encrypted export are reason-gated and audited again. Desktop 1440x900 and mobile 390x844 browser acceptance pass without page-level horizontal overflow."
+    handoffNotes: "In progress after scope correction. Delivered routes now include dashboard, provider lifecycle, AI runtime, products, orders/refunds, audit, masked user operations, notices, website identity settings, payment operations and the support-ticket core loop. All new pages passed 1440x900 and 390x844 browser checks. Remaining domains are dashboard aggregation, payment webhook diagnosis/replay, CMS, referral UI, themes/i18n/experiments, releases, integrations, RBAC, alerts/incidents and data governance; the task must not be reported complete until those domains are accepted."
 
   - taskId: FRONTEND-ANDROID-AUTH-002
     title: Upgrade Android to email-first authentication with explicit SMS fallback

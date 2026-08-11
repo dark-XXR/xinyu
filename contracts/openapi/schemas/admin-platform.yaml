@@ -1,0 +1,139 @@
+AdminUserSummary:
+  type: object
+  additionalProperties: false
+  required: [userId, status, locale, timeZone, textRemaining, visionRemaining, energyBalance, deviceCount, resourceVersion, createdAt, updatedAt]
+  properties:
+    userId: {type: string}
+    status: {type: string, enum: [ACTIVE, SUSPENDED, DELETION_PENDING]}
+    maskedEmail: {type: [string, "null"]}
+    maskedPhone: {type: [string, "null"]}
+    nickname: {type: [string, "null"]}
+    locale: {type: string}
+    timeZone: {type: string}
+    planCode: {type: [string, "null"]}
+    planExpiresAt: {type: [string, "null"], format: date-time}
+    textRemaining: {type: integer}
+    visionRemaining: {type: integer}
+    energyBalance: {type: integer}
+    deviceCount: {type: integer, minimum: 0}
+    resourceVersion: {type: integer, minimum: 1}
+    createdAt: {type: string, format: date-time}
+    updatedAt: {type: string, format: date-time}
+AdminUserDetail:
+  allOf:
+    - $ref: '#/AdminUserSummary'
+    - type: object
+      required: [devices, consents]
+      properties:
+        devices: {type: array, items: {type: object, additionalProperties: true}}
+        consents: {type: array, items: {type: object, additionalProperties: true}}
+AdminUserStatusRequest:
+  type: object
+  additionalProperties: false
+  required: [status, auditReason, confirmationUserId]
+  properties:
+    status: {type: string, enum: [ACTIVE, SUSPENDED]}
+    auditReason: {type: string, minLength: 8, maxLength: 500}
+    confirmationUserId: {type: string}
+AdminUserListData:
+  type: object
+  required: [items, hasMore]
+  properties:
+    items: {type: array, items: {$ref: '#/AdminUserSummary'}}
+    nextCursor: {type: [string, "null"]}
+    hasMore: {type: boolean}
+SystemIdentityConfig:
+  type: object
+  additionalProperties: false
+  required: [websiteName, appName, companyName, customerServiceEmail, privacyEmail, defaultLocale, maintenanceMode]
+  properties:
+    websiteName: {type: string, minLength: 1, maxLength: 80}
+    appName: {type: string, minLength: 1, maxLength: 80}
+    companyName: {type: string, minLength: 1, maxLength: 160}
+    logoUrl: {type: [string, "null"], format: uri}
+    customerServiceEmail: {type: string, format: email}
+    privacyEmail: {type: string, format: email}
+    defaultLocale: {type: string}
+    officialWebsiteUrl: {type: [string, "null"], format: uri}
+    filingInformation: {type: [string, "null"]}
+    maintenanceMode: {type: boolean}
+    maintenanceMessage: {type: [string, "null"]}
+SystemConfigVersion:
+  type: object
+  required: [configId, version, status, configuration, resourceVersion, createdByAdminId, createdAt, updatedAt]
+  properties:
+    configId: {type: string}
+    version: {type: integer, minimum: 1}
+    status: {type: string, enum: [DRAFT, PUBLISHED, SUPERSEDED]}
+    configuration: {$ref: '#/SystemIdentityConfig'}
+    resourceVersion: {type: integer, minimum: 1}
+    createdByAdminId: {type: string}
+    publishedByAdminId: {type: [string, "null"]}
+    publishedAt: {type: [string, "null"], format: date-time}
+    createdAt: {type: string, format: date-time}
+    updatedAt: {type: string, format: date-time}
+SystemConfigWriteRequest:
+  type: object
+  additionalProperties: false
+  required: [configuration, auditReason]
+  properties:
+    configuration: {$ref: '#/SystemIdentityConfig'}
+    auditReason: {type: string, minLength: 8, maxLength: 500}
+AuditReasonRequest:
+  type: object
+  additionalProperties: false
+  required: [auditReason]
+  properties:
+    auditReason: {type: string, minLength: 8, maxLength: 500}
+NoticeWriteRequest:
+  type: object
+  additionalProperties: false
+  required: [title, body, noticeType, targetPlatforms, targetLocales, displayFrequency, startsAt, auditReason]
+  properties:
+    title: {type: string, minLength: 1, maxLength: 160}
+    body: {type: string, minLength: 1, maxLength: 20000}
+    noticeType: {type: string, enum: [GENERAL, MAINTENANCE, PROMOTION, SECURITY]}
+    targetPlatforms: {type: array, minItems: 1, uniqueItems: true, items: {type: string, enum: [ANDROID, ADMIN_WEB]}}
+    targetLocales: {type: array, uniqueItems: true, items: {type: string}}
+    minClientVersion: {type: [string, "null"]}
+    maxClientVersion: {type: [string, "null"]}
+    displayFrequency: {type: string, enum: [ONCE, ONCE_PER_VERSION, EVERY_LAUNCH]}
+    startsAt: {type: string, format: date-time}
+    endsAt: {type: [string, "null"], format: date-time}
+    auditReason: {type: string, minLength: 8, maxLength: 500}
+NoticeVersion:
+  type: object
+  additionalProperties: true
+  required: [noticeVersionId, noticeId, version, status, title, body, noticeType, targetPlatforms, targetLocales, displayFrequency, startsAt, resourceVersion, createdByAdminId, createdAt, updatedAt]
+  properties:
+    noticeVersionId: {type: string}
+    noticeId: {type: string}
+    version: {type: integer}
+    status: {type: string, enum: [DRAFT, PUBLISHED, SUPERSEDED, REVOKED]}
+    title: {type: string}
+    body: {type: string}
+    noticeType: {type: string}
+    targetPlatforms: {type: array, items: {type: string}}
+    targetLocales: {type: array, items: {type: string}}
+    displayFrequency: {type: string}
+    startsAt: {type: string, format: date-time}
+    resourceVersion: {type: integer}
+    createdByAdminId: {type: string}
+    createdAt: {type: string, format: date-time}
+    updatedAt: {type: string, format: date-time}
+AdminUserListResponse:
+  allOf: [{$ref: ../components/schemas/common.yaml#/BaseSuccessEnvelope}, {type: object, properties: {data: {$ref: '#/AdminUserListData'}}}]
+AdminUserResponse:
+  allOf: [{$ref: ../components/schemas/common.yaml#/BaseSuccessEnvelope}, {type: object, properties: {data: {$ref: '#/AdminUserSummary'}}}]
+AdminUserDetailResponse:
+  allOf: [{$ref: ../components/schemas/common.yaml#/BaseSuccessEnvelope}, {type: object, properties: {data: {$ref: '#/AdminUserDetail'}}}]
+AdminUserEntitlementResponse:
+  allOf: [{$ref: ../components/schemas/common.yaml#/BaseSuccessEnvelope}, {type: object, properties: {data: {type: object, additionalProperties: true}}}]
+AdminWalletLedgerListResponse:
+  allOf: [{$ref: ../components/schemas/common.yaml#/BaseSuccessEnvelope}, {type: object, properties: {data: {type: object, additionalProperties: true}}}]
+SystemConfigResponse:
+  allOf: [{$ref: ../components/schemas/common.yaml#/BaseSuccessEnvelope}, {type: object, properties: {data: {$ref: '#/SystemConfigVersion'}}}]
+NoticeResponse:
+  allOf: [{$ref: ../components/schemas/common.yaml#/BaseSuccessEnvelope}, {type: object, properties: {data: {$ref: '#/NoticeVersion'}}}]
+NoticeListResponse:
+  allOf: [{$ref: ../components/schemas/common.yaml#/BaseSuccessEnvelope}, {type: object, properties: {data: {type: object, required: [items], properties: {items: {type: array, items: {$ref: '#/NoticeVersion'}}}}}}]

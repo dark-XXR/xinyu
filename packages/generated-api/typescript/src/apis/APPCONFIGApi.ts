@@ -28,6 +28,11 @@ import {
     HealthSuccessResponseFromJSON,
     HealthSuccessResponseToJSON,
 } from '../models/HealthSuccessResponse';
+import {
+    type NoticeListResponse,
+    NoticeListResponseFromJSON,
+    NoticeListResponseToJSON,
+} from '../models/NoticeListResponse';
 
 export interface GetAppBootstrapRequest {
     xClientVersion: string;
@@ -38,6 +43,14 @@ export interface GetAppBootstrapRequest {
 }
 
 export interface GetHealthRequest {
+    xRequestId?: string;
+}
+
+export interface ListPublicNoticesRequest {
+    xClientVersion: string;
+    xPlatform: ListPublicNoticesXPlatformEnum;
+    xDeviceId: string;
+    acceptLanguage: string;
     xRequestId?: string;
 }
 
@@ -102,6 +115,37 @@ export interface APPCONFIGApiInterface {
      * Read service health
      */
     getHealth(requestParameters: GetHealthRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<HealthSuccessResponse>;
+
+    /**
+     * Creates request options for listPublicNotices without sending the request
+     * @param {string} xClientVersion Semantic application version used for compatibility enforcement.
+     * @param {'ANDROID' | 'ADMIN_WEB'} xPlatform
+     * @param {string} xDeviceId Opaque installation ID. It is not an authentication credential.
+     * @param {string} acceptLanguage
+     * @param {string} [xRequestId] Client correlation ID. The server returns the final accepted value.
+     * @throws {RequiredError}
+     * @memberof APPCONFIGApiInterface
+     */
+    listPublicNoticesRequestOpts(requestParameters: ListPublicNoticesRequest): Promise<runtime.RequestOpts>;
+
+    /**
+     *
+     * @summary List announcements active for this client
+     * @param {string} xClientVersion Semantic application version used for compatibility enforcement.
+     * @param {'ANDROID' | 'ADMIN_WEB'} xPlatform
+     * @param {string} xDeviceId Opaque installation ID. It is not an authentication credential.
+     * @param {string} acceptLanguage
+     * @param {string} [xRequestId] Client correlation ID. The server returns the final accepted value.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof APPCONFIGApiInterface
+     */
+    listPublicNoticesRaw(requestParameters: ListPublicNoticesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<NoticeListResponse>>;
+
+    /**
+     * List announcements active for this client
+     */
+    listPublicNotices(requestParameters: ListPublicNoticesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<NoticeListResponse>;
 
 }
 
@@ -238,6 +282,91 @@ export class APPCONFIGApi extends runtime.BaseAPI implements APPCONFIGApiInterfa
         return await response.value();
     }
 
+    /**
+     * Creates request options for listPublicNotices without sending the request
+     */
+    async listPublicNoticesRequestOpts(requestParameters: ListPublicNoticesRequest): Promise<runtime.RequestOpts> {
+        if (requestParameters['xClientVersion'] == null) {
+            throw new runtime.RequiredError(
+                'xClientVersion',
+                'Required parameter "xClientVersion" was null or undefined when calling listPublicNotices().'
+            );
+        }
+
+        if (requestParameters['xPlatform'] == null) {
+            throw new runtime.RequiredError(
+                'xPlatform',
+                'Required parameter "xPlatform" was null or undefined when calling listPublicNotices().'
+            );
+        }
+
+        if (requestParameters['xDeviceId'] == null) {
+            throw new runtime.RequiredError(
+                'xDeviceId',
+                'Required parameter "xDeviceId" was null or undefined when calling listPublicNotices().'
+            );
+        }
+
+        if (requestParameters['acceptLanguage'] == null) {
+            throw new runtime.RequiredError(
+                'acceptLanguage',
+                'Required parameter "acceptLanguage" was null or undefined when calling listPublicNotices().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (requestParameters['xRequestId'] != null) {
+            headerParameters['X-Request-Id'] = String(requestParameters['xRequestId']);
+        }
+
+        if (requestParameters['xClientVersion'] != null) {
+            headerParameters['X-Client-Version'] = String(requestParameters['xClientVersion']);
+        }
+
+        if (requestParameters['xPlatform'] != null) {
+            headerParameters['X-Platform'] = String(requestParameters['xPlatform']);
+        }
+
+        if (requestParameters['xDeviceId'] != null) {
+            headerParameters['X-Device-Id'] = String(requestParameters['xDeviceId']);
+        }
+
+        if (requestParameters['acceptLanguage'] != null) {
+            headerParameters['Accept-Language'] = String(requestParameters['acceptLanguage']);
+        }
+
+
+        let urlPath = `/v1/app/notices`;
+
+        return {
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        };
+    }
+
+    /**
+     * List announcements active for this client
+     */
+    async listPublicNoticesRaw(requestParameters: ListPublicNoticesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<NoticeListResponse>> {
+        const requestOptions = await this.listPublicNoticesRequestOpts(requestParameters);
+        const response = await this.request(requestOptions, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => NoticeListResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * List announcements active for this client
+     */
+    async listPublicNotices(requestParameters: ListPublicNoticesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<NoticeListResponse> {
+        const response = await this.listPublicNoticesRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
 }
 
 /**
@@ -248,3 +377,11 @@ export const GetAppBootstrapXPlatformEnum = {
     AdminWeb: 'ADMIN_WEB'
 } as const;
 export type GetAppBootstrapXPlatformEnum = typeof GetAppBootstrapXPlatformEnum[keyof typeof GetAppBootstrapXPlatformEnum];
+/**
+ * @export
+ */
+export const ListPublicNoticesXPlatformEnum = {
+    Android: 'ANDROID',
+    AdminWeb: 'ADMIN_WEB'
+} as const;
+export type ListPublicNoticesXPlatformEnum = typeof ListPublicNoticesXPlatformEnum[keyof typeof ListPublicNoticesXPlatformEnum];

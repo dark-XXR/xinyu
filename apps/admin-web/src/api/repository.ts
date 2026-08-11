@@ -10,6 +10,8 @@ import {
   ADMINCOMMERCEApi,
   ADMINAIApi,
   ADMINRBACApi,
+  ADMINPLATFORMApi,
+  ADMINSUPPORTApi,
   ProviderKind,
   ProviderStatus,
   OrderStatus,
@@ -37,7 +39,31 @@ import {
   AuditEventOutcomeEnum,
   AuditEventSeverityEnum,
   AuditEventActorTypeEnum,
+  AccountStatus,
+  SupportTicketStatusEnum,
+  SupportTicketPriorityEnum,
+  NoticeVersionStatusEnum,
+  LedgerEntryType,
+  SupportMessageSenderTypeEnum,
+  AdminUserStatusRequestStatusEnum,
+  AdminUpdateSupportTicketRequestStatusEnum,
+  AdminUpdateSupportTicketRequestPriorityEnum,
+  SystemConfigVersionStatusEnum,
 } from './models';
+import type {
+  SystemConfigVersion,
+} from '@love-reply/generated-api';
+
+export interface SystemConfigResult {
+  publishedConfig?: SystemIdentityConfig;
+  draftConfig?: SystemIdentityConfig;
+  hasUnpublishedChanges: boolean;
+  publishedAt?: Date;
+  version: number;
+  publishedResourceVersion?: number;
+  draftResourceVersion?: number;
+  resourceVersion?: number;
+}
 import type {
   Provider,
   AdminOrder,
@@ -75,6 +101,18 @@ import type {
   AuditExportData,
   AuditExportContentData,
   AuditExportRequest,
+  AdminUserSummary,
+  AdminUserDetail,
+  Device,
+  Entitlement,
+  WalletLedgerEntry,
+  NoticeVersion,
+  NoticeWriteRequest,
+  SystemConfigWriteRequest,
+  SystemIdentityConfig,
+  SupportTicket,
+  SupportMessage,
+  PaymentReconciliation,
 } from './models';
 
 /* ── 仓库接口 ── */
@@ -163,7 +201,33 @@ export interface Repository {
   changeAuditLegalHold(eventId: string, enabled: boolean, reason: string): Promise<AuditEvent>;
   createAuditExport(request: AuditExportRequest): Promise<AuditExportData>;
   readAuditExport(exportId: string, reason: string): Promise<AuditExportContentData>;
+
+  /* 用户管理 */
+  getAdminUsers(params?: { search?: string; status?: string; cursor?: string; limit?: number }): Promise<{ users: AdminUserSummary[]; nextCursor?: string; totalCount?: number }>;
+  getAdminUserDetail(userId: string): Promise<{ detail: AdminUserDetail; devices: Device[]; entitlements: Entitlement[]; walletEntries: WalletLedgerEntry[] }>;
+  changeAdminUserStatus(userId: string, status: AccountStatus, auditReason: string, ifMatch?: string): Promise<void>;
+
+  /* 公告运营 */
+  getAdminNotices(params?: { status?: string; type?: string; platform?: string; cursor?: string; limit?: number }): Promise<{ notices: NoticeVersion[]; nextCursor?: string }>;
+  createAdminNotice(request: NoticeWriteRequest): Promise<NoticeVersion>;
+  updateAdminNotice(noticeId: string, request: NoticeWriteRequest, ifMatch?: string): Promise<NoticeVersion>;
+  publishAdminNotice(noticeId: string, auditReason: string, ifMatch?: string): Promise<NoticeVersion>;
+  revokeAdminNotice(noticeId: string, auditReason: string, ifMatch?: string): Promise<NoticeVersion>;
+
+  /* 网站设置 */
+  getAdminSystemConfig(): Promise<SystemConfigResult>;
+  updateAdminSystemConfig(request: SystemConfigWriteRequest, ifMatch?: string): Promise<void>;
+  publishAdminSystemConfig(auditReason: string, ifMatch?: string): Promise<void>;
+
+  /* 支付对账 */
+  runPaymentReconciliation(staleBefore: Date | string, maxOrders: number, auditReason: string): Promise<PaymentReconciliation>;
+
+  /* 客服工单 */
+  getAdminSupportTickets(params?: { status?: string; priority?: string; category?: string; assigneeId?: string; search?: string; cursor?: string; limit?: number }): Promise<{ tickets: SupportTicket[]; nextCursor?: string; totalCount?: number }>;
+  getAdminSupportTicketDetail(ticketId: string): Promise<{ ticket: SupportTicket; messages: SupportMessage[] }>;
+  updateAdminSupportTicket(ticketId: string, update: { status?: string; priority?: string; assigneeId?: string; replyContent?: string; isInternalNote?: boolean; auditReason?: string }, ifMatch?: string): Promise<SupportTicket>;
 }
+
 
 /* ── HTTP 配置 ── */
 
@@ -239,6 +303,20 @@ const mockState: {
   aiRiskPolicies: AiRiskPolicy[];
   aiEvaluationRuns: AiEvaluationRun[];
   auditEvents: AuditEvent[];
+  users: AdminUserSummary[];
+  userDetails: Record<string, { detail: AdminUserDetail; devices: Device[]; entitlements: Entitlement[]; walletEntries: WalletLedgerEntry[] }>;
+  notices: NoticeVersion[];
+  systemConfig: {
+    publishedConfig: SystemIdentityConfig;
+    draftConfig?: SystemIdentityConfig;
+    hasUnpublishedChanges: boolean;
+    publishedAt?: Date;
+    version: number;
+    publishedResourceVersion: number;
+    draftResourceVersion?: number;
+  };
+  supportTickets: SupportTicket[];
+  supportMessages: Record<string, SupportMessage[]>;
 } = {
   providers: [
     {
@@ -840,6 +918,269 @@ const mockState: {
       eventHash: '890a1b2c3d4e5f67890a1b2c3d4e5f67890a1b2c3d4e5f67890a1b2c3d4e5f67',
     } satisfies AuditEvent,
   ],
+  users: [
+    {
+      userId: 'usr_10000001',
+      maskedPhone: '138****8888',
+      maskedEmail: 'w***g@example.com',
+      nickname: '活跃测试者',
+      locale: 'zh-CN',
+      timeZone: 'Asia/Shanghai',
+      status: AccountStatus.Active,
+      planCode: 'VIP_MONTHLY',
+      planExpiresAt: new Date(now.getTime() + 20 * 86400000),
+      textRemaining: 82,
+      visionRemaining: 15,
+      energyBalance: 520000,
+      deviceCount: 2,
+      resourceVersion: 1,
+      createdAt: new Date(now.getTime() - 30 * 86400000),
+      updatedAt: new Date(now.getTime() - 10 * 60000),
+    },
+    {
+      userId: 'usr_10000002',
+      maskedPhone: '159****6666',
+      maskedEmail: 'z***g@example.com',
+      nickname: '体验用户',
+      locale: 'zh-CN',
+      timeZone: 'Asia/Shanghai',
+      status: AccountStatus.Suspended,
+      planCode: 'FREE',
+      planExpiresAt: undefined,
+      textRemaining: 0,
+      visionRemaining: 0,
+      energyBalance: 0,
+      deviceCount: 1,
+      resourceVersion: 1,
+      createdAt: new Date(now.getTime() - 60 * 86400000),
+      updatedAt: new Date(now.getTime() - 2 * 86400000),
+    },
+    {
+      userId: 'usr_10000003',
+      maskedPhone: '186****3333',
+      maskedEmail: 'l***i@example.com',
+      nickname: '尊享年卡用户',
+      locale: 'zh-CN',
+      timeZone: 'Asia/Shanghai',
+      status: AccountStatus.Active,
+      planCode: 'VIP_YEARLY',
+      planExpiresAt: new Date(now.getTime() + 300 * 86400000),
+      textRemaining: 9999,
+      visionRemaining: 999,
+      energyBalance: 1500000,
+      deviceCount: 3,
+      resourceVersion: 1,
+      createdAt: new Date(now.getTime() - 90 * 86400000),
+      updatedAt: new Date(now.getTime() - 2 * 60000),
+    },
+  ],
+  userDetails: {
+    usr_10000001: {
+      detail: {
+        userId: 'usr_10000001',
+        maskedPhone: '138****8888',
+        maskedEmail: 'w***g@example.com',
+        nickname: '活跃测试者',
+        locale: 'zh-CN',
+        timeZone: 'Asia/Shanghai',
+        status: AccountStatus.Active,
+        planCode: 'VIP_MONTHLY',
+        planExpiresAt: new Date(now.getTime() + 20 * 86400000),
+        textRemaining: 82,
+        visionRemaining: 15,
+        energyBalance: 520000,
+        deviceCount: 2,
+        resourceVersion: 1,
+        createdAt: new Date(now.getTime() - 30 * 86400000),
+        updatedAt: new Date(now.getTime() - 10 * 60000),
+        devices: [
+          { deviceId: 'dev_101', platform: 'ANDROID', appVersion: '2.4.0', deviceModel: 'Xiaomi 13 Pro', ipMasked: '221.192.***.12', lastLoginAt: new Date() },
+        ],
+        consents: [
+          { consentId: 'cst_01', type: 'PRIVACY_POLICY', version: 'v1.2', agreedAt: new Date() },
+        ],
+      },
+      devices: [
+        {
+          deviceId: 'dev_101',
+          platform: 'ANDROID' as const,
+          model: 'Xiaomi 13 Pro',
+          current: true,
+          lastSeenAt: new Date(now.getTime() - 10 * 60000),
+          createdAt: new Date(now.getTime() - 30 * 86400000),
+        },
+      ],
+      entitlements: [
+        {
+          userId: 'usr_10000001',
+          planCode: 'VIP_MONTHLY',
+          planExpiresAt: new Date(now.getTime() + 20 * 86400000),
+          benefits: { textRemaining: 82, visionRemaining: 15, allowedModelIds: new Set(['gpt-4o', 'deepseek-r1']), allowedStyleIds: new Set(['default']) },
+          wallet: { energyBalance: 520000, energyReserved: 0, energyAvailable: 520000 },
+          resourceVersion: 1,
+          updatedAt: new Date(),
+        },
+      ],
+      walletEntries: [
+        {
+          ledgerEntryId: 'led_201',
+          entryType: LedgerEntryType.Credit,
+          energyDelta: 500000,
+          reservedDelta: 0,
+          balanceAfter: 520000,
+          reservedAfter: 0,
+          reasonCode: 'ANNUAL_VIP_REWARD',
+          createdAt: new Date(now.getTime() - 86400000),
+        },
+      ],
+    },
+  },
+  notices: [
+    {
+      noticeVersionId: 'ntc_v101',
+      noticeId: 'ntc_101',
+      version: 1,
+      title: '系统版本 v2.4.0 升级通知',
+      body: '包含更稳定的大模型接入机制、全新的客服工单系统与优化体验。',
+      noticeType: 'GENERAL',
+      targetPlatforms: ['ADMIN_WEB', 'ANDROID'],
+      targetLocales: ['zh-CN'],
+      displayFrequency: 'ONCE',
+      status: NoticeVersionStatusEnum.Published,
+      startsAt: new Date(now.getTime() - 7 * 86400000),
+      createdByAdminId: 'admin_master',
+      createdAt: new Date(now.getTime() - 7 * 86400000),
+      updatedAt: new Date(now.getTime() - 7 * 86400000),
+      resourceVersion: 1,
+    },
+    {
+      noticeVersionId: 'ntc_v102',
+      noticeId: 'ntc_102',
+      version: 1,
+      title: '微信支付通道例行维护公告',
+      body: '微信支付服务商进行底层例行维护，维护期间推荐优先使用支付宝支付。',
+      noticeType: 'MAINTENANCE',
+      targetPlatforms: ['ANDROID'],
+      targetLocales: ['zh-CN'],
+      displayFrequency: 'EVERY_LAUNCH',
+      status: NoticeVersionStatusEnum.Draft,
+      startsAt: new Date(now.getTime() + 1 * 86400000),
+      createdByAdminId: 'admin_master',
+      createdAt: new Date(now.getTime() - 1 * 86400000),
+      updatedAt: new Date(now.getTime() - 1 * 86400000),
+      resourceVersion: 1,
+    },
+    {
+      noticeVersionId: 'ntc_v103',
+      noticeId: 'ntc_103',
+      version: 1,
+      title: '新春限时特惠活动已开启',
+      body: '即日起解锁年度 VIP 尊享买一送一，限时赠送 1,000,000 Token！',
+      noticeType: 'PROMOTION',
+      targetPlatforms: ['ANDROID'],
+      targetLocales: ['zh-CN'],
+      displayFrequency: 'ONCE_PER_VERSION',
+      status: NoticeVersionStatusEnum.Revoked,
+      startsAt: new Date(now.getTime() - 15 * 86400000),
+      createdByAdminId: 'admin_master',
+      createdAt: new Date(now.getTime() - 16 * 86400000),
+      updatedAt: new Date(now.getTime() - 1 * 86400000),
+      resourceVersion: 1,
+    },
+  ],
+  systemConfig: {
+    publishedConfig: {
+      websiteName: '爱回复 Web 运营管理后台',
+      appName: '爱回复 APP',
+      companyName: '爱回复科技（北京）有限公司',
+      logoUrl: 'https://cdn.example.com/logo.png',
+      customerServiceEmail: 'support@lovereply.app',
+      privacyEmail: 'privacy@lovereply.app',
+      defaultLocale: 'zh-CN',
+      officialWebsiteUrl: 'https://lovereply.app',
+      filingInformation: '京ICP备20260999号-2A',
+      maintenanceMode: false,
+      maintenanceMessage: '系统例行维护中，请稍后再试。',
+    },
+    draftConfig: undefined,
+    hasUnpublishedChanges: false,
+    version: 1,
+    publishedResourceVersion: 1,
+    draftResourceVersion: undefined,
+    publishedAt: new Date(now.getTime() - 10 * 86400000),
+  },
+  supportTickets: [
+    {
+      ticketId: 'tkt_9001',
+      userId: 'usr_10000001',
+      category: 'RECHARGE',
+      subject: '微信支付成功但订单状态显示待支付',
+      status: SupportTicketStatusEnum.WaitingSupport,
+      priority: SupportTicketPriorityEnum.High,
+      assignedAdminId: 'admin_master',
+      lastMessageAt: new Date(now.getTime() - 15 * 60000),
+      createdAt: new Date(now.getTime() - 2 * 3600000),
+      updatedAt: new Date(now.getTime() - 15 * 60000),
+      resourceVersion: 1,
+    },
+    {
+      ticketId: 'tkt_9002',
+      userId: 'usr_10000002',
+      category: 'AI_MODEL',
+      subject: '深度思考模型生成卡顿与超时失败反馈',
+      status: SupportTicketStatusEnum.Open,
+      priority: SupportTicketPriorityEnum.Normal,
+      assignedAdminId: null,
+      lastMessageAt: new Date(now.getTime() - 45 * 60000),
+      createdAt: new Date(now.getTime() - 5 * 3600000),
+      updatedAt: new Date(now.getTime() - 45 * 60000),
+      resourceVersion: 1,
+    },
+    {
+      ticketId: 'tkt_9003',
+      userId: 'usr_10000003',
+      category: 'ACCOUNT',
+      subject: '申请解冻账号与异常登录提醒核验',
+      status: SupportTicketStatusEnum.Resolved,
+      priority: SupportTicketPriorityEnum.Urgent,
+      assignedAdminId: 'admin_sec',
+      lastMessageAt: new Date(now.getTime() - 1 * 86400000),
+      createdAt: new Date(now.getTime() - 2 * 86400000),
+      updatedAt: new Date(now.getTime() - 1 * 86400000),
+      resourceVersion: 2,
+    },
+  ],
+  supportMessages: {
+    tkt_9001: [
+      {
+        messageId: 'msg_01',
+        ticketId: 'tkt_9001',
+        senderType: 'USER',
+        senderId: 'usr_10000001',
+        body: '我刚刚通过微信支付了 29.00 元购买 VIP 月卡，扣款成功了但是账户里没收到额度。订单号是 ord_2026020901',
+        internal: false,
+        createdAt: new Date(now.getTime() - 2 * 3600000),
+      },
+      {
+        messageId: 'msg_02',
+        ticketId: 'tkt_9001',
+        senderType: 'ADMIN',
+        senderId: 'admin_master',
+        body: '已收悉您的反馈，已为您触发主动补单与对账逻辑，请问您现在的刷新余额是否有更新？',
+        internal: false,
+        createdAt: new Date(now.getTime() - 15 * 60000),
+      },
+      {
+        messageId: 'msg_03',
+        ticketId: 'tkt_9001',
+        senderType: 'ADMIN',
+        senderId: 'admin_master',
+        body: '【内部备注】供应商回调日志显示 IP 匹配异常，触发延迟对账机制，已手动触发补发。',
+        internal: true,
+        createdAt: new Date(now.getTime() - 10 * 60000),
+      },
+    ],
+  },
 };
 
 const mockSensitiveStore: Record<string, Record<string, any>> = {
@@ -1639,6 +1980,277 @@ const mockRepository: Repository = {
       },
     };
   },
+
+  /* 用户管理 */
+  async getAdminUsers(params) {
+    let list = mockState.users;
+    if (params?.search) {
+      const q = params.search.toLowerCase();
+      list = list.filter(
+        (u) =>
+          u.userId.toLowerCase().includes(q) ||
+          (u.maskedPhone && u.maskedPhone.includes(q)) ||
+          (u.maskedEmail && u.maskedEmail.toLowerCase().includes(q)),
+      );
+    }
+    if (params?.status) {
+      list = list.filter((u) => u.status === params.status);
+    }
+    return { users: list, totalCount: list.length };
+  },
+
+  async getAdminUserDetail(userId) {
+    const data = mockState.userDetails[userId] || {
+      detail: {
+        userId,
+        maskedPhone: '138****0000',
+        maskedEmail: 'u***r@example.com',
+        nickname: '用户',
+        locale: 'zh-CN',
+        timeZone: 'Asia/Shanghai',
+        status: AccountStatus.Active,
+        textRemaining: 10,
+        visionRemaining: 5,
+        energyBalance: 10000,
+        deviceCount: 1,
+        resourceVersion: 1,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        devices: [],
+        consents: [],
+      },
+      devices: [
+        {
+          deviceId: 'dev_mock_01',
+          platform: 'ANDROID' as const,
+          model: 'Android Device',
+          current: true,
+          lastSeenAt: new Date(),
+          createdAt: new Date(),
+        },
+      ],
+      entitlements: [
+        {
+          userId,
+          planCode: 'STANDARD_QUOTA',
+          planExpiresAt: new Date(Date.now() + 30 * 86400000),
+          benefits: { textRemaining: 10, visionRemaining: 5 },
+          wallet: { energyBalance: 10000, reservedBalance: 0 },
+          resourceVersion: 1,
+          updatedAt: new Date(),
+        },
+      ],
+      walletEntries: [
+        {
+          ledgerEntryId: 'led_mock',
+          entryType: LedgerEntryType.Credit,
+          energyDelta: 10000,
+          reservedDelta: 0,
+          balanceAfter: 10000,
+          reservedAfter: 0,
+          reasonCode: 'WELCOME',
+          createdAt: new Date(),
+        },
+      ],
+    };
+    return data;
+  },
+
+  async changeAdminUserStatus(userId, status, _auditReason) {
+    const user = mockState.users.find((u) => u.userId === userId);
+    if (user) {
+      user.status = status;
+    }
+    if (mockState.userDetails[userId]) {
+      mockState.userDetails[userId].detail.status = status;
+    }
+  },
+
+  /* 公告运营 Mock */
+  async getAdminNotices(params) {
+    let list = mockState.notices;
+    if (params?.status) {
+      list = list.filter((n) => n.status === params.status);
+    }
+    if (params?.type) {
+      list = list.filter((n) => n.noticeType === params.type);
+    }
+    return { notices: list };
+  },
+
+  async createAdminNotice(request) {
+    const newNotice: NoticeVersion = {
+      noticeVersionId: 'ntc_v_' + Date.now(),
+      noticeId: 'ntc_' + Date.now(),
+      version: 1,
+      title: request.title,
+      body: request.body,
+      noticeType: request.noticeType,
+      targetPlatforms: Array.from(request.targetPlatforms),
+      targetLocales: Array.from(request.targetLocales),
+      displayFrequency: request.displayFrequency,
+      status: NoticeVersionStatusEnum.Draft,
+      startsAt: request.startsAt,
+      createdByAdminId: 'admin_master',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      resourceVersion: 1,
+    };
+    mockState.notices.unshift(newNotice);
+    return newNotice;
+  },
+
+  async updateAdminNotice(noticeId, request) {
+    const item = mockState.notices.find((n) => n.noticeId === noticeId);
+    if (item) {
+      item.title = request.title;
+      item.body = request.body;
+      item.noticeType = request.noticeType;
+      item.targetPlatforms = Array.from(request.targetPlatforms);
+      item.targetLocales = Array.from(request.targetLocales);
+      item.displayFrequency = request.displayFrequency;
+      item.startsAt = request.startsAt;
+      item.updatedAt = new Date();
+      return item;
+    }
+    throw new Error('公告不存在');
+  },
+
+  async publishAdminNotice(noticeId, _auditReason) {
+    const item = mockState.notices.find((n) => n.noticeId === noticeId);
+    if (item) {
+      item.status = NoticeVersionStatusEnum.Published;
+      return item;
+    }
+    throw new Error('公告不存在');
+  },
+
+  async revokeAdminNotice(noticeId, _auditReason) {
+    const item = mockState.notices.find((n) => n.noticeId === noticeId);
+    if (item) {
+      item.status = NoticeVersionStatusEnum.Revoked;
+      return item;
+    }
+    throw new Error('公告不存在');
+  },
+
+  /* 网站设置 Mock 实现 */
+  async getAdminSystemConfig(): Promise<SystemConfigResult> {
+    const hasUnpublished = mockState.systemConfig.hasUnpublishedChanges;
+    return {
+      publishedConfig: mockState.systemConfig.publishedConfig,
+      draftConfig: hasUnpublished ? mockState.systemConfig.draftConfig : undefined,
+      hasUnpublishedChanges: hasUnpublished,
+      publishedAt: mockState.systemConfig.publishedAt,
+      version: mockState.systemConfig.version,
+      publishedResourceVersion: mockState.systemConfig.publishedResourceVersion,
+      draftResourceVersion: hasUnpublished ? mockState.systemConfig.draftResourceVersion : undefined,
+      resourceVersion: hasUnpublished
+        ? mockState.systemConfig.draftResourceVersion
+        : mockState.systemConfig.publishedResourceVersion,
+    };
+  },
+
+  async updateAdminSystemConfig(request) {
+    const currentResVer = mockState.systemConfig.draftResourceVersion ?? mockState.systemConfig.publishedResourceVersion;
+    mockState.systemConfig.draftConfig = { ...request._configuration };
+    mockState.systemConfig.hasUnpublishedChanges = true;
+    mockState.systemConfig.draftResourceVersion = currentResVer + 1;
+  },
+
+  async publishAdminSystemConfig(_auditReason) {
+    if (mockState.systemConfig.draftConfig) {
+      mockState.systemConfig.publishedConfig = { ...mockState.systemConfig.draftConfig };
+      mockState.systemConfig.draftConfig = undefined;
+    }
+    const currentResVer = mockState.systemConfig.draftResourceVersion ?? mockState.systemConfig.publishedResourceVersion;
+    mockState.systemConfig.hasUnpublishedChanges = false;
+    mockState.systemConfig.version += 1;
+    mockState.systemConfig.publishedResourceVersion = currentResVer + 1;
+    mockState.systemConfig.draftResourceVersion = undefined;
+    mockState.systemConfig.publishedAt = new Date();
+  },
+
+  /* 支付对账 */
+  async runPaymentReconciliation(_staleBefore, maxOrders, _auditReason) {
+    return {
+      reconciliationId: 'rec_' + Date.now(),
+      scannedCount: Math.min(maxOrders, 36),
+      settledCount: Math.min(maxOrders, 34),
+      recoveredCount: 2,
+      conflictCount: 0,
+      startedAt: new Date(now.getTime() - 5000),
+      completedAt: new Date(),
+    };
+  },
+
+  /* 客服工单 Mock */
+  async getAdminSupportTickets(params) {
+    let list = mockState.supportTickets;
+    if (params?.status) {
+      list = list.filter((t) => t.status === params.status);
+    }
+    if (params?.priority) {
+      list = list.filter((t) => t.priority === params.priority);
+    }
+    if (params?.search) {
+      const q = params.search.toLowerCase();
+      list = list.filter(
+        (t) =>
+          t.ticketId.toLowerCase().includes(q) ||
+          t.subject.toLowerCase().includes(q) ||
+          t.category.toLowerCase().includes(q),
+      );
+    }
+    return { tickets: list, totalCount: list.length };
+  },
+
+  async getAdminSupportTicketDetail(ticketId) {
+    const ticket = mockState.supportTickets.find((t) => t.ticketId === ticketId);
+    if (!ticket) {
+      throw new Error('工单不存在');
+    }
+    const msgs = mockState.supportMessages[ticketId] || [
+      {
+        messageId: 'msg_default',
+        ticketId,
+        senderType: SupportMessageSenderTypeEnum.User,
+        senderId: ticket.userId,
+        body: ticket.subject,
+        internal: false,
+        createdAt: ticket.createdAt,
+      },
+    ];
+    return { ticket, messages: msgs };
+  },
+
+  async updateAdminSupportTicket(ticketId, update) {
+    const ticket = mockState.supportTickets.find((t) => t.ticketId === ticketId);
+    if (!ticket) {
+      throw new Error('工单不存在');
+    }
+    if (update.status) ticket.status = update.status as SupportTicketStatusEnum;
+    if (update.priority) ticket.priority = update.priority as SupportTicketPriorityEnum;
+    if (update.assigneeId !== undefined) ticket.assignedAdminId = update.assigneeId;
+
+    if (update.replyContent) {
+      if (!mockState.supportMessages[ticketId]) {
+        mockState.supportMessages[ticketId] = [];
+      }
+      mockState.supportMessages[ticketId].push({
+        messageId: 'msg_' + Date.now(),
+        ticketId,
+        senderType: SupportMessageSenderTypeEnum.Admin,
+        senderId: 'admin_master',
+        body: update.replyContent,
+        internal: !!update.isInternalNote,
+        createdAt: new Date(),
+      });
+      ticket.lastMessageAt = new Date();
+    }
+    ticket.updatedAt = new Date();
+    return ticket;
+  },
 };
 
 /* ── HTTP 仓库 ── */
@@ -2071,7 +2683,7 @@ const httpRepository: Repository = {
       scenario: refRoute?.scenario ?? AiScenario.ReplyGeneration,
       logicalModelId: refRoute?.logicalModelId ?? (refMapping?.logicalModelId ?? ''),
       targets: refRoute && refRoute.targets.length > 0
-        ? refRoute.targets.map((t) => ({ ...t }))
+        ? refRoute.targets.map((t: AiRouteTarget) => ({ ...t }))
         : [
             {
               modelMappingId: refMapping?.modelMappingId ?? '',
@@ -2151,9 +2763,9 @@ const httpRepository: Repository = {
       ...commonHeaders,
       cursor: filter?.cursor,
       limit: filter?.limit,
-      category: filter?.category as any,
+      category: filter?.category as AuditEventCategoryEnum | undefined,
       eventType: filter?.eventType,
-      outcome: filter?.outcome as any,
+      outcome: filter?.outcome as AuditEventOutcomeEnum | undefined,
       userId: filter?.userId,
       adminId: filter?.adminId,
       requestId: filter?.requestId,
@@ -2212,6 +2824,257 @@ const httpRepository: Repository = {
       ...commonHeaders,
       auditExportReadRequest: { auditReason: reason },
     });
+    return res.data;
+  },
+
+  /* 用户管理 HTTP 实现 */
+  async getAdminUsers(params) {
+    const api = new ADMINPLATFORMApi(getConfiguration());
+    const res = await api.listAdminUsers({
+      ...commonHeaders,
+      search: params?.search,
+      status: params?.status as AccountStatus | undefined,
+      cursor: params?.cursor,
+      limit: params?.limit,
+    });
+    return {
+      users: res.data?.items ?? [],
+      nextCursor: undefined,
+      totalCount: res.data?.items?.length,
+    };
+  },
+
+  async getAdminUserDetail(userId) {
+    const api = new ADMINPLATFORMApi(getConfiguration());
+    const userRes = await api.getAdminUser({ ...commonHeaders, userId });
+    const entRes = await api.getAdminUserEntitlements({ ...commonHeaders, userId });
+    const ledgerRes = await api.listAdminUserLedger({ ...commonHeaders, userId, limit: 50 });
+    if (!userRes.data) {
+      throw new Error('未找到指定用户详情');
+    }
+    return {
+      detail: userRes.data,
+      devices: (userRes.data.devices as unknown as Device[]) ?? [],
+      entitlements: entRes.data ? [entRes.data as unknown as Entitlement] : [],
+      walletEntries: (ledgerRes.data?.items as unknown as WalletLedgerEntry[]) ?? [],
+    };
+  },
+
+  async changeAdminUserStatus(userId, status, auditReason, ifMatch) {
+    if (!ifMatch) {
+      throw new Error('修改用户状态必须传入 If-Match (resourceVersion)');
+    }
+    const api = new ADMINPLATFORMApi(getConfiguration());
+    await api.changeAdminUserStatus({
+      ...commonHeaders,
+      userId,
+      ifMatch,
+      adminUserStatusRequest: {
+        status: status as unknown as AdminUserStatusRequestStatusEnum,
+        auditReason,
+        confirmationUserId: userId,
+      },
+    });
+  },
+
+  /* 公告运营 HTTP 实现 */
+  async getAdminNotices(params) {
+    const api = new ADMINPLATFORMApi(getConfiguration());
+    const res = await api.listAdminNotices({
+      ...commonHeaders,
+    });
+    let items = res.data?.items ?? [];
+    if (params?.type) {
+      items = items.filter((n: NoticeVersion) => n.noticeType === params.type);
+    }
+    if (params?.status) {
+      items = items.filter((n: NoticeVersion) => n.status === params.status);
+    }
+    return {
+      notices: items,
+      nextCursor: undefined,
+    };
+  },
+
+  async createAdminNotice(request) {
+    const api = new ADMINPLATFORMApi(getConfiguration());
+    const res = await api.createAdminNotice({
+      ...commonHeaders,
+      noticeWriteRequest: request,
+    });
+    return res.data;
+  },
+
+  async updateAdminNotice(noticeId, request, ifMatch = '*') {
+    const api = new ADMINPLATFORMApi(getConfiguration());
+    const res = await api.updateAdminNotice({
+      ...commonHeaders,
+      noticeId,
+      ifMatch,
+      noticeWriteRequest: request,
+    });
+    return res.data;
+  },
+
+  async publishAdminNotice(noticeId, auditReason, ifMatch = '*') {
+    const api = new ADMINPLATFORMApi(getConfiguration());
+    const res = await api.publishAdminNotice({
+      ...commonHeaders,
+      noticeId,
+      ifMatch,
+      auditReasonRequest: { auditReason },
+    });
+    return res.data;
+  },
+
+  async revokeAdminNotice(noticeId, auditReason, ifMatch = '*') {
+    const api = new ADMINPLATFORMApi(getConfiguration());
+    const res = await api.revokeAdminNotice({
+      ...commonHeaders,
+      noticeId,
+      ifMatch,
+      auditReasonRequest: { auditReason },
+    });
+    return res.data;
+  },
+
+  /* 网站设置 HTTP 真实语义实现 */
+  async getAdminSystemConfig(): Promise<SystemConfigResult> {
+    const api = new ADMINPLATFORMApi(getConfiguration());
+
+    // 1. 分别请求 publishedOnly=true 获得线上发布版本
+    let publishedVersionObj: SystemConfigVersion | null = null;
+    try {
+      const publishedRes = await api.getAdminSystemConfig({ ...commonHeaders, publishedOnly: true });
+      publishedVersionObj = publishedRes.data ?? null;
+    } catch {
+      // 线上尚无发布版本或报错时容错处理
+      publishedVersionObj = null;
+    }
+
+    // 2. 请求 publishedOnly=false 获得最新版本
+    const latestRes = await api.getAdminSystemConfig({ ...commonHeaders, publishedOnly: false });
+    const latestVersionObj = latestRes.data;
+
+    // 3. 仅当最新版本 status 为 DRAFT 时作为 draftConfig 和 hasUnpublishedChanges=true；否则 draftConfig 可为空、hasUnpublishedChanges=false。
+    const isDraft = (latestVersionObj?.status as unknown) === SystemConfigVersionStatusEnum.Draft || (latestVersionObj?.status as string) === 'DRAFT';
+    const draftConfig = isDraft ? latestVersionObj?._configuration : undefined;
+    const hasUnpublishedChanges = isDraft;
+    const draftResourceVersion = isDraft ? latestVersionObj?.resourceVersion : undefined;
+    const publishedResourceVersion = publishedVersionObj?.resourceVersion;
+
+    const publishedConfig = publishedVersionObj?._configuration;
+    const publishedAt = publishedVersionObj?.publishedAt ?? undefined;
+    const version = latestVersionObj?.version ?? publishedVersionObj?.version ?? 1;
+
+    return {
+      publishedConfig,
+      draftConfig,
+      hasUnpublishedChanges,
+      publishedAt,
+      version,
+      publishedResourceVersion,
+      draftResourceVersion,
+      resourceVersion: isDraft ? draftResourceVersion : (publishedResourceVersion ?? latestVersionObj?.resourceVersion),
+    };
+  },
+
+  async updateAdminSystemConfig(request, ifMatch) {
+    if (!ifMatch) {
+      throw new Error('保存配置草稿必须传入 If-Match (resourceVersion) 请求头');
+    }
+    const api = new ADMINPLATFORMApi(getConfiguration());
+    await api.updateAdminSystemConfig({
+      ...commonHeaders,
+      ifMatch,
+      systemConfigWriteRequest: request,
+    });
+  },
+
+  async publishAdminSystemConfig(auditReason, ifMatch) {
+    if (!ifMatch) {
+      throw new Error('发布线上配置必须传入 If-Match (resourceVersion) 请求头');
+    }
+    const api = new ADMINPLATFORMApi(getConfiguration());
+    await api.publishAdminSystemConfig({
+      ...commonHeaders,
+      ifMatch,
+      auditReasonRequest: { auditReason },
+    });
+  },
+
+  /* 支付对账 HTTP 实现 */
+  async runPaymentReconciliation(staleBefore, maxOrders, auditReason) {
+    const api = new ADMINCOMMERCEApi(getConfiguration());
+    const res = await api.runAdminPaymentReconciliation({
+      ...commonHeaders,
+      idempotencyKey: 'rec_' + Date.now(),
+      paymentReconciliationRequest: {
+        staleBefore: typeof staleBefore === 'string' ? new Date(staleBefore) : staleBefore,
+        maxOrders,
+        auditReason,
+      },
+    });
+    return res.data;
+  },
+
+  /* 客服工单 HTTP 实现 */
+  async getAdminSupportTickets(params) {
+    const api = new ADMINSUPPORTApi(getConfiguration());
+    const res = await api.listAdminSupportTickets({
+      ...commonHeaders,
+      status: params?.status,
+    });
+    let tickets = res.data?.items ?? [];
+    if (params?.search) {
+      const q = params.search.toLowerCase();
+      tickets = tickets.filter(
+        (t: SupportTicket) =>
+          t.ticketId.toLowerCase().includes(q) ||
+          t.subject.toLowerCase().includes(q) ||
+          t.category.toLowerCase().includes(q),
+      );
+    }
+    return {
+      tickets,
+      nextCursor: undefined,
+      totalCount: tickets.length,
+    };
+  },
+
+  async getAdminSupportTicketDetail(ticketId) {
+    const api = new ADMINSUPPORTApi(getConfiguration());
+    const res = await api.getAdminSupportTicket({ ...commonHeaders, ticketId });
+    if (!res.data) {
+      throw new Error('未找到指定工单详情');
+    }
+    return {
+      ticket: res.data.ticket,
+      messages: res.data.messages ?? [],
+    };
+  },
+
+  async updateAdminSupportTicket(ticketId, update, ifMatch = '*') {
+    const api = new ADMINSUPPORTApi(getConfiguration());
+    const reqStatus = (update.status ?? SupportTicketStatusEnum.Open) as unknown as AdminUpdateSupportTicketRequestStatusEnum;
+    const reqPriority = (update.priority ?? SupportTicketPriorityEnum.Normal) as unknown as AdminUpdateSupportTicketRequestPriorityEnum;
+
+    const res = await api.updateAdminSupportTicket({
+      ...commonHeaders,
+      ticketId,
+      ifMatch,
+      adminUpdateSupportTicketRequest: {
+        status: reqStatus,
+        priority: reqPriority,
+        assignedAdminId: update.assigneeId ?? undefined,
+        body: update.replyContent,
+        internal: !!update.isInternalNote,
+        auditReason: update.auditReason || '客服管理工单处理',
+      },
+    });
+    if (!res.data) {
+      throw new Error('更新客服工单失败，服务器响应无有效工单数据');
+    }
     return res.data;
   },
 };

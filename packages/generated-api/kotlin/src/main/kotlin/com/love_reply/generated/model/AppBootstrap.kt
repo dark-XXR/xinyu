@@ -27,6 +27,7 @@ import com.love_reply.generated.model.FreeEntitlementTemplate
 import com.love_reply.generated.model.GenerationPolicy
 import com.love_reply.generated.model.LogicalModel
 import com.love_reply.generated.model.ReplyStyle
+import com.love_reply.generated.model.SystemIdentityConfig
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
@@ -41,6 +42,7 @@ import com.squareup.moshi.JsonClass
  * @param generationPolicy
  * @param freeEntitlement
  * @param featureFlags Published feature availability keyed by stable feature code.
+ * @param siteIdentity
  */
 
 
@@ -66,7 +68,10 @@ data class AppBootstrap (
 
     /* Published feature availability keyed by stable feature code. */
     @Json(name = "featureFlags")
-    val featureFlags: kotlin.collections.Map<kotlin.String, kotlin.Boolean>
+    val featureFlags: kotlin.collections.Map<kotlin.String, kotlin.Boolean>,
+
+    @Json(name = "siteIdentity")
+    val siteIdentity: SystemIdentityConfig
 
 ) {
 

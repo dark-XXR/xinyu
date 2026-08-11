@@ -417,7 +417,7 @@ data: {"schemaVersion":"1.0","eventId":"18","eventType":"candidate.completed","o
 
 | 方法与路径 | 用途 |
 |---|---|
-| `GET /notices` | 获取适用公告，服务端完成用户/版本/地区定向 |
+| `GET /v1/app/notices` | 获取适用公告，服务端完成平台、语言、客户端版本、时间和撤回状态定向 |
 | `POST /notices/{noticeId}/read` | 已读/关闭，支持频次控制 |
 | `GET /app/theme/{version}` | 下载签名主题配置，失败使用内置主题 |
 | `GET /app/i18n/{locale}/{version}` | 下载签名词典，缺键回退 APK 内词典 |
@@ -429,10 +429,10 @@ data: {"schemaVersion":"1.0","eventId":"18","eventType":"candidate.completed","o
 |---|---|---|
 | `GET /inbox/messages` | 站内消息列表 | 订单、退款、数据请求、安全和系统消息 |
 | `POST /inbox/messages/{messageId}/read` | 标记已读 | 幂等，不影响同类后续消息 |
-| `GET /support-tickets` | 本人工单列表 | 不在列表中回显完整敏感附件 |
-| `POST /support-tickets` | 创建客服/账务/隐私/投诉工单 | 类型决定 SLA、必填字段和授权范围 |
-| `GET /support-tickets/{ticketId}` | 工单详情与时间线 | 用户只能访问本人工单 |
-| `POST /support-tickets/{ticketId}/messages` | 补充消息或附件 | 附件复用安全上传流程 |
+| `GET /v1/support/tickets` | 本人工单列表 | 不在列表中回显完整敏感附件 |
+| `POST /v1/support/tickets` | 创建客服/账务/隐私/投诉工单 | 类型决定 SLA、必填字段和授权范围 |
+| `GET /v1/support/tickets/{ticketId}` | 工单详情与时间线 | 用户只能访问本人工单，内部备注不可见 |
+| `POST /v1/support/tickets/{ticketId}/messages` | 补充消息 | 正文进入加密敏感审计；附件后续复用安全上传流程 |
 | `POST /support-tickets/{ticketId}/close` | 用户关闭工单 | 关闭后可按规则重新开启或新建 |
 | `GET /legal-documents` | 当前和历史法律文本 | 返回版本、摘要、生效时间和完整内容地址 |
 | `POST /telemetry/events` | 批量上报白名单事件 | 禁止携带聊天原文、截图、密钥或自由文本 |
@@ -459,10 +459,9 @@ data: {"schemaVersion":"1.0","eventId":"18","eventType":"candidate.completed","o
 | `GET /admin/v1/users/{userId}/entitlements` | 权益和钱包摘要 |
 | `POST /admin/v1/users/{userId}/entitlement-adjustments` | 人工补发/扣回；双重确认、幂等和不可变流水 |
 | `GET /admin/v1/users/{userId}/ledger` | 用户账务流水，只读 |
-| `GET /admin/v1/support-tickets` | 客服、账务、隐私和投诉工单队列 |
-| `GET /admin/v1/support-tickets/{ticketId}` | 工单详情；敏感内容按角色临时授权 |
-| `POST /admin/v1/support-tickets/{ticketId}/messages` | 客服回复并发送站内消息 |
-| `POST /admin/v1/support-tickets/{ticketId}/decisions` | 记录退款、补偿、驳回或升级决定 |
+| `GET /admin/v1/support/tickets` | 客服、账务、隐私和投诉工单队列 |
+| `GET /admin/v1/support/tickets/{ticketId}` | 工单详情；具备权限的管理员可见内部备注 |
+| `PATCH /admin/v1/support/tickets/{ticketId}` | 公开回复/内部备注、分派、优先级、状态和审计理由；退款/补偿决定后续扩展 |
 
 ### 8.3 AI 模型、路由、Prompt 与评测
 
@@ -517,7 +516,7 @@ data: {"schemaVersion":"1.0","eventId":"18","eventType":"candidate.completed","o
 | `GET /admin/v1/orders/{orderId}` | 订单、支付回调和权益发放链路 |
 | `POST /admin/v1/orders/{orderId}/refunds` | 发起退款，要求权限、原因和幂等 |
 | `GET /admin/v1/refunds` | 退款状态 |
-| `POST /admin/v1/reconciliations` | 上传/拉取渠道账单并创建对账任务 |
+| `POST /admin/v1/payment-reconciliations` | 按管理员输入的截止时间和最大订单数主动查询并创建对账批次 |
 | `GET /admin/v1/reconciliations/{jobId}` | 差异明细和处理状态 |
 | `GET /admin/v1/webhook-events` | 回调验签、处理和重试记录 |
 | `POST /admin/v1/webhook-events/{eventId}/retry` | 对幂等处理器安全重放 |
@@ -541,6 +540,7 @@ data: {"schemaVersion":"1.0","eventId":"18","eventType":"candidate.completed","o
 | `GET/POST /admin/v1/app-releases` | 版本列表/草稿 |
 | `POST /admin/v1/app-releases/{releaseId}/publish` | 灰度、最低版本、强更和回滚渠道 |
 | `GET/PATCH /admin/v1/system-config` | 非密钥全局配置，使用版本控制 |
+| `POST /admin/v1/system-config/publish` | 发布网站/App 名称、主体、客服邮箱、Logo、语言、备案和维护信息草稿 |
 | `GET/POST /admin/v1/integrations` | 第三方集成，凭据只写 |
 | `POST /admin/v1/integrations/{integrationId}/tests` | 创建连通性测试 |
 | `GET/POST /admin/v1/legal-documents` | 法律文本草稿和历史版本 |

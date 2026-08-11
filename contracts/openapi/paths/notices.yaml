@@ -1,0 +1,15 @@
+notices:
+  get:
+    operationId: listPublicNotices
+    summary: List announcements active for this client
+    tags: [APP_CONFIG]
+    security: []
+    parameters:
+      - {$ref: ../components/parameters.yaml#/XRequestId}
+      - {$ref: ../components/parameters.yaml#/XClientVersion}
+      - {$ref: ../components/parameters.yaml#/XPlatform}
+      - {$ref: ../components/parameters.yaml#/XDeviceId}
+      - {$ref: ../components/parameters.yaml#/AcceptLanguage}
+    responses:
+      '200': {description: Active notices., content: {application/json: {schema: {$ref: ../schemas/admin-platform.yaml#/NoticeListResponse}}}}
+      '400': {$ref: ../components/responses.yaml#/BadRequest}

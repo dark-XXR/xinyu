@@ -1,0 +1,39 @@
+tickets:
+  get:
+    operationId: listMySupportTickets
+    summary: List current user's support tickets
+    tags: [SUPPORT]
+    parameters: [{$ref: ../components/parameters.yaml#/XClientVersion}, {$ref: ../components/parameters.yaml#/XPlatform}, {$ref: ../components/parameters.yaml#/XDeviceId}, {$ref: ../components/parameters.yaml#/AcceptLanguage}]
+    responses:
+      '200': {description: Tickets., content: {application/json: {schema: {$ref: ../schemas/support.yaml#/SupportTicketListResponse}}}}
+      '401': {$ref: ../components/responses.yaml#/Unauthorized}
+  post:
+    operationId: createSupportTicket
+    summary: Create a support ticket
+    tags: [SUPPORT]
+    parameters: [{$ref: ../components/parameters.yaml#/XClientVersion}, {$ref: ../components/parameters.yaml#/XPlatform}, {$ref: ../components/parameters.yaml#/XDeviceId}, {$ref: ../components/parameters.yaml#/AcceptLanguage}]
+    requestBody: {required: true, content: {application/json: {schema: {$ref: ../schemas/support.yaml#/CreateSupportTicketRequest}}}}
+    responses:
+      '201': {description: Created ticket., content: {application/json: {schema: {$ref: ../schemas/support.yaml#/SupportTicketResponse}}}}
+      '400': {$ref: ../components/responses.yaml#/BadRequest}
+ticket:
+  get:
+    operationId: getMySupportTicket
+    summary: Read one owned support ticket
+    tags: [SUPPORT]
+    parameters: [{$ref: '#/components/ticketId'}, {$ref: ../components/parameters.yaml#/XClientVersion}, {$ref: ../components/parameters.yaml#/XPlatform}, {$ref: ../components/parameters.yaml#/XDeviceId}, {$ref: ../components/parameters.yaml#/AcceptLanguage}]
+    responses:
+      '200': {description: Ticket conversation., content: {application/json: {schema: {$ref: ../schemas/support.yaml#/SupportTicketDetailResponse}}}}
+      '404': {$ref: ../components/responses.yaml#/NotFound}
+messages:
+  post:
+    operationId: addMySupportMessage
+    summary: Reply to an owned support ticket
+    tags: [SUPPORT]
+    parameters: [{$ref: '#/components/ticketId'}, {$ref: ../components/parameters.yaml#/XClientVersion}, {$ref: ../components/parameters.yaml#/XPlatform}, {$ref: ../components/parameters.yaml#/XDeviceId}, {$ref: ../components/parameters.yaml#/AcceptLanguage}]
+    requestBody: {required: true, content: {application/json: {schema: {$ref: ../schemas/support.yaml#/AddSupportMessageRequest}}}}
+    responses:
+      '200': {description: Updated ticket., content: {application/json: {schema: {$ref: ../schemas/support.yaml#/SupportTicketResponse}}}}
+      '409': {$ref: ../components/responses.yaml#/Conflict}
+components:
+  ticketId: {name: ticketId, in: path, required: true, schema: {type: string}}

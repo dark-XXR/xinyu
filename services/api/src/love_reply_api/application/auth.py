@@ -396,9 +396,7 @@ class AuthService:
         assert challenge is not None
         challenge.consumed_at = now
         user = await self._session.scalar(
-            select(UserRecord).where(
-                UserRecord.email_normalized == challenge.email_normalized
-            )
+            select(UserRecord).where(UserRecord.email_normalized == challenge.email_normalized)
         )
         if user is None:
             user = await self._create_user(
@@ -550,6 +548,7 @@ class AuthService:
         device_id: str,
         now: datetime,
     ) -> LoginResult:
+        self._assert_user_active(user)
         device = await self._session.scalar(
             select(UserDeviceRecord).where(
                 UserDeviceRecord.user_id == user.user_id,
@@ -612,6 +611,14 @@ class AuthService:
                 code="AUTH_REFRESH_TOKEN_INVALID",
                 message="Refresh token is invalid or expired.",
             )
+        user = await self._session.get(UserRecord, existing.user_id)
+        if user is None:
+            raise ApiError(
+                status_code=401,
+                code="AUTH_USER_NOT_FOUND",
+                message="The user account no longer exists.",
+            )
+        self._assert_user_active(user)
 
         new_session_id = f"ses_{uuid4().hex}"
         issued = self._tokens.issue(
@@ -635,6 +642,22 @@ class AuthService:
         )
         await self._session.commit()
         return issued
+
+    @staticmethod
+    def _assert_user_active(user: UserRecord) -> None:
+        """在签发或刷新凭证前再次检查账户状态。"""
+        if user.status == AccountStatus.SUSPENDED.value:
+            raise ApiError(
+                status_code=403,
+                code="USER_ACCOUNT_SUSPENDED",
+                message="The user account is suspended.",
+            )
+        if user.status != AccountStatus.ACTIVE.value:
+            raise ApiError(
+                status_code=403,
+                code="USER_ACCOUNT_UNAVAILABLE",
+                message="The user account is not available for login.",
+            )
 
     async def logout(self, *, session_id: str) -> None:
         await self._session.execute(

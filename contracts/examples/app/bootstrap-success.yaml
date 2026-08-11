@@ -32,5 +32,17 @@ value:
     featureFlags:
       screenshotInput: false
       subscriptions: false
+    siteIdentity:
+      websiteName: 心语
+      appName: 心语
+      companyName: 示例运营主体
+      logoUrl: null
+      customerServiceEmail: support@example.com
+      privacyEmail: privacy@example.com
+      defaultLocale: zh-CN
+      officialWebsiteUrl: null
+      filingInformation: null
+      maintenanceMode: false
+      maintenanceMessage: null
   requestId: req_01JAPPBOOTSTRAP0001
   timestamp: "2026-08-08T16:00:01Z"

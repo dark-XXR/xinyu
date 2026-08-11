@@ -27,7 +27,9 @@ from love_reply_api.transport.http.routes.admin_ai import router as admin_ai_rou
 from love_reply_api.transport.http.routes.admin_audit import router as admin_audit_router
 from love_reply_api.transport.http.routes.admin_auth import router as admin_auth_router
 from love_reply_api.transport.http.routes.admin_commerce import router as admin_commerce_router
+from love_reply_api.transport.http.routes.admin_platform import router as admin_platform_router
 from love_reply_api.transport.http.routes.admin_providers import router as admin_provider_router
+from love_reply_api.transport.http.routes.admin_support import router as admin_support_router
 from love_reply_api.transport.http.routes.app import router as app_router
 from love_reply_api.transport.http.routes.auth import router as auth_router
 from love_reply_api.transport.http.routes.billing import router as billing_router
@@ -36,6 +38,7 @@ from love_reply_api.transport.http.routes.candidates import router as candidate_
 from love_reply_api.transport.http.routes.generations import router as generation_router
 from love_reply_api.transport.http.routes.me import router as me_router
 from love_reply_api.transport.http.routes.referrals import router as referral_router
+from love_reply_api.transport.http.routes.support import router as support_router
 
 settings = get_settings()
 logger = logging.getLogger(__name__)
@@ -70,9 +73,12 @@ app.include_router(admin_commerce_router)
 app.include_router(admin_ai_router)
 app.include_router(admin_audit_router)
 app.include_router(admin_provider_router)
+app.include_router(admin_platform_router)
+app.include_router(admin_support_router)
 app.include_router(auth_router)
 app.include_router(me_router)
 app.include_router(referral_router)
+app.include_router(support_router)
 app.include_router(billing_router)
 app.include_router(payment_webhook_router)
 app.include_router(generation_router)
@@ -85,12 +91,15 @@ async def request_context(request: Request, call_next: object) -> object:
     request_id = request.headers.get("X-Request-Id") or f"req_{uuid4().hex}"
     request.state.request_id = request_id
     request.state.audit_request_body = None
+    request.state.audit_sensitive_payload = None
     # 普通用户的 AI 输入、退款说明等正文由对应业务服务加密审计；这里仅采集管理后台
     # 配置写操作的 JSON，用于追踪发布、回滚和配置变更，防止敏感业务正文重复落入普通元数据。
     capture_admin_write_body = (
         request.url.path.startswith("/admin/")
         # 管理员登录名只在路由中保存 SHA-256 摘要；认证请求体不进入普通日志。
         and not request.url.path.startswith("/admin/v1/auth/")
+        # 客服正文由路由显式放入加密敏感载荷，不能复制到普通审计元数据。
+        and not request.url.path.startswith("/admin/v1/support/tickets")
         and request.method in {"POST", "PUT", "PATCH", "DELETE"}
     )
     if capture_admin_write_body and request.headers.get("content-type", "").startswith(
@@ -196,6 +205,7 @@ async def request_context(request: Request, call_next: object) -> object:
                         "route": route_metadata,
                         "requestBody": getattr(request.state, "audit_request_body", None),
                     },
+                    sensitive_payload=getattr(request.state, "audit_sensitive_payload", None),
                     commit=True,
                 )
         except Exception:

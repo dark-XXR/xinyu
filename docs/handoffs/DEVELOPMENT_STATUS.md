@@ -1,14 +1,19 @@
 # Development status
 
-Last updated: 2026-08-09
+Last updated: 2026-08-11
 
 ## Current checkpoint
 
-- Last completed task: `FRONTEND-ADMIN-CONSOLE-001`
-- Next development area: invitation campaign administration page
+- Active task: `FRONTEND-ADMIN-CONSOLE-001`
+- State: `in_progress` after full product-scope correction
 - Contract version: `1.0.0`
-- Current phase: administration console provider lifecycle is accepted; invitation campaign administration is next
-- Strict work-item progress: `23/33 = 69.7%`
+- Current phase: core platform operations accepted; referral administration and remaining platform domains are next
+- Strict work-item progress: `22/33 = 66.7%`
+- Scope correction: provider/AI/commerce/audit milestones are accepted, but the overall administration
+  console was previously reported complete too early. The authoritative remaining-domain matrix is
+  `docs/product/admin-console-feature-matrix.md`.
+- Current accepted batch: masked user operations, versioned notices, published website identity,
+  payment operations, and the support-ticket core loop. The overall console remains in progress.
 
 ## Completed
 
@@ -166,6 +171,17 @@ Last updated: 2026-08-09
   disabled until the contract minimum is met, sensitive content is cleared on close, legal hold and
   export flows complete, table rows become cards, tabs scroll only inside their own container, and
   page/root widths match the mobile viewport without horizontal page scrolling.
+- Core platform operations now expose user search/detail/entitlement/ledger, session-revoking
+  suspension and restoration, website identity drafts/publication, and notices with platform,
+  locale, semantic-client-version and time targeting. Published website identity is included in
+  public bootstrap; draft values cannot replace online values before publication.
+- User and administrator support APIs now cover owned ticket creation/read/reply, operator queues,
+  public replies, internal notes, assignment, priority and resolution state. Internal notes are
+  excluded from user reads. Support message bodies are encrypted in the compliance ledger rather
+  than copied into ordinary request metadata.
+- Antigravity CLI implemented `/users`, `/operations/notices`, `/system/settings`,
+  `/commerce/payments`, and `/support`. User suspension requires an exact user ID plus reason;
+  notice/config publication, reconciliation and support changes are reason-gated.
 
 ## Verification commands
 
@@ -179,19 +195,20 @@ Last results: 5 unit tests, 6 default-size device UI tests, 6 compact-size UI te
 Android Lint, and Debug APK assembly all passed.
 
 Administration web results: TypeScript project references, oxlint (0 warnings/errors), and Vite
-production build pass. The production bundle is 388.69 kB JavaScript (108.85 kB gzip) and 7.91 kB
-CSS (2.13 kB gzip). Real-browser acceptance covers the current routes at desktop size. `/providers`,
-`/ai`, and `/audit` passed their functional and `390x844` responsive checks with root/page widths
-equal to the viewport.
+production build pass. The production bundle is 468.95 kB JavaScript (125.50 kB gzip) and 8.09 kB
+CSS (2.18 kB gzip). `/users`, `/operations/notices`, `/system/settings`, `/commerce/payments`,
+and `/support` passed real-browser checks at `1440x900` and `390x844`; every page and root width
+equals the viewport and the checked console has no warnings or errors.
 
 Identity contract validation now covers 46 fixtures across 19 tagged operations. Generated
 Kotlin and TypeScript clients both compile with the new email/channel models and operations.
 
-Backend verification now covers 62 PostgreSQL integration and transport tests. The email/auth,
+Backend verification now covers 64 PostgreSQL integration and transport tests. The email/auth,
 administrator authentication, provider-registry, and AI-gateway migrations passed upgrade,
 downgrade, and re-upgrade. The new provider-disable permission migration also passed its own
 downgrade/upgrade loop. Commerce administration, referral, and compliance-audit migrations pass.
-Ruff, strict MyPy across 66 source files, targeted provider/compliance integration tests, OpenAPI
+The platform and support migrations pass upgrade and their dedicated integration tests. Ruff,
+strict MyPy across 74 source files, targeted provider/compliance/platform tests, OpenAPI
 lint/bundle, 25 provider fixtures across 9 operations, generated TypeScript and Kotlin builds,
 Android unit tests, Android Lint, and Debug APK assembly pass.
 The pytest-asyncio integration suite now uses one session-scoped event loop so the shared asyncpg
@@ -234,5 +251,8 @@ to `READY`, and reason-gated publication back to `ACTIVE`.
 
 1. Add the invitation campaign administration page for configurable milestones, rewards, rollout,
    publication, and rollback.
-2. Redesign the Android UI through Antigravity CLI and verify it on emulator viewports.
-3. Add invite sharing, progress and reward history to the redesigned Android experience.
+2. Complete payment webhook event diagnosis and permission-gated safe replay.
+3. Continue through CMS, RBAC, releases/integrations, themes/i18n/experiments, alerts/incidents,
+   dashboard aggregation, and data governance before
+   declaring the administration console complete.
+4. Redesign the Android UI through Antigravity CLI and add invite sharing/progress/reward history.

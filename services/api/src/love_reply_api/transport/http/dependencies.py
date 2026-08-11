@@ -13,6 +13,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from love_reply_api.application.admin_auth import AdminAuthService
+from love_reply_api.application.admin_platform import AdminPlatformService
 from love_reply_api.application.ai_admin import AiGatewayAdminService
 from love_reply_api.application.ai_gateway import AiHttpTransport, RegistryAiProvider
 from love_reply_api.application.audit import ComplianceAuditService
@@ -32,11 +33,12 @@ from love_reply_api.application.provider_runtime import (
 )
 from love_reply_api.application.providers import ProviderHealthChecker, ProviderService
 from love_reply_api.application.referrals import ReferralService
+from love_reply_api.application.support import SupportService
 from love_reply_api.application.tokens import TokenService
 from love_reply_api.config import Settings, get_settings
 from love_reply_api.infrastructure.admin_records import AdminSessionRecord, AdminUserRecord
 from love_reply_api.infrastructure.database import get_session
-from love_reply_api.infrastructure.identity_records import AuthSessionRecord
+from love_reply_api.infrastructure.identity_records import AuthSessionRecord, UserRecord
 
 bearer = HTTPBearer(auto_error=False)
 
@@ -158,6 +160,13 @@ def get_admin_auth_service(
     settings: Annotated[Settings, Depends(get_settings)],
 ) -> AdminAuthService:
     return AdminAuthService(session=session, settings=settings)
+
+
+def get_admin_platform_service(
+    session: Annotated[AsyncSession, Depends(get_session)],
+) -> AdminPlatformService:
+    """装配用户运营、公告和网站配置服务。"""
+    return AdminPlatformService(session)
 
 
 def get_provider_health_checker(request: Request) -> ProviderHealthChecker:
@@ -282,6 +291,12 @@ def get_referral_service(
     return ReferralService(session=session, settings=settings)
 
 
+def get_support_service(
+    session: Annotated[AsyncSession, Depends(get_session)],
+) -> SupportService:
+    return SupportService(session)
+
+
 def get_ai_provider(
     request: Request,
     session: Annotated[AsyncSession, Depends(get_session)],
@@ -325,6 +340,26 @@ async def get_auth_context(
             status_code=401,
             code="AUTH_DEVICE_MISMATCH",
             message="Access token does not belong to this device.",
+        )
+    user = await session.get(UserRecord, claims.user_id)
+    if user is None:
+        raise ApiError(
+            status_code=401,
+            code="AUTH_USER_NOT_FOUND",
+            message="The user account no longer exists.",
+        )
+    if user.status == "SUSPENDED":
+        raise ApiError(
+            status_code=403,
+            code="USER_ACCOUNT_SUSPENDED",
+            message="The user account is suspended.",
+        )
+    # 删除冷静期仍需允许用户访问账户接口以撤销删除；只有冻结状态立即阻断请求。
+    if user.status not in {"ACTIVE", "DELETION_PENDING"}:
+        raise ApiError(
+            status_code=403,
+            code="USER_ACCOUNT_UNAVAILABLE",
+            message="The user account is not available.",
         )
     request.state.audit_actor_type = "USER"
     request.state.audit_actor_id = claims.user_id

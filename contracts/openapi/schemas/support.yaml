@@ -1,0 +1,59 @@
+SupportTicket:
+  type: object
+  additionalProperties: false
+  required: [ticketId, userId, category, subject, status, priority, lastMessageAt, resourceVersion, createdAt, updatedAt]
+  properties:
+    ticketId: {type: string}
+    userId: {type: string}
+    category: {type: string}
+    subject: {type: string}
+    status: {type: string, enum: [OPEN, WAITING_SUPPORT, WAITING_USER, RESOLVED, CLOSED]}
+    priority: {type: string, enum: [LOW, NORMAL, HIGH, URGENT]}
+    assignedAdminId: {type: [string, "null"]}
+    lastMessageAt: {type: string, format: date-time}
+    resourceVersion: {type: integer, minimum: 1}
+    createdAt: {type: string, format: date-time}
+    updatedAt: {type: string, format: date-time}
+SupportMessage:
+  type: object
+  additionalProperties: false
+  required: [messageId, ticketId, senderType, senderId, body, internal, createdAt]
+  properties:
+    messageId: {type: string}
+    ticketId: {type: string}
+    senderType: {type: string, enum: [USER, ADMIN]}
+    senderId: {type: string}
+    body: {type: string}
+    internal: {type: boolean}
+    createdAt: {type: string, format: date-time}
+CreateSupportTicketRequest:
+  type: object
+  additionalProperties: false
+  required: [category, subject, body]
+  properties:
+    category: {type: string, enum: [GENERAL, ACCOUNT, PAYMENT, PRIVACY, COMPLAINT]}
+    subject: {type: string, minLength: 2, maxLength: 160}
+    body: {type: string, minLength: 2, maxLength: 20000}
+AddSupportMessageRequest:
+  type: object
+  additionalProperties: false
+  required: [body]
+  properties:
+    body: {type: string, minLength: 2, maxLength: 20000}
+AdminUpdateSupportTicketRequest:
+  type: object
+  additionalProperties: false
+  required: [status, priority, internal, auditReason]
+  properties:
+    body: {type: [string, "null"], minLength: 2, maxLength: 20000}
+    internal: {type: boolean}
+    status: {type: string, enum: [OPEN, WAITING_SUPPORT, WAITING_USER, RESOLVED, CLOSED]}
+    priority: {type: string, enum: [LOW, NORMAL, HIGH, URGENT]}
+    assignedAdminId: {type: [string, "null"]}
+    auditReason: {type: string, minLength: 8, maxLength: 500}
+SupportTicketResponse:
+  allOf: [{$ref: ../components/schemas/common.yaml#/BaseSuccessEnvelope}, {type: object, properties: {data: {$ref: '#/SupportTicket'}}}]
+SupportTicketListResponse:
+  allOf: [{$ref: ../components/schemas/common.yaml#/BaseSuccessEnvelope}, {type: object, properties: {data: {type: object, required: [items], properties: {items: {type: array, items: {$ref: '#/SupportTicket'}}}}}}]
+SupportTicketDetailResponse:
+  allOf: [{$ref: ../components/schemas/common.yaml#/BaseSuccessEnvelope}, {type: object, properties: {data: {type: object, required: [ticket, messages], properties: {ticket: {$ref: '#/SupportTicket'}, messages: {type: array, items: {$ref: '#/SupportMessage'}}}}}}]
