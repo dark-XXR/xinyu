@@ -2443,6 +2443,121 @@ paths:
                 $ref: '#/components/schemas/AdminUserResponse'
         '409':
           $ref: '#/components/responses/Conflict'
+  /admin/v1/users/{userId}/profile:
+    patch:
+      operationId: updateAdminUserProfile
+      summary: Update non-credential user profile fields
+      tags:
+        - ADMIN_PLATFORM
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/userId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminUserProfileRequest'
+      responses:
+        '200':
+          description: Updated user.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminUserResponse'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /admin/v1/users/{userId}/security/reset:
+    post:
+      operationId: resetAdminUserLoginState
+      summary: Revoke all sessions and invalidate pending login challenges
+      tags:
+        - ADMIN_PLATFORM
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/userId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminUserSecurityResetRequest'
+      responses:
+        '200':
+          description: Login state reset result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminUserSecurityActionResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /admin/v1/users/{userId}/devices/{deviceId}/revoke:
+    post:
+      operationId: revokeAdminUserDevice
+      summary: Revoke a user device and its active sessions
+      tags:
+        - ADMIN_PLATFORM
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/userId'
+        - $ref: '#/components/parameters/deviceId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminUserDeviceRevokeRequest'
+      responses:
+        '200':
+          description: Device revoke result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminUserSecurityActionResponse'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /admin/v1/users/{userId}/plan-grants:
+    post:
+      operationId: grantAdminUserPlan
+      summary: Grant benefits from an active published plan version
+      tags:
+        - ADMIN_PLATFORM
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/userId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminUserPlanGrantRequest'
+      responses:
+        '200':
+          description: Updated user.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminUserResponse'
+        '409':
+          $ref: '#/components/responses/Conflict'
   /admin/v1/users/{userId}/entitlements:
     get:
       operationId: getAdminUserEntitlements
@@ -4819,6 +4934,12 @@ components:
         maxLength: 128
     userId:
       name: userId
+      in: path
+      required: true
+      schema:
+        type: string
+    deviceId:
+      name: deviceId
       in: path
       required: true
       schema:
@@ -8497,6 +8618,11 @@ components:
           type:
             - string
             - 'null'
+        avatarUrl:
+          type:
+            - string
+            - 'null'
+          format: uri
         locale:
           type: string
         timeZone:
@@ -8602,6 +8728,101 @@ components:
           properties:
             data:
               $ref: '#/components/schemas/AdminUserSummary'
+    AdminUserProfileRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - locale
+        - timeZone
+        - auditReason
+        - confirmationUserId
+      properties:
+        nickname:
+          type:
+            - string
+            - 'null'
+          maxLength: 64
+        avatarUrl:
+          type:
+            - string
+            - 'null'
+          format: uri
+        locale:
+          type: string
+          minLength: 2
+          maxLength: 35
+        timeZone:
+          type: string
+          minLength: 1
+          maxLength: 64
+        auditReason:
+          type: string
+          minLength: 8
+          maxLength: 500
+        confirmationUserId:
+          type: string
+    AdminUserSecurityResetRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - auditReason
+        - confirmationUserId
+      properties:
+        auditReason:
+          type: string
+          minLength: 8
+          maxLength: 500
+        confirmationUserId:
+          type: string
+    AdminUserSecurityAction:
+      type: object
+      additionalProperties: false
+      required:
+        - revokedSessionCount
+        - invalidatedChallengeCount
+      properties:
+        revokedSessionCount:
+          type: integer
+          minimum: 0
+        invalidatedChallengeCount:
+          type: integer
+          minimum: 0
+    AdminUserSecurityActionResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/AdminUserSecurityAction'
+    AdminUserDeviceRevokeRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - auditReason
+        - confirmationDeviceId
+      properties:
+        auditReason:
+          type: string
+          minLength: 8
+          maxLength: 500
+        confirmationDeviceId:
+          type: string
+    AdminUserPlanGrantRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - productVersionId
+        - auditReason
+        - confirmationUserId
+      properties:
+        productVersionId:
+          type: string
+        auditReason:
+          type: string
+          minLength: 8
+          maxLength: 500
+        confirmationUserId:
+          type: string
     AdminUserEntitlementResponse:
       allOf:
         - $ref: '#/components/schemas/BaseSuccessEnvelope'

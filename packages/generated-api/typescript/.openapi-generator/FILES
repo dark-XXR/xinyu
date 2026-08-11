@@ -80,10 +80,16 @@ src/models/AdminTokenResponse.ts
 src/models/AdminUpdateSupportTicketRequest.ts
 src/models/AdminUserDetail.ts
 src/models/AdminUserDetailResponse.ts
+src/models/AdminUserDeviceRevokeRequest.ts
 src/models/AdminUserEntitlementResponse.ts
 src/models/AdminUserListData.ts
 src/models/AdminUserListResponse.ts
+src/models/AdminUserPlanGrantRequest.ts
+src/models/AdminUserProfileRequest.ts
 src/models/AdminUserResponse.ts
+src/models/AdminUserSecurityAction.ts
+src/models/AdminUserSecurityActionResponse.ts
+src/models/AdminUserSecurityResetRequest.ts
 src/models/AdminUserStatusRequest.ts
 src/models/AdminUserSummary.ts
 src/models/AdminWalletLedgerListResponse.ts

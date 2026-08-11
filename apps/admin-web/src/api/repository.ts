@@ -54,7 +54,9 @@ import {
   ReferralMilestoneCode,
   ReferralBeneficiary,
   RewardUnit,
+  EntitlementAdjustmentRequestUnitEnum,
 } from './models';
+
 import type {
   SystemConfigVersion,
 } from '@love-reply/generated-api';
@@ -214,8 +216,13 @@ export interface Repository {
 
   /* 用户管理 */
   getAdminUsers(params?: { search?: string; status?: string; cursor?: string; limit?: number }): Promise<{ users: AdminUserSummary[]; nextCursor?: string; totalCount?: number }>;
-  getAdminUserDetail(userId: string): Promise<{ detail: AdminUserDetail; devices: Device[]; entitlements: Entitlement[]; walletEntries: WalletLedgerEntry[] }>;
+  getAdminUserDetail(userId: string): Promise<{ detail: AdminUserDetail; devices: (Device & { revokedAt?: Date | null })[]; entitlements: Entitlement[]; walletEntries: WalletLedgerEntry[] }>;
   changeAdminUserStatus(userId: string, status: AccountStatus, auditReason: string, ifMatch?: string): Promise<void>;
+  updateAdminUserProfile(userId: string, request: { nickname?: string | null; avatarUrl?: string | null; locale: string; timeZone: string; auditReason: string; confirmationUserId: string }, ifMatch?: string): Promise<void>;
+  resetAdminUserLoginState(userId: string, auditReason: string): Promise<void>;
+  revokeAdminUserDevice(userId: string, deviceId: string, auditReason: string): Promise<void>;
+  grantAdminUserPlan(userId: string, productVersionId: string, auditReason: string, entitlementVersion?: number): Promise<void>;
+  adjustAdminUserEntitlement(userId: string, unit: EntitlementAdjustmentRequestUnitEnum | 'ENERGY' | 'TEXT_QUOTA' | 'VISION_QUOTA' | 'PLAN_DAYS', delta: number, reasonCode: string, auditReason: string): Promise<void>;
 
   /* 公告运营 */
   getAdminNotices(params?: { status?: string; type?: string; platform?: string; cursor?: string; limit?: number }): Promise<{ notices: NoticeVersion[]; nextCursor?: string }>;
@@ -245,7 +252,6 @@ export interface Repository {
   rollbackAdminReferralCampaign(campaignId: string, resourceVersion: number, request: RollbackReferralCampaignRequest): Promise<ReferralCampaign>;
 }
 
-
 /* ── HTTP 配置 ── */
 
 function getConfiguration(): Configuration {
@@ -258,7 +264,6 @@ function getConfiguration(): Configuration {
     accessToken: token ?? '',
   });
 }
-
 
 /* ── Mock 数据 ── */
 
@@ -321,7 +326,8 @@ const mockState: {
   aiEvaluationRuns: AiEvaluationRun[];
   auditEvents: AuditEvent[];
   users: AdminUserSummary[];
-  userDetails: Record<string, { detail: AdminUserDetail; devices: Device[]; entitlements: Entitlement[]; walletEntries: WalletLedgerEntry[] }>;
+  userDetails: Record<string, { detail: AdminUserDetail; devices: (Device & { revokedAt?: Date | null })[]; entitlements: Entitlement[]; walletEntries: WalletLedgerEntry[] }>;
+
   notices: NoticeVersion[];
   systemConfig: {
     publishedConfig: SystemIdentityConfig;
@@ -2254,6 +2260,176 @@ const mockRepository: Repository = {
     }
   },
 
+  async updateAdminUserProfile(userId, request, _ifMatch) {
+    const userDetailObj = mockState.userDetails[userId];
+    if (userDetailObj) {
+      if (request.nickname !== undefined) userDetailObj.detail.nickname = request.nickname ?? undefined;
+      if (request.avatarUrl !== undefined) userDetailObj.detail.avatarUrl = request.avatarUrl ?? undefined;
+      userDetailObj.detail.locale = request.locale;
+      userDetailObj.detail.timeZone = request.timeZone;
+      userDetailObj.detail.resourceVersion = (userDetailObj.detail.resourceVersion || 1) + 1;
+      userDetailObj.detail.updatedAt = new Date();
+    }
+    const userSummary = mockState.users.find((u) => u.userId === userId);
+    if (userSummary) {
+      if (request.nickname !== undefined) userSummary.nickname = request.nickname ?? undefined;
+      userSummary.resourceVersion = (userSummary.resourceVersion || 1) + 1;
+      userSummary.updatedAt = new Date();
+    }
+  },
+
+  async resetAdminUserLoginState(userId, _auditReason) {
+    const userDetailObj = mockState.userDetails[userId];
+    if (userDetailObj) {
+      userDetailObj.devices.forEach((d) => {
+        d.current = false;
+      });
+      userDetailObj.detail.resourceVersion = (userDetailObj.detail.resourceVersion || 1) + 1;
+      userDetailObj.detail.updatedAt = new Date();
+    }
+  },
+
+  async revokeAdminUserDevice(userId, deviceId, _auditReason) {
+    const userDetailObj = mockState.userDetails[userId];
+    if (userDetailObj) {
+      const dev = userDetailObj.devices.find((d) => d.deviceId === deviceId);
+      if (dev) {
+        dev.current = false;
+        dev.revokedAt = new Date();
+      }
+      userDetailObj.detail.updatedAt = new Date();
+    }
+  },
+
+  async grantAdminUserPlan(userId, productVersionId, _auditReason, _entitlementVersion) {
+    const product = mockState.products.find(
+      (p) => p.productVersionId === productVersionId && p.productType === ProductType.Plan && p.status === ProductPublicationStatus.Active,
+    );
+    if (!product) {
+      throw new Error('未找到指定的活跃发布套餐版本');
+    }
+    if (product.termDays == null || product.termDays <= 0) {
+      throw new Error(`套餐产品 ${product.productCode} 缺失有效的 termDays 订阅周期天数`);
+    }
+    const termDays = product.termDays;
+
+    const userDetailObj = mockState.userDetails[userId];
+    if (userDetailObj) {
+      const nowMs = Date.now();
+      const currentExpiry = userDetailObj.detail.planExpiresAt ? new Date(userDetailObj.detail.planExpiresAt).getTime() : 0;
+      const baseTime = currentExpiry > nowMs ? currentExpiry : nowMs;
+      const newExpiry = new Date(baseTime + termDays * 86400000);
+
+      userDetailObj.detail.planCode = product.productCode;
+      userDetailObj.detail.planExpiresAt = newExpiry;
+
+      const benefits = product.benefits;
+      if (benefits) {
+        userDetailObj.detail.textRemaining = (userDetailObj.detail.textRemaining || 0) + (benefits.textQuota || 0);
+        userDetailObj.detail.visionRemaining = (userDetailObj.detail.visionRemaining || 0) + (benefits.visionQuota || 0);
+      }
+
+      if (userDetailObj.entitlements.length > 0) {
+        const ent = userDetailObj.entitlements[0];
+        ent.planCode = product.productCode;
+        ent.planExpiresAt = newExpiry;
+        ent.benefits = {
+          ...ent.benefits,
+          textRemaining: userDetailObj.detail.textRemaining,
+          visionRemaining: userDetailObj.detail.visionRemaining,
+        };
+        ent.resourceVersion = (ent.resourceVersion || 1) + 1;
+        ent.updatedAt = new Date();
+      }
+
+      userDetailObj.detail.resourceVersion = (userDetailObj.detail.resourceVersion || 1) + 1;
+      userDetailObj.detail.updatedAt = new Date();
+    }
+
+    const userSummary = mockState.users.find((u) => u.userId === userId);
+    if (userSummary) {
+      userSummary.planCode = product.productCode;
+      userSummary.planExpiresAt = userDetailObj ? userDetailObj.detail.planExpiresAt : new Date(Date.now() + termDays * 86400000);
+      if (product.benefits) {
+        userSummary.textRemaining = (userSummary.textRemaining || 0) + (product.benefits.textQuota || 0);
+        userSummary.visionRemaining = (userSummary.visionRemaining || 0) + (product.benefits.visionQuota || 0);
+      }
+      userSummary.updatedAt = new Date();
+    }
+  },
+
+  async adjustAdminUserEntitlement(userId, unit, delta, reasonCode, _auditReason) {
+    const userDetailObj = mockState.userDetails[userId];
+    if (userDetailObj) {
+      const now = new Date();
+      const u = String(unit);
+      switch (u) {
+        case EntitlementAdjustmentRequestUnitEnum.Energy:
+        case 'ENERGY': {
+          const oldBal = userDetailObj.detail.energyBalance || 0;
+          const newBal = oldBal + delta;
+          userDetailObj.detail.energyBalance = newBal;
+          userDetailObj.walletEntries.unshift({
+            ledgerEntryId: `led_${Date.now()}`,
+            entryType: delta >= 0 ? LedgerEntryType.Credit : LedgerEntryType.Adjustment,
+            energyDelta: delta,
+            reservedDelta: 0,
+            balanceAfter: newBal,
+            reservedAfter: 0,
+            reasonCode: reasonCode || 'MANUAL_ADJUSTMENT',
+            createdAt: now,
+          });
+          if (userDetailObj.entitlements[0]?.wallet) {
+            userDetailObj.entitlements[0].wallet.energyBalance = newBal;
+            userDetailObj.entitlements[0].wallet.energyAvailable = newBal;
+          }
+          break;
+        }
+        case EntitlementAdjustmentRequestUnitEnum.TextQuota:
+        case 'TEXT_QUOTA': {
+          const oldVal = userDetailObj.detail.textRemaining || 0;
+          const newVal = Math.max(0, oldVal + delta);
+          userDetailObj.detail.textRemaining = newVal;
+          if (userDetailObj.entitlements[0]?.benefits) {
+            userDetailObj.entitlements[0].benefits.textRemaining = newVal;
+          }
+          break;
+        }
+        case EntitlementAdjustmentRequestUnitEnum.VisionQuota:
+        case 'VISION_QUOTA': {
+          const oldVal = userDetailObj.detail.visionRemaining || 0;
+          const newVal = Math.max(0, oldVal + delta);
+          userDetailObj.detail.visionRemaining = newVal;
+          if (userDetailObj.entitlements[0]?.benefits) {
+            userDetailObj.entitlements[0].benefits.visionRemaining = newVal;
+          }
+          break;
+        }
+        case EntitlementAdjustmentRequestUnitEnum.PlanDays:
+        case 'PLAN_DAYS': {
+          const baseMs = userDetailObj.detail.planExpiresAt ? new Date(userDetailObj.detail.planExpiresAt).getTime() : Date.now();
+          const newExpiry = new Date(baseMs + delta * 86400000);
+          userDetailObj.detail.planExpiresAt = newExpiry;
+          if (userDetailObj.entitlements[0]) {
+            userDetailObj.entitlements[0].planExpiresAt = newExpiry;
+          }
+          break;
+        }
+      }
+      userDetailObj.detail.resourceVersion = (userDetailObj.detail.resourceVersion || 1) + 1;
+      userDetailObj.detail.updatedAt = now;
+    }
+
+    const userSummary = mockState.users.find((u) => u.userId === userId);
+    if (userSummary && userDetailObj) {
+      userSummary.energyBalance = userDetailObj.detail.energyBalance;
+      userSummary.textRemaining = userDetailObj.detail.textRemaining;
+      userSummary.visionRemaining = userDetailObj.detail.visionRemaining;
+      userSummary.planExpiresAt = userDetailObj.detail.planExpiresAt;
+      userSummary.updatedAt = new Date();
+    }
+  },
+
   /* 公告运营 Mock */
   async getAdminNotices(params) {
     let list = mockState.notices;
@@ -3255,10 +3431,67 @@ const httpRepository: Repository = {
     if (!userRes.data) {
       throw new Error('未找到指定用户详情');
     }
+
+    interface BackendEntitlement {
+      textRemaining?: number;
+      textReserved?: number;
+      visionRemaining?: number;
+      planCode?: string;
+      planExpiresAt?: string | Date | null;
+      resourceVersion?: number;
+      updatedAt?: string | Date;
+    }
+    interface BackendWallet {
+      energyBalance?: number;
+      energyReserved?: number;
+    }
+    interface BackendEntitlementBundle {
+      entitlement?: BackendEntitlement;
+      wallet?: BackendWallet;
+    }
+
+    let entitlementsList: Entitlement[] = [];
+    if (entRes.data) {
+      const bundle = entRes.data as unknown as BackendEntitlementBundle;
+      if (bundle.entitlement) {
+        const ent = bundle.entitlement;
+        const wal = bundle.wallet ?? {};
+        const energyBalance = wal.energyBalance ?? 0;
+        const reservedBalance = wal.energyReserved ?? 0;
+        const energyAvailable = energyBalance - reservedBalance;
+
+        const parseDate = (val: string | Date | null | undefined): Date | null => {
+          if (!val) return null;
+          return val instanceof Date ? val : new Date(val);
+        };
+
+        entitlementsList = [
+          {
+            userId,
+            planCode: ent.planCode ?? 'FREE',
+            planExpiresAt: parseDate(ent.planExpiresAt),
+            benefits: {
+              textRemaining: ent.textRemaining ?? 0,
+              visionRemaining: ent.visionRemaining ?? 0,
+              allowedModelIds: new Set<string>(),
+              allowedStyleIds: new Set<string>(),
+            },
+            wallet: {
+              energyBalance,
+              energyReserved: reservedBalance,
+              energyAvailable,
+            },
+            resourceVersion: ent.resourceVersion ?? 1,
+            updatedAt: parseDate(ent.updatedAt) ?? new Date(),
+          },
+        ];
+      }
+    }
+
     return {
       detail: userRes.data,
-      devices: (userRes.data.devices as unknown as Device[]) ?? [],
-      entitlements: entRes.data ? [entRes.data as unknown as Entitlement] : [],
+      devices: (userRes.data.devices as unknown as (Device & { revokedAt?: Date | null })[]) ?? [],
+      entitlements: entitlementsList,
       walletEntries: (ledgerRes.data?.items as unknown as WalletLedgerEntry[]) ?? [],
     };
   },
@@ -3276,6 +3509,84 @@ const httpRepository: Repository = {
         status: status as unknown as AdminUserStatusRequestStatusEnum,
         auditReason,
         confirmationUserId: userId,
+      },
+    });
+  },
+
+  async updateAdminUserProfile(userId, request, ifMatch) {
+    if (!ifMatch) {
+      throw new Error('修改用户资料必须传入 If-Match (resourceVersion)');
+    }
+    const api = new ADMINPLATFORMApi(getConfiguration());
+    await api.updateAdminUserProfile({
+      ...commonHeaders,
+      userId,
+      ifMatch,
+      adminUserProfileRequest: {
+        nickname: request.nickname,
+        avatarUrl: request.avatarUrl,
+        locale: request.locale,
+        timeZone: request.timeZone,
+        auditReason: request.auditReason,
+        confirmationUserId: request.confirmationUserId,
+      },
+    });
+  },
+
+  async resetAdminUserLoginState(userId, auditReason) {
+    const api = new ADMINPLATFORMApi(getConfiguration());
+    await api.resetAdminUserLoginState({
+      ...commonHeaders,
+      userId,
+      adminUserSecurityResetRequest: {
+        auditReason,
+        confirmationUserId: userId,
+      },
+    });
+  },
+
+  async revokeAdminUserDevice(userId, deviceId, auditReason) {
+    const api = new ADMINPLATFORMApi(getConfiguration());
+    await api.revokeAdminUserDevice({
+      ...commonHeaders,
+      userId,
+      deviceId,
+      adminUserDeviceRevokeRequest: {
+        auditReason,
+        confirmationDeviceId: deviceId,
+      },
+    });
+  },
+
+  async grantAdminUserPlan(userId, productVersionId, auditReason, entitlementVersion) {
+    if (entitlementVersion === undefined || entitlementVersion === null) {
+      throw new Error('分配套餐必须传入 entitlementVersion (If-Match)');
+    }
+    const api = new ADMINPLATFORMApi(getConfiguration());
+    await api.grantAdminUserPlan({
+      ...commonHeaders,
+      userId,
+      ifMatch: String(entitlementVersion),
+      adminUserPlanGrantRequest: {
+        productVersionId,
+        auditReason,
+        confirmationUserId: userId,
+      },
+    });
+  },
+
+  async adjustAdminUserEntitlement(userId, unit, delta, reasonCode, auditReason) {
+    const api = new ADMINCOMMERCEApi(getConfiguration());
+    const idempotencyKey = `adj_${userId}_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+    await api.createAdminEntitlementAdjustment({
+      ...commonHeaders,
+      idempotencyKey,
+      entitlementAdjustmentRequest: {
+        userId,
+        unit: unit as any,
+        delta,
+        reasonCode,
+        auditReason,
       },
     });
   },

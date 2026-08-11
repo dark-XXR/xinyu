@@ -87,10 +87,16 @@ src/main/kotlin/com/love_reply/generated/model/AdminTokenResponse.kt
 src/main/kotlin/com/love_reply/generated/model/AdminUpdateSupportTicketRequest.kt
 src/main/kotlin/com/love_reply/generated/model/AdminUserDetail.kt
 src/main/kotlin/com/love_reply/generated/model/AdminUserDetailResponse.kt
+src/main/kotlin/com/love_reply/generated/model/AdminUserDeviceRevokeRequest.kt
 src/main/kotlin/com/love_reply/generated/model/AdminUserEntitlementResponse.kt
 src/main/kotlin/com/love_reply/generated/model/AdminUserListData.kt
 src/main/kotlin/com/love_reply/generated/model/AdminUserListResponse.kt
+src/main/kotlin/com/love_reply/generated/model/AdminUserPlanGrantRequest.kt
+src/main/kotlin/com/love_reply/generated/model/AdminUserProfileRequest.kt
 src/main/kotlin/com/love_reply/generated/model/AdminUserResponse.kt
+src/main/kotlin/com/love_reply/generated/model/AdminUserSecurityAction.kt
+src/main/kotlin/com/love_reply/generated/model/AdminUserSecurityActionResponse.kt
+src/main/kotlin/com/love_reply/generated/model/AdminUserSecurityResetRequest.kt
 src/main/kotlin/com/love_reply/generated/model/AdminUserStatusRequest.kt
 src/main/kotlin/com/love_reply/generated/model/AdminUserSummary.kt
 src/main/kotlin/com/love_reply/generated/model/AdminWalletLedgerListResponse.kt

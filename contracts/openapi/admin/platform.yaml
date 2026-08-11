@@ -38,6 +38,50 @@ userStatus:
     responses:
       '200': {description: Updated user., content: {application/json: {schema: {$ref: ../schemas/admin-platform.yaml#/AdminUserResponse}}}}
       '409': {$ref: ../components/responses.yaml#/Conflict}
+userProfile:
+  patch:
+    operationId: updateAdminUserProfile
+    summary: Update non-credential user profile fields
+    tags: [ADMIN_PLATFORM]
+    security: [{adminBearerAuth: []}]
+    parameters: [{$ref: '#/components/userId'}, {$ref: ../components/parameters.yaml#/XClientVersion}, {$ref: ../components/parameters.yaml#/XPlatform}, {$ref: ../components/parameters.yaml#/AcceptLanguage}, {$ref: ../components/parameters.yaml#/IfMatch}]
+    requestBody: {required: true, content: {application/json: {schema: {$ref: ../schemas/admin-platform.yaml#/AdminUserProfileRequest}}}}
+    responses:
+      '200': {description: Updated user., content: {application/json: {schema: {$ref: ../schemas/admin-platform.yaml#/AdminUserResponse}}}}
+      '409': {$ref: ../components/responses.yaml#/Conflict}
+userSecurityReset:
+  post:
+    operationId: resetAdminUserLoginState
+    summary: Revoke all sessions and invalidate pending login challenges
+    tags: [ADMIN_PLATFORM]
+    security: [{adminBearerAuth: []}]
+    parameters: [{$ref: '#/components/userId'}, {$ref: ../components/parameters.yaml#/XClientVersion}, {$ref: ../components/parameters.yaml#/XPlatform}, {$ref: ../components/parameters.yaml#/AcceptLanguage}]
+    requestBody: {required: true, content: {application/json: {schema: {$ref: ../schemas/admin-platform.yaml#/AdminUserSecurityResetRequest}}}}
+    responses:
+      '200': {description: Login state reset result., content: {application/json: {schema: {$ref: ../schemas/admin-platform.yaml#/AdminUserSecurityActionResponse}}}}
+      '404': {$ref: ../components/responses.yaml#/NotFound}
+userDeviceRevoke:
+  post:
+    operationId: revokeAdminUserDevice
+    summary: Revoke a user device and its active sessions
+    tags: [ADMIN_PLATFORM]
+    security: [{adminBearerAuth: []}]
+    parameters: [{$ref: '#/components/userId'}, {$ref: '#/components/deviceId'}, {$ref: ../components/parameters.yaml#/XClientVersion}, {$ref: ../components/parameters.yaml#/XPlatform}, {$ref: ../components/parameters.yaml#/AcceptLanguage}]
+    requestBody: {required: true, content: {application/json: {schema: {$ref: ../schemas/admin-platform.yaml#/AdminUserDeviceRevokeRequest}}}}
+    responses:
+      '200': {description: Device revoke result., content: {application/json: {schema: {$ref: ../schemas/admin-platform.yaml#/AdminUserSecurityActionResponse}}}}
+      '409': {$ref: ../components/responses.yaml#/Conflict}
+userPlanGrant:
+  post:
+    operationId: grantAdminUserPlan
+    summary: Grant benefits from an active published plan version
+    tags: [ADMIN_PLATFORM]
+    security: [{adminBearerAuth: []}]
+    parameters: [{$ref: '#/components/userId'}, {$ref: ../components/parameters.yaml#/XClientVersion}, {$ref: ../components/parameters.yaml#/XPlatform}, {$ref: ../components/parameters.yaml#/AcceptLanguage}, {$ref: ../components/parameters.yaml#/IfMatch}]
+    requestBody: {required: true, content: {application/json: {schema: {$ref: ../schemas/admin-platform.yaml#/AdminUserPlanGrantRequest}}}}
+    responses:
+      '200': {description: Updated user., content: {application/json: {schema: {$ref: ../schemas/admin-platform.yaml#/AdminUserResponse}}}}
+      '409': {$ref: ../components/responses.yaml#/Conflict}
 userEntitlements:
   get:
     operationId: getAdminUserEntitlements
@@ -148,4 +192,5 @@ noticeRevoke:
       '409': {$ref: ../components/responses.yaml#/Conflict}
 components:
   userId: {name: userId, in: path, required: true, schema: {type: string}}
+  deviceId: {name: deviceId, in: path, required: true, schema: {type: string}}
   noticeId: {name: noticeId, in: path, required: true, schema: {type: string}}

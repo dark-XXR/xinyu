@@ -223,6 +223,14 @@ paths:
     $ref: ./admin/platform.yaml#/user
   /admin/v1/users/{userId}/status:
     $ref: ./admin/platform.yaml#/userStatus
+  /admin/v1/users/{userId}/profile:
+    $ref: ./admin/platform.yaml#/userProfile
+  /admin/v1/users/{userId}/security/reset:
+    $ref: ./admin/platform.yaml#/userSecurityReset
+  /admin/v1/users/{userId}/devices/{deviceId}/revoke:
+    $ref: ./admin/platform.yaml#/userDeviceRevoke
+  /admin/v1/users/{userId}/plan-grants:
+    $ref: ./admin/platform.yaml#/userPlanGrant
   /admin/v1/users/{userId}/entitlements:
     $ref: ./admin/platform.yaml#/userEntitlements
   /admin/v1/users/{userId}/ledger:

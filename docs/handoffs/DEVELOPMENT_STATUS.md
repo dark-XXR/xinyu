@@ -7,13 +7,13 @@ Last updated: 2026-08-11
 - Active task: `FRONTEND-ADMIN-CONSOLE-001`
 - State: `in_progress` after full product-scope correction
 - Contract version: `1.0.0`
-- Current phase: referral administration accepted; payment callback operations and remaining platform domains are next
+- Current phase: user write operations accepted; payment callback operations and remaining platform domains are next
 - Strict work-item progress: `22/33 = 66.7%`
 - Scope correction: provider/AI/commerce/audit milestones are accepted, but the overall administration
   console was previously reported complete too early. The authoritative remaining-domain matrix is
   `docs/product/admin-console-feature-matrix.md`.
-- Current accepted batch: invitation campaigns, immutable version history, configurable rewards,
-  anti-abuse policy, gray publication, and safe rollback. The overall console remains in progress.
+- Current accepted batch: user profile editing, OTP login-state reset, individual device revocation,
+  idempotent wallet/quota adjustment, and published-plan grants. The overall console remains in progress.
 
 ## Completed
 
@@ -171,8 +171,9 @@ Last updated: 2026-08-11
   disabled until the contract minimum is met, sensitive content is cleared on close, legal hold and
   export flows complete, table rows become cards, tabs scroll only inside their own container, and
   page/root widths match the mobile viewport without horizontal page scrolling.
-- Core platform operations now expose user search/detail/entitlement/ledger, session-revoking
-  suspension and restoration, website identity drafts/publication, and notices with platform,
+- Core platform operations now expose user search/detail/entitlement/ledger, profile editing,
+  OTP challenge and session reset, individual device revocation, session-revoking suspension and
+  restoration, published-plan snapshot grants, website identity drafts/publication, and notices with platform,
   locale, semantic-client-version and time targeting. Published website identity is included in
   public bootstrap; draft values cannot replace online values before publication.
 - User and administrator support APIs now cover owned ticket creation/read/reply, operator queues,
@@ -180,7 +181,8 @@ Last updated: 2026-08-11
   excluded from user reads. Support message bodies are encrypted in the compliance ledger rather
   than copied into ordinary request metadata.
 - Antigravity CLI implemented `/users`, `/operations/notices`, `/system/settings`,
-  `/commerce/payments`, and `/support`. User suspension requires an exact user ID plus reason;
+  `/commerce/payments`, and `/support`. `/users` now provides audited profile, security, device,
+  entitlement and published-plan write operations; user suspension requires an exact user ID plus reason;
   notice/config publication, reconciliation and support changes are reason-gated.
 - Antigravity CLI implemented `/referrals` with no page-level business constants. Activity drafts,
   sales channels, binding windows, invite limits, milestone rewards, cooling periods, anti-abuse
@@ -200,11 +202,14 @@ Last results: 5 unit tests, 6 default-size device UI tests, 6 compact-size UI te
 Android Lint, and Debug APK assembly all passed.
 
 Administration web results: TypeScript project references, oxlint (0 warnings/errors), and Vite
-production build pass. Routes are lazy-loaded; the entry chunk is 61.17 kB (16.71 kB gzip), the
+production build pass. Routes are lazy-loaded; the entry chunk is 64.96 kB (17.73 kB gzip), the
 largest vendor chunk is 206.37 kB, and CSS is 8.65 kB (2.29 kB gzip). `/users`,
 `/operations/notices`, `/system/settings`, `/commerce/payments`, `/support`, and `/referrals`
 passed real-browser checks at `1440x900` and `390x844`; every page and root width equals the
 viewport and the checked console has no warnings or errors.
+The expanded `/users` page was re-accepted at `1440x900` and `390x844`: the table/card layouts,
+profile confirmation gate, zero-default entitlement adjustment, published-plan selector and detail
+drawer render without horizontal overflow. The checked browser console has no warnings or errors.
 
 Identity contract validation now covers 46 fixtures across 19 tagged operations. Generated
 Kotlin and TypeScript clients both compile with the new email/channel models and operations.
@@ -213,7 +218,9 @@ Backend verification now covers 65 PostgreSQL integration and transport tests. T
 administrator authentication, provider-registry, and AI-gateway migrations passed upgrade,
 downgrade, and re-upgrade. The new provider-disable permission migration also passed its own
 downgrade/upgrade loop. Commerce administration, referral, and compliance-audit migrations pass.
-The platform and support migrations pass upgrade and their dedicated integration tests. Referral
+The platform, support and user-operation permission migrations pass upgrade; the user-operation
+permission migration also passes downgrade and re-upgrade. Ten targeted platform, commerce and
+administrator-authentication PostgreSQL integration tests pass. Referral
 history tests prove only published immutable versions are marked as rollback targets. Ruff,
 strict MyPy across 74 source files, targeted provider/compliance/platform/referral tests, OpenAPI
 lint/bundle, 25 provider fixtures across 9 operations, generated TypeScript and Kotlin builds,

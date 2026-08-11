@@ -10,11 +10,17 @@ from love_reply_api.schemas import SuccessEnvelope
 from love_reply_api.transport.http.admin_platform_schemas import (
     AdminUserDetailData,
     AdminUserDetailResponse,
+    AdminUserDeviceRevokeRequest,
     AdminUserEntitlementBundleData,
     AdminUserEntitlementResponse,
     AdminUserListData,
     AdminUserListResponse,
+    AdminUserPlanGrantRequest,
+    AdminUserProfileRequest,
     AdminUserResponse,
+    AdminUserSecurityActionData,
+    AdminUserSecurityActionResponse,
+    AdminUserSecurityResetRequest,
     AdminUserStatusRequest,
     AdminUserSummaryData,
     AdminWalletLedgerData,
@@ -40,6 +46,11 @@ router = APIRouter(prefix="/admin/v1", tags=["ADMIN_PLATFORM"])
 Service = Annotated[AdminPlatformService, Depends(get_admin_platform_service)]
 UserRead = Annotated[AdminContext, Depends(require_admin_permission("USER_READ"))]
 UserWrite = Annotated[AdminContext, Depends(require_admin_permission("USER_STATUS_WRITE"))]
+UserProfileWrite = Annotated[AdminContext, Depends(require_admin_permission("USER_PROFILE_WRITE"))]
+UserSessionRevoke = Annotated[
+    AdminContext, Depends(require_admin_permission("USER_SESSION_REVOKE"))
+]
+UserPlanAssign = Annotated[AdminContext, Depends(require_admin_permission("USER_PLAN_ASSIGN"))]
 ConfigRead = Annotated[AdminContext, Depends(require_admin_permission("SYSTEM_CONFIG_READ"))]
 ConfigWrite = Annotated[AdminContext, Depends(require_admin_permission("SYSTEM_CONFIG_WRITE"))]
 ConfigPublish = Annotated[AdminContext, Depends(require_admin_permission("SYSTEM_CONFIG_PUBLISH"))]
@@ -132,6 +143,127 @@ async def change_user_status(
         user_id=user_id,
         expected_version=_expected_version(if_match),
         target_status=body.status,
+        admin_id=context.admin.admin_id,
+        audit_reason=body.audit_reason,
+    )
+    return SuccessEnvelope(
+        data=AdminUserSummaryData.model_validate(record), request_id=_request_id(request)
+    )
+
+
+@router.patch(
+    "/users/{userId}/profile",
+    operation_id="updateAdminUserProfile",
+    response_model=AdminUserResponse,
+)
+async def update_user_profile(
+    user_id: Annotated[str, Path(alias="userId")],
+    body: AdminUserProfileRequest,
+    request: Request,
+    context: UserProfileWrite,
+    service: Service,
+    if_match: Annotated[str, Header(alias="If-Match")],
+) -> AdminUserResponse:
+    if body.confirmation_user_id != user_id:
+        raise ApiError(
+            status_code=400,
+            code="CONFIRMATION_MISMATCH",
+            message="The confirmation user ID does not match.",
+        )
+    record = await service.update_user_profile(
+        user_id=user_id,
+        expected_version=_expected_version(if_match),
+        nickname=body.nickname,
+        avatar_url=str(body.avatar_url) if body.avatar_url is not None else None,
+        locale=body.locale,
+        time_zone=body.time_zone,
+        admin_id=context.admin.admin_id,
+        audit_reason=body.audit_reason,
+    )
+    return SuccessEnvelope(
+        data=AdminUserSummaryData.model_validate(record), request_id=_request_id(request)
+    )
+
+
+@router.post(
+    "/users/{userId}/security/reset",
+    operation_id="resetAdminUserLoginState",
+    response_model=AdminUserSecurityActionResponse,
+)
+async def reset_user_login_state(
+    user_id: Annotated[str, Path(alias="userId")],
+    body: AdminUserSecurityResetRequest,
+    request: Request,
+    context: UserSessionRevoke,
+    service: Service,
+) -> AdminUserSecurityActionResponse:
+    if body.confirmation_user_id != user_id:
+        raise ApiError(
+            status_code=400,
+            code="CONFIRMATION_MISMATCH",
+            message="The confirmation user ID does not match.",
+        )
+    result = await service.reset_user_login_state(
+        user_id=user_id, admin_id=context.admin.admin_id, audit_reason=body.audit_reason
+    )
+    return SuccessEnvelope(
+        data=AdminUserSecurityActionData.model_validate(result), request_id=_request_id(request)
+    )
+
+
+@router.post(
+    "/users/{userId}/devices/{deviceId}/revoke",
+    operation_id="revokeAdminUserDevice",
+    response_model=AdminUserSecurityActionResponse,
+)
+async def revoke_user_device(
+    user_id: Annotated[str, Path(alias="userId")],
+    device_id: Annotated[str, Path(alias="deviceId")],
+    body: AdminUserDeviceRevokeRequest,
+    request: Request,
+    context: UserSessionRevoke,
+    service: Service,
+) -> AdminUserSecurityActionResponse:
+    if body.confirmation_device_id != device_id:
+        raise ApiError(
+            status_code=400,
+            code="CONFIRMATION_MISMATCH",
+            message="The confirmation device ID does not match.",
+        )
+    result = await service.revoke_user_device(
+        user_id=user_id,
+        device_id=device_id,
+        admin_id=context.admin.admin_id,
+        audit_reason=body.audit_reason,
+    )
+    return SuccessEnvelope(
+        data=AdminUserSecurityActionData.model_validate(result), request_id=_request_id(request)
+    )
+
+
+@router.post(
+    "/users/{userId}/plan-grants",
+    operation_id="grantAdminUserPlan",
+    response_model=AdminUserResponse,
+)
+async def grant_user_plan(
+    user_id: Annotated[str, Path(alias="userId")],
+    body: AdminUserPlanGrantRequest,
+    request: Request,
+    context: UserPlanAssign,
+    service: Service,
+    if_match: Annotated[str, Header(alias="If-Match")],
+) -> AdminUserResponse:
+    if body.confirmation_user_id != user_id:
+        raise ApiError(
+            status_code=400,
+            code="CONFIRMATION_MISMATCH",
+            message="The confirmation user ID does not match.",
+        )
+    record = await service.grant_user_plan(
+        user_id=user_id,
+        product_version_id=body.product_version_id,
+        expected_entitlement_version=_expected_version(if_match),
         admin_id=context.admin.admin_id,
         audit_reason=body.audit_reason,
     )

@@ -9,6 +9,7 @@ import pytest
 import pytest_asyncio
 from love_reply_api.application.admin_platform import AdminPlatformService
 from love_reply_api.application.support import SupportService
+from love_reply_api.infrastructure.commerce_records import ProductVersionRecord
 from love_reply_api.infrastructure.database import engine, session_factory
 from love_reply_api.infrastructure.generation_records import (
     EntitlementRecord,
@@ -52,6 +53,11 @@ async def _delete_fixture_rows(session: AsyncSession) -> None:
     await session.execute(delete(SupportTicketRecord))
     await session.execute(delete(NoticeVersionRecord))
     await session.execute(delete(AdminPlatformAuditRecord))
+    await session.execute(
+        delete(ProductVersionRecord).where(
+            ProductVersionRecord.product_code.like("TEST_ADMIN_PLAN_%")
+        )
+    )
     fixture_users = select(UserRecord.user_id).where(UserRecord.email_normalized.like("platform-%"))
     user_ids = list((await session.scalars(fixture_users)).all())
     if user_ids:
@@ -214,6 +220,115 @@ async def test_user_management_masks_identifiers_and_revokes_sessions() -> None:
             ).all()
         )
         assert [item.action for item in audits] == ["USER_SUSPENDED", "USER_RESTORED"]
+
+
+@pytest.mark.asyncio
+async def test_user_profile_security_device_and_published_plan_operations() -> None:
+    async with session_factory() as session:
+        user = await _create_user(session)
+        service = AdminPlatformService(session)
+        updated = await service.update_user_profile(
+            user_id=user.user_id,
+            expected_version=1,
+            nickname="更新后的运营昵称",
+            avatar_url="https://cdn.example.com/avatar.png",
+            locale="en-US",
+            time_zone="America/Los_Angeles",
+            admin_id="adm_platform_test",
+            audit_reason="根据用户提交的资料变更申请进行更新",
+        )
+        assert updated["nickname"] == "更新后的运营昵称"
+        assert updated["avatar_url"] == "https://cdn.example.com/avatar.png"
+        assert updated["locale"] == "en-US"
+        assert updated["resource_version"] == 2
+
+        device_result = await service.revoke_user_device(
+            user_id=user.user_id,
+            device_id=(await service.get_user_detail(user.user_id))["devices"][0].device_id,
+            admin_id="adm_platform_test",
+            audit_reason="用户确认该设备已经遗失需要立即撤销",
+        )
+        assert device_result["revoked_session_count"] == 1
+
+        now = datetime.now(UTC)
+        suffix = uuid4().hex[:8]
+        session.add(
+            AuthSessionRecord(
+                session_id=f"ses_extra_{suffix}",
+                user_id=user.user_id,
+                device_id=f"device_extra_{suffix}",
+                refresh_token_hash=f"hash_extra_{suffix}",
+                expires_at=now + timedelta(days=7),
+                revoked_at=None,
+                rotated_to_session_id=None,
+                created_at=now,
+            )
+        )
+        product = ProductVersionRecord(
+            product_version_id=f"pv_admin_{suffix}",
+            product_code=f"TEST_ADMIN_PLAN_{suffix.upper()}",
+            version=1,
+            product_type="PLAN",
+            display_name="后台分配测试套餐",
+            description=None,
+            currency="CNY",
+            amount_minor=0,
+            region="CN",
+            sales_channels=["ADMIN_ASSISTED"],
+            renewal_type="NONE",
+            term_days=30,
+            benefit_window_days=30,
+            benefits={
+                "textQuota": 20,
+                "visionQuota": 5,
+                "energyAmount": 0,
+                "allowedModelIds": ["model_admin"],
+                "allowedStyleIds": ["formal"],
+                "deepAnalysisEnabled": False,
+            },
+            status="ACTIVE",
+            effective_at=now - timedelta(minutes=1),
+            expires_at=None,
+            resource_version=1,
+            created_by_admin_id="adm_platform_test",
+            published_by_admin_id="adm_platform_test",
+            published_at=now,
+            was_published=True,
+            created_at=now,
+            updated_at=now,
+        )
+        session.add(product)
+        await session.commit()
+
+        granted = await service.grant_user_plan(
+            user_id=user.user_id,
+            product_version_id=product.product_version_id,
+            expected_entitlement_version=1,
+            admin_id="adm_platform_test",
+            audit_reason="客服补偿并按已发布套餐快照发放权益",
+        )
+        assert granted["plan_code"] == product.product_code
+        assert granted["text_remaining"] == 32
+        assert granted["vision_remaining"] == 8
+
+        reset = await service.reset_user_login_state(
+            user_id=user.user_id,
+            admin_id="adm_platform_test",
+            audit_reason="用户报告登录异常因此撤销全部登录状态",
+        )
+        assert reset["revoked_session_count"] == 1
+        actions = list(
+            (
+                await session.scalars(
+                    select(AdminPlatformAuditRecord.action).where(
+                        AdminPlatformAuditRecord.resource_id == user.user_id
+                    )
+                )
+            ).all()
+        )
+        assert "USER_PROFILE_UPDATED" in actions
+        assert "USER_PLAN_GRANTED" in actions
+        assert "USER_LOGIN_STATE_RESET" in actions
 
 
 @pytest.mark.asyncio

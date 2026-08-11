@@ -14,6 +14,7 @@ class AdminUserSummaryData(ApiModel):
     masked_email: str | None
     masked_phone: str | None
     nickname: str | None
+    avatar_url: str | None
     locale: str
     time_zone: str
     plan_code: str | None
@@ -108,6 +109,36 @@ class AdminUserStatusRequest(ApiModel):
     status: Literal["ACTIVE", "SUSPENDED"]
     audit_reason: str = Field(min_length=8, max_length=500)
     confirmation_user_id: str
+
+
+class AdminUserProfileRequest(ApiModel):
+    nickname: str | None = Field(default=None, max_length=64)
+    avatar_url: HttpUrl | None = None
+    locale: str = Field(min_length=2, max_length=35)
+    time_zone: str = Field(min_length=1, max_length=64)
+    audit_reason: str = Field(min_length=8, max_length=500)
+    confirmation_user_id: str
+
+
+class AdminUserSecurityResetRequest(ApiModel):
+    audit_reason: str = Field(min_length=8, max_length=500)
+    confirmation_user_id: str
+
+
+class AdminUserDeviceRevokeRequest(ApiModel):
+    audit_reason: str = Field(min_length=8, max_length=500)
+    confirmation_device_id: str
+
+
+class AdminUserPlanGrantRequest(ApiModel):
+    product_version_id: str
+    audit_reason: str = Field(min_length=8, max_length=500)
+    confirmation_user_id: str
+
+
+class AdminUserSecurityActionData(ApiModel):
+    revoked_session_count: int = Field(ge=0)
+    invalidated_challenge_count: int = Field(ge=0)
 
 
 class SystemIdentityConfig(ApiModel):
@@ -206,6 +237,7 @@ class NoticeListData(ApiModel):
 
 AdminUserListResponse = SuccessEnvelope[AdminUserListData]
 AdminUserResponse = SuccessEnvelope[AdminUserSummaryData]
+AdminUserSecurityActionResponse = SuccessEnvelope[AdminUserSecurityActionData]
 AdminUserDetailResponse = SuccessEnvelope[AdminUserDetailData]
 AdminUserEntitlementResponse = SuccessEnvelope[AdminUserEntitlementBundleData]
 AdminWalletLedgerListResponse = SuccessEnvelope[AdminWalletLedgerListData]

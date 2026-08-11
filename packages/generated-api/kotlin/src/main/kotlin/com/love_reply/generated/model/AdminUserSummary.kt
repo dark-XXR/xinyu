@@ -44,6 +44,7 @@ import com.squareup.moshi.JsonClass
  * @param maskedEmail
  * @param maskedPhone
  * @param nickname
+ * @param avatarUrl
  * @param planCode
  * @param planExpiresAt
  */
@@ -92,6 +93,9 @@ data class AdminUserSummary (
 
     @Json(name = "nickname")
     val nickname: kotlin.String? = null,
+
+    @Json(name = "avatarUrl")
+    val avatarUrl: java.net.URI? = null,
 
     @Json(name = "planCode")
     val planCode: kotlin.String? = null,

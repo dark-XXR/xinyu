@@ -54,6 +54,12 @@ export interface AdminUserDetail {
      * @type {string}
      * @memberof AdminUserDetail
      */
+    avatarUrl?: string;
+    /**
+     *
+     * @type {string}
+     * @memberof AdminUserDetail
+     */
     locale: string;
     /**
      *
@@ -176,6 +182,7 @@ export function AdminUserDetailFromJSONTyped(json: any, ignoreDiscriminator: boo
         'maskedEmail': json['maskedEmail'] == null ? undefined : json['maskedEmail'],
         'maskedPhone': json['maskedPhone'] == null ? undefined : json['maskedPhone'],
         'nickname': json['nickname'] == null ? undefined : json['nickname'],
+        'avatarUrl': json['avatarUrl'] == null ? undefined : json['avatarUrl'],
         'locale': json['locale'],
         'timeZone': json['timeZone'],
         'planCode': json['planCode'] == null ? undefined : json['planCode'],
@@ -208,6 +215,7 @@ export function AdminUserDetailToJSONTyped(value?: AdminUserDetail | null, ignor
         'maskedEmail': value['maskedEmail'],
         'maskedPhone': value['maskedPhone'],
         'nickname': value['nickname'],
+        'avatarUrl': value['avatarUrl'],
         'locale': value['locale'],
         'timeZone': value['timeZone'],
         'planCode': value['planCode'],

@@ -107,14 +107,18 @@ All URIs are relative to *http://localhost:8000*
 *ADMINPLATFORMApi* | [**getAdminSystemConfig**](docs/ADMINPLATFORMApi.md#getadminsystemconfig) | **GET** /admin/v1/system-config | Read latest website configuration draft or published version
 *ADMINPLATFORMApi* | [**getAdminUser**](docs/ADMINPLATFORMApi.md#getadminuser) | **GET** /admin/v1/users/{userId} | Read one user with devices and consents
 *ADMINPLATFORMApi* | [**getAdminUserEntitlements**](docs/ADMINPLATFORMApi.md#getadminuserentitlements) | **GET** /admin/v1/users/{userId}/entitlements | Read user entitlement and wallet facts
+*ADMINPLATFORMApi* | [**grantAdminUserPlan**](docs/ADMINPLATFORMApi.md#grantadminuserplan) | **POST** /admin/v1/users/{userId}/plan-grants | Grant benefits from an active published plan version
 *ADMINPLATFORMApi* | [**listAdminNotices**](docs/ADMINPLATFORMApi.md#listadminnotices) | **GET** /admin/v1/notices | List latest announcement versions
 *ADMINPLATFORMApi* | [**listAdminUserLedger**](docs/ADMINPLATFORMApi.md#listadminuserledger) | **GET** /admin/v1/users/{userId}/ledger | List immutable user wallet ledger entries
 *ADMINPLATFORMApi* | [**listAdminUsers**](docs/ADMINPLATFORMApi.md#listadminusers) | **GET** /admin/v1/users | List and search masked user accounts
 *ADMINPLATFORMApi* | [**publishAdminNotice**](docs/ADMINPLATFORMApi.md#publishadminnotice) | **POST** /admin/v1/notices/{noticeId}/publish | Publish an announcement draft
 *ADMINPLATFORMApi* | [**publishAdminSystemConfig**](docs/ADMINPLATFORMApi.md#publishadminsystemconfig) | **POST** /admin/v1/system-config/publish | Publish the current website configuration draft
+*ADMINPLATFORMApi* | [**resetAdminUserLoginState**](docs/ADMINPLATFORMApi.md#resetadminuserloginstate) | **POST** /admin/v1/users/{userId}/security/reset | Revoke all sessions and invalidate pending login challenges
 *ADMINPLATFORMApi* | [**revokeAdminNotice**](docs/ADMINPLATFORMApi.md#revokeadminnotice) | **POST** /admin/v1/notices/{noticeId}/revoke | Revoke a published announcement immediately
+*ADMINPLATFORMApi* | [**revokeAdminUserDevice**](docs/ADMINPLATFORMApi.md#revokeadminuserdevice) | **POST** /admin/v1/users/{userId}/devices/{deviceId}/revoke | Revoke a user device and its active sessions
 *ADMINPLATFORMApi* | [**updateAdminNotice**](docs/ADMINPLATFORMApi.md#updateadminnotice) | **PATCH** /admin/v1/notices/{noticeId} | Save an announcement draft
 *ADMINPLATFORMApi* | [**updateAdminSystemConfig**](docs/ADMINPLATFORMApi.md#updateadminsystemconfig) | **PATCH** /admin/v1/system-config | Save a website configuration draft
+*ADMINPLATFORMApi* | [**updateAdminUserProfile**](docs/ADMINPLATFORMApi.md#updateadminuserprofile) | **PATCH** /admin/v1/users/{userId}/profile | Update non-credential user profile fields
 *ADMINPROVIDERApi* | [**checkAdminProviderHealth**](docs/ADMINPROVIDERApi.md#checkadminproviderhealth) | **POST** /admin/v1/providers/{providerId}/health-checks | Execute an audited redacted provider health check
 *ADMINPROVIDERApi* | [**createAdminProvider**](docs/ADMINPROVIDERApi.md#createadminprovider) | **POST** /admin/v1/providers | Create a provider draft
 *ADMINPROVIDERApi* | [**disableAdminProvider**](docs/ADMINPROVIDERApi.md#disableadminprovider) | **POST** /admin/v1/providers/{providerId}/disable | Immediately remove a published provider from runtime selection
@@ -254,10 +258,16 @@ All URIs are relative to *http://localhost:8000*
 - [AdminUpdateSupportTicketRequest](docs/AdminUpdateSupportTicketRequest.md)
 - [AdminUserDetail](docs/AdminUserDetail.md)
 - [AdminUserDetailResponse](docs/AdminUserDetailResponse.md)
+- [AdminUserDeviceRevokeRequest](docs/AdminUserDeviceRevokeRequest.md)
 - [AdminUserEntitlementResponse](docs/AdminUserEntitlementResponse.md)
 - [AdminUserListData](docs/AdminUserListData.md)
 - [AdminUserListResponse](docs/AdminUserListResponse.md)
+- [AdminUserPlanGrantRequest](docs/AdminUserPlanGrantRequest.md)
+- [AdminUserProfileRequest](docs/AdminUserProfileRequest.md)
 - [AdminUserResponse](docs/AdminUserResponse.md)
+- [AdminUserSecurityAction](docs/AdminUserSecurityAction.md)
+- [AdminUserSecurityActionResponse](docs/AdminUserSecurityActionResponse.md)
+- [AdminUserSecurityResetRequest](docs/AdminUserSecurityResetRequest.md)
 - [AdminUserStatusRequest](docs/AdminUserStatusRequest.md)
 - [AdminUserSummary](docs/AdminUserSummary.md)
 - [AdminWalletLedgerListResponse](docs/AdminWalletLedgerListResponse.md)

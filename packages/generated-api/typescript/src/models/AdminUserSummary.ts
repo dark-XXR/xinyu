@@ -54,6 +54,12 @@ export interface AdminUserSummary {
      * @type {string}
      * @memberof AdminUserSummary
      */
+    avatarUrl?: string | null;
+    /**
+     *
+     * @type {string}
+     * @memberof AdminUserSummary
+     */
     locale: string;
     /**
      *
@@ -162,6 +168,7 @@ export function AdminUserSummaryFromJSONTyped(json: any, ignoreDiscriminator: bo
         'maskedEmail': json['maskedEmail'] === undefined ? undefined : json['maskedEmail'] === null ? null : json['maskedEmail'],
         'maskedPhone': json['maskedPhone'] === undefined ? undefined : json['maskedPhone'] === null ? null : json['maskedPhone'],
         'nickname': json['nickname'] === undefined ? undefined : json['nickname'] === null ? null : json['nickname'],
+        'avatarUrl': json['avatarUrl'] === undefined ? undefined : json['avatarUrl'] === null ? null : json['avatarUrl'],
         'locale': json['locale'],
         'timeZone': json['timeZone'],
         'planCode': json['planCode'] === undefined ? undefined : json['planCode'] === null ? null : json['planCode'],
@@ -192,6 +199,7 @@ export function AdminUserSummaryToJSONTyped(value?: AdminUserSummary | null, ign
         'maskedEmail': value['maskedEmail'],
         'maskedPhone': value['maskedPhone'],
         'nickname': value['nickname'],
+        'avatarUrl': value['avatarUrl'],
         'locale': value['locale'],
         'timeZone': value['timeZone'],
         'planCode': value['planCode'],

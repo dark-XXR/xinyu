@@ -19,6 +19,11 @@ import {
     AdminUserDetailResponseToJSON,
 } from '../models/AdminUserDetailResponse';
 import {
+    type AdminUserDeviceRevokeRequest,
+    AdminUserDeviceRevokeRequestFromJSON,
+    AdminUserDeviceRevokeRequestToJSON,
+} from '../models/AdminUserDeviceRevokeRequest';
+import {
     type AdminUserEntitlementResponse,
     AdminUserEntitlementResponseFromJSON,
     AdminUserEntitlementResponseToJSON,
@@ -29,10 +34,30 @@ import {
     AdminUserListResponseToJSON,
 } from '../models/AdminUserListResponse';
 import {
+    type AdminUserPlanGrantRequest,
+    AdminUserPlanGrantRequestFromJSON,
+    AdminUserPlanGrantRequestToJSON,
+} from '../models/AdminUserPlanGrantRequest';
+import {
+    type AdminUserProfileRequest,
+    AdminUserProfileRequestFromJSON,
+    AdminUserProfileRequestToJSON,
+} from '../models/AdminUserProfileRequest';
+import {
     type AdminUserResponse,
     AdminUserResponseFromJSON,
     AdminUserResponseToJSON,
 } from '../models/AdminUserResponse';
+import {
+    type AdminUserSecurityActionResponse,
+    AdminUserSecurityActionResponseFromJSON,
+    AdminUserSecurityActionResponseToJSON,
+} from '../models/AdminUserSecurityActionResponse';
+import {
+    type AdminUserSecurityResetRequest,
+    AdminUserSecurityResetRequestFromJSON,
+    AdminUserSecurityResetRequestToJSON,
+} from '../models/AdminUserSecurityResetRequest';
 import {
     type AdminUserStatusRequest,
     AdminUserStatusRequestFromJSON,
@@ -116,6 +141,15 @@ export interface GetAdminUserEntitlementsRequest {
     acceptLanguage: string;
 }
 
+export interface GrantAdminUserPlanRequest {
+    userId: string;
+    xClientVersion: string;
+    xPlatform: GrantAdminUserPlanXPlatformEnum;
+    acceptLanguage: string;
+    ifMatch: string;
+    adminUserPlanGrantRequest: AdminUserPlanGrantRequest;
+}
+
 export interface ListAdminNoticesRequest {
     xClientVersion: string;
     xPlatform: ListAdminNoticesXPlatformEnum;
@@ -159,6 +193,14 @@ export interface PublishAdminSystemConfigRequest {
     auditReasonRequest: AuditReasonRequest;
 }
 
+export interface ResetAdminUserLoginStateRequest {
+    userId: string;
+    xClientVersion: string;
+    xPlatform: ResetAdminUserLoginStateXPlatformEnum;
+    acceptLanguage: string;
+    adminUserSecurityResetRequest: AdminUserSecurityResetRequest;
+}
+
 export interface RevokeAdminNoticeRequest {
     noticeId: string;
     xClientVersion: string;
@@ -166,6 +208,15 @@ export interface RevokeAdminNoticeRequest {
     acceptLanguage: string;
     ifMatch: string;
     auditReasonRequest: AuditReasonRequest;
+}
+
+export interface RevokeAdminUserDeviceRequest {
+    userId: string;
+    deviceId: string;
+    xClientVersion: string;
+    xPlatform: RevokeAdminUserDeviceXPlatformEnum;
+    acceptLanguage: string;
+    adminUserDeviceRevokeRequest: AdminUserDeviceRevokeRequest;
 }
 
 export interface UpdateAdminNoticeRequest {
@@ -183,6 +234,15 @@ export interface UpdateAdminSystemConfigRequest {
     acceptLanguage: string;
     ifMatch: string;
     systemConfigWriteRequest: SystemConfigWriteRequest;
+}
+
+export interface UpdateAdminUserProfileRequest {
+    userId: string;
+    xClientVersion: string;
+    xPlatform: UpdateAdminUserProfileXPlatformEnum;
+    acceptLanguage: string;
+    ifMatch: string;
+    adminUserProfileRequest: AdminUserProfileRequest;
 }
 
 /**
@@ -340,6 +400,39 @@ export interface ADMINPLATFORMApiInterface {
      * Read user entitlement and wallet facts
      */
     getAdminUserEntitlements(requestParameters: GetAdminUserEntitlementsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AdminUserEntitlementResponse>;
+
+    /**
+     * Creates request options for grantAdminUserPlan without sending the request
+     * @param {string} userId
+     * @param {string} xClientVersion Semantic application version used for compatibility enforcement.
+     * @param {'ANDROID' | 'ADMIN_WEB'} xPlatform
+     * @param {string} acceptLanguage
+     * @param {string} ifMatch Decimal resourceVersion expected by the caller.
+     * @param {AdminUserPlanGrantRequest} adminUserPlanGrantRequest
+     * @throws {RequiredError}
+     * @memberof ADMINPLATFORMApiInterface
+     */
+    grantAdminUserPlanRequestOpts(requestParameters: GrantAdminUserPlanRequest): Promise<runtime.RequestOpts>;
+
+    /**
+     *
+     * @summary Grant benefits from an active published plan version
+     * @param {string} userId
+     * @param {string} xClientVersion Semantic application version used for compatibility enforcement.
+     * @param {'ANDROID' | 'ADMIN_WEB'} xPlatform
+     * @param {string} acceptLanguage
+     * @param {string} ifMatch Decimal resourceVersion expected by the caller.
+     * @param {AdminUserPlanGrantRequest} adminUserPlanGrantRequest
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ADMINPLATFORMApiInterface
+     */
+    grantAdminUserPlanRaw(requestParameters: GrantAdminUserPlanRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AdminUserResponse>>;
+
+    /**
+     * Grant benefits from an active published plan version
+     */
+    grantAdminUserPlan(requestParameters: GrantAdminUserPlanRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AdminUserResponse>;
 
     /**
      * Creates request options for listAdminNotices without sending the request
@@ -503,6 +596,37 @@ export interface ADMINPLATFORMApiInterface {
     publishAdminSystemConfig(requestParameters: PublishAdminSystemConfigRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SystemConfigResponse>;
 
     /**
+     * Creates request options for resetAdminUserLoginState without sending the request
+     * @param {string} userId
+     * @param {string} xClientVersion Semantic application version used for compatibility enforcement.
+     * @param {'ANDROID' | 'ADMIN_WEB'} xPlatform
+     * @param {string} acceptLanguage
+     * @param {AdminUserSecurityResetRequest} adminUserSecurityResetRequest
+     * @throws {RequiredError}
+     * @memberof ADMINPLATFORMApiInterface
+     */
+    resetAdminUserLoginStateRequestOpts(requestParameters: ResetAdminUserLoginStateRequest): Promise<runtime.RequestOpts>;
+
+    /**
+     *
+     * @summary Revoke all sessions and invalidate pending login challenges
+     * @param {string} userId
+     * @param {string} xClientVersion Semantic application version used for compatibility enforcement.
+     * @param {'ANDROID' | 'ADMIN_WEB'} xPlatform
+     * @param {string} acceptLanguage
+     * @param {AdminUserSecurityResetRequest} adminUserSecurityResetRequest
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ADMINPLATFORMApiInterface
+     */
+    resetAdminUserLoginStateRaw(requestParameters: ResetAdminUserLoginStateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AdminUserSecurityActionResponse>>;
+
+    /**
+     * Revoke all sessions and invalidate pending login challenges
+     */
+    resetAdminUserLoginState(requestParameters: ResetAdminUserLoginStateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AdminUserSecurityActionResponse>;
+
+    /**
      * Creates request options for revokeAdminNotice without sending the request
      * @param {string} noticeId
      * @param {string} xClientVersion Semantic application version used for compatibility enforcement.
@@ -534,6 +658,39 @@ export interface ADMINPLATFORMApiInterface {
      * Revoke a published announcement immediately
      */
     revokeAdminNotice(requestParameters: RevokeAdminNoticeRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<NoticeResponse>;
+
+    /**
+     * Creates request options for revokeAdminUserDevice without sending the request
+     * @param {string} userId
+     * @param {string} deviceId
+     * @param {string} xClientVersion Semantic application version used for compatibility enforcement.
+     * @param {'ANDROID' | 'ADMIN_WEB'} xPlatform
+     * @param {string} acceptLanguage
+     * @param {AdminUserDeviceRevokeRequest} adminUserDeviceRevokeRequest
+     * @throws {RequiredError}
+     * @memberof ADMINPLATFORMApiInterface
+     */
+    revokeAdminUserDeviceRequestOpts(requestParameters: RevokeAdminUserDeviceRequest): Promise<runtime.RequestOpts>;
+
+    /**
+     *
+     * @summary Revoke a user device and its active sessions
+     * @param {string} userId
+     * @param {string} deviceId
+     * @param {string} xClientVersion Semantic application version used for compatibility enforcement.
+     * @param {'ANDROID' | 'ADMIN_WEB'} xPlatform
+     * @param {string} acceptLanguage
+     * @param {AdminUserDeviceRevokeRequest} adminUserDeviceRevokeRequest
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ADMINPLATFORMApiInterface
+     */
+    revokeAdminUserDeviceRaw(requestParameters: RevokeAdminUserDeviceRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AdminUserSecurityActionResponse>>;
+
+    /**
+     * Revoke a user device and its active sessions
+     */
+    revokeAdminUserDevice(requestParameters: RevokeAdminUserDeviceRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AdminUserSecurityActionResponse>;
 
     /**
      * Creates request options for updateAdminNotice without sending the request
@@ -598,6 +755,39 @@ export interface ADMINPLATFORMApiInterface {
      * Save a website configuration draft
      */
     updateAdminSystemConfig(requestParameters: UpdateAdminSystemConfigRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SystemConfigResponse>;
+
+    /**
+     * Creates request options for updateAdminUserProfile without sending the request
+     * @param {string} userId
+     * @param {string} xClientVersion Semantic application version used for compatibility enforcement.
+     * @param {'ANDROID' | 'ADMIN_WEB'} xPlatform
+     * @param {string} acceptLanguage
+     * @param {string} ifMatch Decimal resourceVersion expected by the caller.
+     * @param {AdminUserProfileRequest} adminUserProfileRequest
+     * @throws {RequiredError}
+     * @memberof ADMINPLATFORMApiInterface
+     */
+    updateAdminUserProfileRequestOpts(requestParameters: UpdateAdminUserProfileRequest): Promise<runtime.RequestOpts>;
+
+    /**
+     *
+     * @summary Update non-credential user profile fields
+     * @param {string} userId
+     * @param {string} xClientVersion Semantic application version used for compatibility enforcement.
+     * @param {'ANDROID' | 'ADMIN_WEB'} xPlatform
+     * @param {string} acceptLanguage
+     * @param {string} ifMatch Decimal resourceVersion expected by the caller.
+     * @param {AdminUserProfileRequest} adminUserProfileRequest
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ADMINPLATFORMApiInterface
+     */
+    updateAdminUserProfileRaw(requestParameters: UpdateAdminUserProfileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AdminUserResponse>>;
+
+    /**
+     * Update non-credential user profile fields
+     */
+    updateAdminUserProfile(requestParameters: UpdateAdminUserProfileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AdminUserResponse>;
 
 }
 
@@ -1052,6 +1242,113 @@ export class ADMINPLATFORMApi extends runtime.BaseAPI implements ADMINPLATFORMAp
      */
     async getAdminUserEntitlements(requestParameters: GetAdminUserEntitlementsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AdminUserEntitlementResponse> {
         const response = await this.getAdminUserEntitlementsRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Creates request options for grantAdminUserPlan without sending the request
+     */
+    async grantAdminUserPlanRequestOpts(requestParameters: GrantAdminUserPlanRequest): Promise<runtime.RequestOpts> {
+        if (requestParameters['userId'] == null) {
+            throw new runtime.RequiredError(
+                'userId',
+                'Required parameter "userId" was null or undefined when calling grantAdminUserPlan().'
+            );
+        }
+
+        if (requestParameters['xClientVersion'] == null) {
+            throw new runtime.RequiredError(
+                'xClientVersion',
+                'Required parameter "xClientVersion" was null or undefined when calling grantAdminUserPlan().'
+            );
+        }
+
+        if (requestParameters['xPlatform'] == null) {
+            throw new runtime.RequiredError(
+                'xPlatform',
+                'Required parameter "xPlatform" was null or undefined when calling grantAdminUserPlan().'
+            );
+        }
+
+        if (requestParameters['acceptLanguage'] == null) {
+            throw new runtime.RequiredError(
+                'acceptLanguage',
+                'Required parameter "acceptLanguage" was null or undefined when calling grantAdminUserPlan().'
+            );
+        }
+
+        if (requestParameters['ifMatch'] == null) {
+            throw new runtime.RequiredError(
+                'ifMatch',
+                'Required parameter "ifMatch" was null or undefined when calling grantAdminUserPlan().'
+            );
+        }
+
+        if (requestParameters['adminUserPlanGrantRequest'] == null) {
+            throw new runtime.RequiredError(
+                'adminUserPlanGrantRequest',
+                'Required parameter "adminUserPlanGrantRequest" was null or undefined when calling grantAdminUserPlan().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (requestParameters['xClientVersion'] != null) {
+            headerParameters['X-Client-Version'] = String(requestParameters['xClientVersion']);
+        }
+
+        if (requestParameters['xPlatform'] != null) {
+            headerParameters['X-Platform'] = String(requestParameters['xPlatform']);
+        }
+
+        if (requestParameters['acceptLanguage'] != null) {
+            headerParameters['Accept-Language'] = String(requestParameters['acceptLanguage']);
+        }
+
+        if (requestParameters['ifMatch'] != null) {
+            headerParameters['If-Match'] = String(requestParameters['ifMatch']);
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("adminBearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/admin/v1/users/{userId}/plan-grants`;
+        urlPath = urlPath.replace('{userId}', encodeURIComponent(String(requestParameters['userId'])));
+
+        return {
+            path: urlPath,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: AdminUserPlanGrantRequestToJSON(requestParameters['adminUserPlanGrantRequest']),
+        };
+    }
+
+    /**
+     * Grant benefits from an active published plan version
+     */
+    async grantAdminUserPlanRaw(requestParameters: GrantAdminUserPlanRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AdminUserResponse>> {
+        const requestOptions = await this.grantAdminUserPlanRequestOpts(requestParameters);
+        const response = await this.request(requestOptions, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => AdminUserResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Grant benefits from an active published plan version
+     */
+    async grantAdminUserPlan(requestParameters: GrantAdminUserPlanRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AdminUserResponse> {
+        const response = await this.grantAdminUserPlanRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -1532,6 +1829,102 @@ export class ADMINPLATFORMApi extends runtime.BaseAPI implements ADMINPLATFORMAp
     }
 
     /**
+     * Creates request options for resetAdminUserLoginState without sending the request
+     */
+    async resetAdminUserLoginStateRequestOpts(requestParameters: ResetAdminUserLoginStateRequest): Promise<runtime.RequestOpts> {
+        if (requestParameters['userId'] == null) {
+            throw new runtime.RequiredError(
+                'userId',
+                'Required parameter "userId" was null or undefined when calling resetAdminUserLoginState().'
+            );
+        }
+
+        if (requestParameters['xClientVersion'] == null) {
+            throw new runtime.RequiredError(
+                'xClientVersion',
+                'Required parameter "xClientVersion" was null or undefined when calling resetAdminUserLoginState().'
+            );
+        }
+
+        if (requestParameters['xPlatform'] == null) {
+            throw new runtime.RequiredError(
+                'xPlatform',
+                'Required parameter "xPlatform" was null or undefined when calling resetAdminUserLoginState().'
+            );
+        }
+
+        if (requestParameters['acceptLanguage'] == null) {
+            throw new runtime.RequiredError(
+                'acceptLanguage',
+                'Required parameter "acceptLanguage" was null or undefined when calling resetAdminUserLoginState().'
+            );
+        }
+
+        if (requestParameters['adminUserSecurityResetRequest'] == null) {
+            throw new runtime.RequiredError(
+                'adminUserSecurityResetRequest',
+                'Required parameter "adminUserSecurityResetRequest" was null or undefined when calling resetAdminUserLoginState().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (requestParameters['xClientVersion'] != null) {
+            headerParameters['X-Client-Version'] = String(requestParameters['xClientVersion']);
+        }
+
+        if (requestParameters['xPlatform'] != null) {
+            headerParameters['X-Platform'] = String(requestParameters['xPlatform']);
+        }
+
+        if (requestParameters['acceptLanguage'] != null) {
+            headerParameters['Accept-Language'] = String(requestParameters['acceptLanguage']);
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("adminBearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/admin/v1/users/{userId}/security/reset`;
+        urlPath = urlPath.replace('{userId}', encodeURIComponent(String(requestParameters['userId'])));
+
+        return {
+            path: urlPath,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: AdminUserSecurityResetRequestToJSON(requestParameters['adminUserSecurityResetRequest']),
+        };
+    }
+
+    /**
+     * Revoke all sessions and invalidate pending login challenges
+     */
+    async resetAdminUserLoginStateRaw(requestParameters: ResetAdminUserLoginStateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AdminUserSecurityActionResponse>> {
+        const requestOptions = await this.resetAdminUserLoginStateRequestOpts(requestParameters);
+        const response = await this.request(requestOptions, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => AdminUserSecurityActionResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Revoke all sessions and invalidate pending login challenges
+     */
+    async resetAdminUserLoginState(requestParameters: ResetAdminUserLoginStateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AdminUserSecurityActionResponse> {
+        const response = await this.resetAdminUserLoginStateRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
      * Creates request options for revokeAdminNotice without sending the request
      */
     async revokeAdminNoticeRequestOpts(requestParameters: RevokeAdminNoticeRequest): Promise<runtime.RequestOpts> {
@@ -1635,6 +2028,110 @@ export class ADMINPLATFORMApi extends runtime.BaseAPI implements ADMINPLATFORMAp
      */
     async revokeAdminNotice(requestParameters: RevokeAdminNoticeRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<NoticeResponse> {
         const response = await this.revokeAdminNoticeRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Creates request options for revokeAdminUserDevice without sending the request
+     */
+    async revokeAdminUserDeviceRequestOpts(requestParameters: RevokeAdminUserDeviceRequest): Promise<runtime.RequestOpts> {
+        if (requestParameters['userId'] == null) {
+            throw new runtime.RequiredError(
+                'userId',
+                'Required parameter "userId" was null or undefined when calling revokeAdminUserDevice().'
+            );
+        }
+
+        if (requestParameters['deviceId'] == null) {
+            throw new runtime.RequiredError(
+                'deviceId',
+                'Required parameter "deviceId" was null or undefined when calling revokeAdminUserDevice().'
+            );
+        }
+
+        if (requestParameters['xClientVersion'] == null) {
+            throw new runtime.RequiredError(
+                'xClientVersion',
+                'Required parameter "xClientVersion" was null or undefined when calling revokeAdminUserDevice().'
+            );
+        }
+
+        if (requestParameters['xPlatform'] == null) {
+            throw new runtime.RequiredError(
+                'xPlatform',
+                'Required parameter "xPlatform" was null or undefined when calling revokeAdminUserDevice().'
+            );
+        }
+
+        if (requestParameters['acceptLanguage'] == null) {
+            throw new runtime.RequiredError(
+                'acceptLanguage',
+                'Required parameter "acceptLanguage" was null or undefined when calling revokeAdminUserDevice().'
+            );
+        }
+
+        if (requestParameters['adminUserDeviceRevokeRequest'] == null) {
+            throw new runtime.RequiredError(
+                'adminUserDeviceRevokeRequest',
+                'Required parameter "adminUserDeviceRevokeRequest" was null or undefined when calling revokeAdminUserDevice().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (requestParameters['xClientVersion'] != null) {
+            headerParameters['X-Client-Version'] = String(requestParameters['xClientVersion']);
+        }
+
+        if (requestParameters['xPlatform'] != null) {
+            headerParameters['X-Platform'] = String(requestParameters['xPlatform']);
+        }
+
+        if (requestParameters['acceptLanguage'] != null) {
+            headerParameters['Accept-Language'] = String(requestParameters['acceptLanguage']);
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("adminBearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/admin/v1/users/{userId}/devices/{deviceId}/revoke`;
+        urlPath = urlPath.replace('{userId}', encodeURIComponent(String(requestParameters['userId'])));
+        urlPath = urlPath.replace('{deviceId}', encodeURIComponent(String(requestParameters['deviceId'])));
+
+        return {
+            path: urlPath,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: AdminUserDeviceRevokeRequestToJSON(requestParameters['adminUserDeviceRevokeRequest']),
+        };
+    }
+
+    /**
+     * Revoke a user device and its active sessions
+     */
+    async revokeAdminUserDeviceRaw(requestParameters: RevokeAdminUserDeviceRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AdminUserSecurityActionResponse>> {
+        const requestOptions = await this.revokeAdminUserDeviceRequestOpts(requestParameters);
+        const response = await this.request(requestOptions, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => AdminUserSecurityActionResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Revoke a user device and its active sessions
+     */
+    async revokeAdminUserDevice(requestParameters: RevokeAdminUserDeviceRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AdminUserSecurityActionResponse> {
+        const response = await this.revokeAdminUserDeviceRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -1844,6 +2341,113 @@ export class ADMINPLATFORMApi extends runtime.BaseAPI implements ADMINPLATFORMAp
         return await response.value();
     }
 
+    /**
+     * Creates request options for updateAdminUserProfile without sending the request
+     */
+    async updateAdminUserProfileRequestOpts(requestParameters: UpdateAdminUserProfileRequest): Promise<runtime.RequestOpts> {
+        if (requestParameters['userId'] == null) {
+            throw new runtime.RequiredError(
+                'userId',
+                'Required parameter "userId" was null or undefined when calling updateAdminUserProfile().'
+            );
+        }
+
+        if (requestParameters['xClientVersion'] == null) {
+            throw new runtime.RequiredError(
+                'xClientVersion',
+                'Required parameter "xClientVersion" was null or undefined when calling updateAdminUserProfile().'
+            );
+        }
+
+        if (requestParameters['xPlatform'] == null) {
+            throw new runtime.RequiredError(
+                'xPlatform',
+                'Required parameter "xPlatform" was null or undefined when calling updateAdminUserProfile().'
+            );
+        }
+
+        if (requestParameters['acceptLanguage'] == null) {
+            throw new runtime.RequiredError(
+                'acceptLanguage',
+                'Required parameter "acceptLanguage" was null or undefined when calling updateAdminUserProfile().'
+            );
+        }
+
+        if (requestParameters['ifMatch'] == null) {
+            throw new runtime.RequiredError(
+                'ifMatch',
+                'Required parameter "ifMatch" was null or undefined when calling updateAdminUserProfile().'
+            );
+        }
+
+        if (requestParameters['adminUserProfileRequest'] == null) {
+            throw new runtime.RequiredError(
+                'adminUserProfileRequest',
+                'Required parameter "adminUserProfileRequest" was null or undefined when calling updateAdminUserProfile().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (requestParameters['xClientVersion'] != null) {
+            headerParameters['X-Client-Version'] = String(requestParameters['xClientVersion']);
+        }
+
+        if (requestParameters['xPlatform'] != null) {
+            headerParameters['X-Platform'] = String(requestParameters['xPlatform']);
+        }
+
+        if (requestParameters['acceptLanguage'] != null) {
+            headerParameters['Accept-Language'] = String(requestParameters['acceptLanguage']);
+        }
+
+        if (requestParameters['ifMatch'] != null) {
+            headerParameters['If-Match'] = String(requestParameters['ifMatch']);
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("adminBearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/admin/v1/users/{userId}/profile`;
+        urlPath = urlPath.replace('{userId}', encodeURIComponent(String(requestParameters['userId'])));
+
+        return {
+            path: urlPath,
+            method: 'PATCH',
+            headers: headerParameters,
+            query: queryParameters,
+            body: AdminUserProfileRequestToJSON(requestParameters['adminUserProfileRequest']),
+        };
+    }
+
+    /**
+     * Update non-credential user profile fields
+     */
+    async updateAdminUserProfileRaw(requestParameters: UpdateAdminUserProfileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AdminUserResponse>> {
+        const requestOptions = await this.updateAdminUserProfileRequestOpts(requestParameters);
+        const response = await this.request(requestOptions, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => AdminUserResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Update non-credential user profile fields
+     */
+    async updateAdminUserProfile(requestParameters: UpdateAdminUserProfileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AdminUserResponse> {
+        const response = await this.updateAdminUserProfileRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
 }
 
 /**
@@ -1886,6 +2490,14 @@ export const GetAdminUserEntitlementsXPlatformEnum = {
     AdminWeb: 'ADMIN_WEB'
 } as const;
 export type GetAdminUserEntitlementsXPlatformEnum = typeof GetAdminUserEntitlementsXPlatformEnum[keyof typeof GetAdminUserEntitlementsXPlatformEnum];
+/**
+ * @export
+ */
+export const GrantAdminUserPlanXPlatformEnum = {
+    Android: 'ANDROID',
+    AdminWeb: 'ADMIN_WEB'
+} as const;
+export type GrantAdminUserPlanXPlatformEnum = typeof GrantAdminUserPlanXPlatformEnum[keyof typeof GrantAdminUserPlanXPlatformEnum];
 /**
  * @export
  */
@@ -1938,11 +2550,27 @@ export type PublishAdminSystemConfigXPlatformEnum = typeof PublishAdminSystemCon
 /**
  * @export
  */
+export const ResetAdminUserLoginStateXPlatformEnum = {
+    Android: 'ANDROID',
+    AdminWeb: 'ADMIN_WEB'
+} as const;
+export type ResetAdminUserLoginStateXPlatformEnum = typeof ResetAdminUserLoginStateXPlatformEnum[keyof typeof ResetAdminUserLoginStateXPlatformEnum];
+/**
+ * @export
+ */
 export const RevokeAdminNoticeXPlatformEnum = {
     Android: 'ANDROID',
     AdminWeb: 'ADMIN_WEB'
 } as const;
 export type RevokeAdminNoticeXPlatformEnum = typeof RevokeAdminNoticeXPlatformEnum[keyof typeof RevokeAdminNoticeXPlatformEnum];
+/**
+ * @export
+ */
+export const RevokeAdminUserDeviceXPlatformEnum = {
+    Android: 'ANDROID',
+    AdminWeb: 'ADMIN_WEB'
+} as const;
+export type RevokeAdminUserDeviceXPlatformEnum = typeof RevokeAdminUserDeviceXPlatformEnum[keyof typeof RevokeAdminUserDeviceXPlatformEnum];
 /**
  * @export
  */
@@ -1959,3 +2587,11 @@ export const UpdateAdminSystemConfigXPlatformEnum = {
     AdminWeb: 'ADMIN_WEB'
 } as const;
 export type UpdateAdminSystemConfigXPlatformEnum = typeof UpdateAdminSystemConfigXPlatformEnum[keyof typeof UpdateAdminSystemConfigXPlatformEnum];
+/**
+ * @export
+ */
+export const UpdateAdminUserProfileXPlatformEnum = {
+    Android: 'ANDROID',
+    AdminWeb: 'ADMIN_WEB'
+} as const;
+export type UpdateAdminUserProfileXPlatformEnum = typeof UpdateAdminUserProfileXPlatformEnum[keyof typeof UpdateAdminUserProfileXPlatformEnum];

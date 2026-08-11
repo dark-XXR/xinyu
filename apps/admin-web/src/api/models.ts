@@ -154,4 +154,16 @@ export {
   ReferralInviteStatus,
   ReferralRewardStatus,
   RewardUnit,
+  EntitlementAdjustmentRequestUnitEnum,
+} from '@love-reply/generated-api'
+
+export type {
+  AdminUserProfileRequest,
+  AdminUserSecurityResetRequest,
+  AdminUserDeviceRevokeRequest,
+  AdminUserPlanGrantRequest,
+  EntitlementAdjustmentRequest,
+  AdminUserSecurityActionResponse,
+  EntitlementAdjustmentResponse,
+  AdminUserResponse,
 } from '@love-reply/generated-api'

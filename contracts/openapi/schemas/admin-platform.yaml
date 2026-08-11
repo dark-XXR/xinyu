@@ -8,6 +8,7 @@ AdminUserSummary:
     maskedEmail: {type: [string, "null"]}
     maskedPhone: {type: [string, "null"]}
     nickname: {type: [string, "null"]}
+    avatarUrl: {type: [string, "null"], format: uri}
     locale: {type: string}
     timeZone: {type: string}
     planCode: {type: [string, "null"]}
@@ -35,6 +36,46 @@ AdminUserStatusRequest:
     status: {type: string, enum: [ACTIVE, SUSPENDED]}
     auditReason: {type: string, minLength: 8, maxLength: 500}
     confirmationUserId: {type: string}
+AdminUserProfileRequest:
+  type: object
+  additionalProperties: false
+  required: [locale, timeZone, auditReason, confirmationUserId]
+  properties:
+    nickname: {type: [string, "null"], maxLength: 64}
+    avatarUrl: {type: [string, "null"], format: uri}
+    locale: {type: string, minLength: 2, maxLength: 35}
+    timeZone: {type: string, minLength: 1, maxLength: 64}
+    auditReason: {type: string, minLength: 8, maxLength: 500}
+    confirmationUserId: {type: string}
+AdminUserSecurityResetRequest:
+  type: object
+  additionalProperties: false
+  required: [auditReason, confirmationUserId]
+  properties:
+    auditReason: {type: string, minLength: 8, maxLength: 500}
+    confirmationUserId: {type: string}
+AdminUserDeviceRevokeRequest:
+  type: object
+  additionalProperties: false
+  required: [auditReason, confirmationDeviceId]
+  properties:
+    auditReason: {type: string, minLength: 8, maxLength: 500}
+    confirmationDeviceId: {type: string}
+AdminUserPlanGrantRequest:
+  type: object
+  additionalProperties: false
+  required: [productVersionId, auditReason, confirmationUserId]
+  properties:
+    productVersionId: {type: string}
+    auditReason: {type: string, minLength: 8, maxLength: 500}
+    confirmationUserId: {type: string}
+AdminUserSecurityAction:
+  type: object
+  additionalProperties: false
+  required: [revokedSessionCount, invalidatedChallengeCount]
+  properties:
+    revokedSessionCount: {type: integer, minimum: 0}
+    invalidatedChallengeCount: {type: integer, minimum: 0}
 AdminUserListData:
   type: object
   required: [items, hasMore]
@@ -125,6 +166,8 @@ AdminUserListResponse:
   allOf: [{$ref: ../components/schemas/common.yaml#/BaseSuccessEnvelope}, {type: object, properties: {data: {$ref: '#/AdminUserListData'}}}]
 AdminUserResponse:
   allOf: [{$ref: ../components/schemas/common.yaml#/BaseSuccessEnvelope}, {type: object, properties: {data: {$ref: '#/AdminUserSummary'}}}]
+AdminUserSecurityActionResponse:
+  allOf: [{$ref: ../components/schemas/common.yaml#/BaseSuccessEnvelope}, {type: object, properties: {data: {$ref: '#/AdminUserSecurityAction'}}}]
 AdminUserDetailResponse:
   allOf: [{$ref: ../components/schemas/common.yaml#/BaseSuccessEnvelope}, {type: object, properties: {data: {$ref: '#/AdminUserDetail'}}}]
 AdminUserEntitlementResponse:

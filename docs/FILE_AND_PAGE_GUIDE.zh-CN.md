@@ -51,7 +51,7 @@
 | W14 | 合规审计与监管取证页面 `/audit` | `apps/admin-web/src/pages/audit/AuditOperations.tsx` | 已完成：登录、AI 输入输出、充值支付、管理员配置和网站运行日志检索；敏感正文默认不读取，必须填写理由后二次确认；支持法务冻结、哈希链检查和加密导出 |
 | W15 | 邀请推广页面 `/referrals` | `apps/admin-web/src/pages/referrals/ReferralsPage.tsx` | 已完成：活动草稿、渠道/绑定门槛、动态奖励规则、反作弊、灰度发布和只选择真实已发布历史的回滚；页面不写死奖励与阈值 |
 | W16 | AI 表单下拉框与多行输入 | `apps/admin-web/src/components/ui/Select.tsx`、`apps/admin-web/src/components/ui/Textarea.tsx` | 已完成：AI 配置页的枚举选择、Prompt、JSON Schema 和审计原因输入；错误信息可直接显示在输入框下方 |
-| W17 | 用户管理页面 `/users` | `apps/admin-web/src/pages/users/UsersPage.tsx` | 已完成：脱敏搜索、详情、设备、授权、权益、钱包流水及理由+用户 ID 双确认的冻结/恢复 |
+| W17 | 用户管理页面 `/users` | `apps/admin-web/src/pages/users/UsersPage.tsx` | 已完成：脱敏搜索与详情；资料编辑、验证码登录安全重置、单设备撤销、冻结/恢复、增减量调额和已发布套餐分配；高风险操作要求理由及用户/设备 ID 确认 |
 | W18 | 公告运营页面 `/operations/notices` | `apps/admin-web/src/pages/operations/NoticesPage.tsx` | 已完成：草稿、类型、平台/语言/版本/频次/时间定向、发布和撤回 |
 | W19 | 网站设置页面 `/system/settings` | `apps/admin-web/src/pages/system/SettingsPage.tsx` | 已完成：网站/App 名、主体、Logo、客服/隐私邮箱、语言、备案、维护模式及草稿/发布分离 |
 | W20 | 支付运营页面 `/commerce/payments` | `apps/admin-web/src/pages/commerce/PaymentsPage.tsx` | 已完成：易支付线上摘要、支付方式、回调地址、订单退款指标和参数化主动对账；不显示商户密钥 |
@@ -89,8 +89,8 @@
 | B20 | 统一合规审计业务服务 | `services/api/src/love_reply_api/application/audit.py` | 敏感正文加密、凭据脱敏、HMAC-SHA256 哈希链、筛选、法务冻结、完整性校验和加密监管导出 |
 | B21 | 管理员合规审计接口 | `services/api/src/love_reply_api/transport/http/routes/admin_audit.py` | 日志列表、敏感正文受控读取、法务冻结、完整性检查、监管导出创建和读取共 6 个操作 |
 | B22 | 合规审计接口参数 | `services/api/src/love_reply_api/transport/http/audit_schemas.py` | 审计筛选、正文读取理由、冻结理由和导出理由校验；理由最少 8 字由后端契约控制 |
-| B23 | 用户/公告/网站设置管理接口 | `services/api/src/love_reply_api/transport/http/routes/admin_platform.py` | 用户检索和状态、网站配置草稿/发布、公告草稿/发布/撤回；全部高风险操作使用独立权限、理由和乐观锁 |
-| B24 | 平台运营业务规则 | `services/api/src/love_reply_api/application/admin_platform.py` | 用户脱敏及会话撤销、网站配置版本、公告平台/语言/客户端版本/时间定向和追加式业务审计 |
+| B23 | 用户/公告/网站设置管理接口 | `services/api/src/love_reply_api/transport/http/routes/admin_platform.py` | 用户检索、资料、状态、登录重置、设备撤销、发布套餐发放，以及网站配置和公告版本操作；高风险操作使用独立权限、理由、精确 ID 确认和适用的乐观锁 |
+| B24 | 平台运营业务规则 | `services/api/src/love_reply_api/application/admin_platform.py` | 用户脱敏、非凭据资料、验证码/会话作废、设备撤销、发布套餐快照发放，以及网站配置/公告版本和追加式业务审计 |
 | B25 | 客服用户与管理员接口 | `services/api/src/love_reply_api/transport/http/routes/support.py`、`admin_support.py` | 本人工单创建/读取/回复及管理员队列、内部备注、分派、优先级和解决关闭 |
 | B26 | 客服工单业务规则 | `services/api/src/love_reply_api/application/support.py` | 工单归属隔离、关闭门禁、内部备注可见性、乐观锁和管理员审计；正文进入加密敏感审计 |
 
@@ -111,6 +111,7 @@
 | D11 | 供应商紧急停用权限升级 | `database/migrations/versions/c42f19e7ab31_add_provider_disable_permission.py` | 新增 `PROVIDER_DISABLE` 权限并为已有平台所有者安全回填；降级时仅移除该权限 |
 | D12 | 平台运营数据表和升级 | `services/api/src/love_reply_api/infrastructure/platform_records.py`、`database/migrations/versions/e31a6d8c4f20_add_core_admin_platform.py` | 网站配置版本、公告版本和平台业务审计 |
 | D13 | 客服工单升级 | `database/migrations/versions/f7c216b8a904_add_support_tickets.py` | 工单、消息、索引及客服读写权限回填 |
+| D14 | 用户运营写权限升级 | `database/migrations/versions/a82d91c4e630_add_user_operations_permissions.py` | 新增资料编辑、会话撤销和套餐发放权限并为平台所有者回填；已验证升级、降级和再升级 |
 
 ## 契约与配置
 
@@ -129,7 +130,7 @@
 | C10 | 邀请推广接口契约 | `contracts/openapi/paths/referrals.yaml`、`contracts/openapi/admin/referrals.yaml` | 用户邀请流程、管理员活动操作和合法回滚目标的不可变历史读取 |
 | C11 | 邀请推广数据结构 | `contracts/openapi/schemas/referrals.yaml` | 活动、里程碑、奖励、风控、绑定状态和历史版本发布标记字段 |
 | C12 | 管理后台全量功能矩阵 | `docs/product/admin-console-feature-matrix.md` | 对照产品文档跟踪用户、客服、公告、支付运营、CMS、网站配置、RBAC、告警和数据治理，防止局部完成被误报为全部完成 |
-| C13 | 用户、公告和网站配置契约 | `contracts/openapi/admin/platform.yaml`、`contracts/openapi/schemas/admin-platform.yaml` | 管理员用户状态、配置版本、公告版本及公共公告接口 |
+| C13 | 用户、公告和网站配置契约 | `contracts/openapi/admin/platform.yaml`、`contracts/openapi/schemas/admin-platform.yaml` | 管理员用户资料、状态、登录重置、设备撤销、发布套餐发放，以及配置版本、公告版本和公共公告接口 |
 | C14 | 客服工单契约 | `contracts/openapi/paths/support.yaml`、`contracts/openapi/admin/support.yaml`、`contracts/openapi/schemas/support.yaml` | 用户工单与管理员队列、会话、内部备注和处理字段 |
 
 ## 目录维护规则

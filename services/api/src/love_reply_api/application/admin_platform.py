@@ -2,14 +2,16 @@
 
 import re
 from dataclasses import dataclass
-from datetime import UTC, datetime
-from typing import Any
+from datetime import UTC, datetime, timedelta
+from typing import Any, cast
 from uuid import uuid4
 
 from sqlalchemy import func, or_, select, update
+from sqlalchemy.engine import CursorResult
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from love_reply_api.application.errors import ApiError
+from love_reply_api.infrastructure.commerce_records import ProductVersionRecord
 from love_reply_api.infrastructure.generation_records import (
     EntitlementRecord,
     WalletAccountRecord,
@@ -18,6 +20,8 @@ from love_reply_api.infrastructure.generation_records import (
 from love_reply_api.infrastructure.identity_records import (
     AuthSessionRecord,
     ConsentRecord,
+    EmailChallengeRecord,
+    SmsChallengeRecord,
     UserDeviceRecord,
     UserProfileRecord,
     UserRecord,
@@ -88,6 +92,7 @@ class AdminPlatformService:
             "masked_email": self._mask_email(user.email_normalized),
             "masked_phone": self._mask_phone(user.phone_e164),
             "nickname": profile.nickname if profile is not None else None,
+            "avatar_url": profile.avatar_url if profile is not None else None,
             "locale": user.locale,
             "time_zone": user.time_zone,
             "plan_code": entitlement.plan_code if entitlement is not None else None,
@@ -200,6 +205,250 @@ class AdminPlatformService:
             action="USER_SUSPENDED" if target_status == "SUSPENDED" else "USER_RESTORED",
             reason=audit_reason,
             metadata={"previousStatus": previous_status, "targetStatus": target_status},
+            now=now,
+        )
+        await self._session.commit()
+        return await self.user_summary(user)
+
+    async def update_user_profile(
+        self,
+        *,
+        user_id: str,
+        expected_version: int,
+        nickname: str | None,
+        avatar_url: str | None,
+        locale: str,
+        time_zone: str,
+        admin_id: str,
+        audit_reason: str,
+    ) -> dict[str, Any]:
+        """编辑非身份凭据资料；邮箱和手机号仍由独立身份校验流程维护。"""
+        user = await self._session.scalar(
+            select(UserRecord).where(UserRecord.user_id == user_id).with_for_update()
+        )
+        if user is None:
+            raise self._not_found("USER_NOT_FOUND", "User")
+        self._assert_version(user.resource_version, expected_version)
+        profile = await self._session.scalar(
+            select(UserProfileRecord).where(UserProfileRecord.user_id == user_id).with_for_update()
+        )
+        now = datetime.now(UTC)
+        if profile is None:
+            profile = UserProfileRecord(
+                user_id=user_id, nickname=None, avatar_url=None, updated_at=now
+            )
+            self._session.add(profile)
+        changed_fields = [
+            field
+            for field, before, after in (
+                ("nickname", profile.nickname, nickname),
+                ("avatarUrl", profile.avatar_url, avatar_url),
+                ("locale", user.locale, locale),
+                ("timeZone", user.time_zone, time_zone),
+            )
+            if before != after
+        ]
+        if not changed_fields:
+            raise ApiError(
+                status_code=409,
+                code="USER_PROFILE_UNCHANGED",
+                message="User profile is unchanged.",
+            )
+        profile.nickname = nickname
+        profile.avatar_url = avatar_url
+        profile.updated_at = now
+        user.locale = locale
+        user.time_zone = time_zone
+        user.resource_version += 1
+        user.updated_at = now
+        self._audit(
+            resource_type="USER",
+            resource_id=user_id,
+            admin_id=admin_id,
+            action="USER_PROFILE_UPDATED",
+            reason=audit_reason,
+            metadata={"changedFields": changed_fields},
+            now=now,
+        )
+        await self._session.commit()
+        return await self.user_summary(user)
+
+    async def reset_user_login_state(
+        self, *, user_id: str, admin_id: str, audit_reason: str
+    ) -> dict[str, int]:
+        """撤销用户会话并作废待使用验证码，不读取或制造任何密码。"""
+        user = await self._user(user_id)
+        now = datetime.now(UTC)
+        sessions = await self._session.execute(
+            update(AuthSessionRecord)
+            .where(AuthSessionRecord.user_id == user_id, AuthSessionRecord.revoked_at.is_(None))
+            .values(revoked_at=now)
+        )
+        invalidated_challenges = 0
+        if user.email_normalized:
+            result = await self._session.execute(
+                update(EmailChallengeRecord)
+                .where(
+                    EmailChallengeRecord.email_normalized == user.email_normalized,
+                    EmailChallengeRecord.consumed_at.is_(None),
+                )
+                .values(consumed_at=now)
+            )
+            invalidated_challenges += int(cast(CursorResult[Any], result).rowcount or 0)
+        if user.phone_e164:
+            result = await self._session.execute(
+                update(SmsChallengeRecord)
+                .where(
+                    SmsChallengeRecord.phone_e164 == user.phone_e164,
+                    SmsChallengeRecord.consumed_at.is_(None),
+                )
+                .values(consumed_at=now)
+            )
+            invalidated_challenges += int(cast(CursorResult[Any], result).rowcount or 0)
+        revoked_sessions = int(cast(CursorResult[Any], sessions).rowcount or 0)
+        self._audit(
+            resource_type="USER_SECURITY",
+            resource_id=user_id,
+            admin_id=admin_id,
+            action="USER_LOGIN_STATE_RESET",
+            reason=audit_reason,
+            metadata={
+                "revokedSessionCount": revoked_sessions,
+                "invalidatedChallengeCount": invalidated_challenges,
+            },
+            now=now,
+        )
+        await self._session.commit()
+        return {
+            "revoked_session_count": revoked_sessions,
+            "invalidated_challenge_count": invalidated_challenges,
+        }
+
+    async def revoke_user_device(
+        self, *, user_id: str, device_id: str, admin_id: str, audit_reason: str
+    ) -> dict[str, int]:
+        await self._user(user_id)
+        device = await self._session.scalar(
+            select(UserDeviceRecord)
+            .where(UserDeviceRecord.user_id == user_id, UserDeviceRecord.device_id == device_id)
+            .with_for_update()
+        )
+        if device is None:
+            raise self._not_found("USER_DEVICE_NOT_FOUND", "User device")
+        if device.revoked_at is not None:
+            raise ApiError(
+                status_code=409,
+                code="USER_DEVICE_ALREADY_REVOKED",
+                message="User device is already revoked.",
+            )
+        now = datetime.now(UTC)
+        device.revoked_at = now
+        sessions = await self._session.execute(
+            update(AuthSessionRecord)
+            .where(
+                AuthSessionRecord.user_id == user_id,
+                AuthSessionRecord.device_id == device_id,
+                AuthSessionRecord.revoked_at.is_(None),
+            )
+            .values(revoked_at=now)
+        )
+        revoked_sessions = int(cast(CursorResult[Any], sessions).rowcount or 0)
+        self._audit(
+            resource_type="USER_DEVICE",
+            resource_id=device.id,
+            admin_id=admin_id,
+            action="USER_DEVICE_REVOKED",
+            reason=audit_reason,
+            metadata={
+                "userId": user_id,
+                "deviceId": device_id,
+                "revokedSessionCount": revoked_sessions,
+            },
+            now=now,
+        )
+        await self._session.commit()
+        return {"revoked_session_count": revoked_sessions, "invalidated_challenge_count": 0}
+
+    async def grant_user_plan(
+        self,
+        *,
+        user_id: str,
+        product_version_id: str,
+        expected_entitlement_version: int,
+        admin_id: str,
+        audit_reason: str,
+    ) -> dict[str, Any]:
+        """按已发布商品快照发放套餐，页面和接口都不接受自定义资费或额度。"""
+        user = await self._user(user_id)
+        now = datetime.now(UTC)
+        product = await self._session.scalar(
+            select(ProductVersionRecord).where(
+                ProductVersionRecord.product_version_id == product_version_id,
+                ProductVersionRecord.product_type == "PLAN",
+                ProductVersionRecord.status == "ACTIVE",
+                ProductVersionRecord.effective_at <= now,
+                or_(
+                    ProductVersionRecord.expires_at.is_(None), ProductVersionRecord.expires_at > now
+                ),
+            )
+        )
+        if product is None:
+            raise ApiError(
+                status_code=409,
+                code="PUBLISHED_PLAN_NOT_AVAILABLE",
+                message="The selected published plan is not available.",
+            )
+        if product.term_days is None or product.term_days < 1:
+            raise ApiError(
+                status_code=409,
+                code="PUBLISHED_PLAN_TERM_INVALID",
+                message="The selected published plan has no valid term.",
+            )
+        entitlement = await self._session.scalar(
+            select(EntitlementRecord).where(EntitlementRecord.user_id == user_id).with_for_update()
+        )
+        if entitlement is None:
+            raise self._not_found("USER_ENTITLEMENT_NOT_FOUND", "User entitlement")
+        self._assert_version(entitlement.resource_version, expected_entitlement_version)
+        benefits = dict(product.benefits)
+        before = {
+            "planCode": entitlement.plan_code,
+            "planExpiresAt": entitlement.plan_expires_at.isoformat()
+            if entitlement.plan_expires_at
+            else None,
+            "textRemaining": entitlement.text_remaining,
+            "visionRemaining": entitlement.vision_remaining,
+        }
+        start = max(now, entitlement.plan_expires_at or now)
+        entitlement.plan_code = product.product_code
+        entitlement.plan_expires_at = start + timedelta(days=product.term_days)
+        entitlement.text_remaining += int(benefits["textQuota"])
+        entitlement.vision_remaining += int(benefits["visionQuota"])
+        entitlement.allowed_model_ids = sorted(
+            set(entitlement.allowed_model_ids) | set(benefits["allowedModelIds"])
+        )
+        entitlement.allowed_style_ids = sorted(
+            set(entitlement.allowed_style_ids) | set(benefits["allowedStyleIds"])
+        )
+        entitlement.resource_version += 1
+        entitlement.updated_at = now
+        self._audit(
+            resource_type="USER_PLAN",
+            resource_id=user_id,
+            admin_id=admin_id,
+            action="USER_PLAN_GRANTED",
+            reason=audit_reason,
+            metadata={
+                "productVersionId": product.product_version_id,
+                "productCode": product.product_code,
+                "before": before,
+                "after": {
+                    "planCode": entitlement.plan_code,
+                    "planExpiresAt": entitlement.plan_expires_at.isoformat(),
+                    "textRemaining": entitlement.text_remaining,
+                    "visionRemaining": entitlement.vision_remaining,
+                },
+            },
             now=now,
         )
         await self._session.commit()
