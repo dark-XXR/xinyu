@@ -23,6 +23,7 @@
 
 package com.love_reply.generated.model
 
+import com.love_reply.generated.model.MediaAsset
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
@@ -30,26 +31,30 @@ import com.squareup.moshi.JsonClass
 /**
  *
  *
- * @param nickname
- * @param avatarUrl
- * @param locale
- * @param timeZone
+ * @param code
+ * @param message
+ * @param `data`
+ * @param requestId
+ * @param timestamp
  */
 
 
-data class UpdateUserRequest (
+data class MediaAssetResponse (
 
-    @Json(name = "nickname")
-    val nickname: kotlin.String? = null,
+    @Json(name = "code")
+    val code: kotlin.String,
 
-    @Json(name = "avatarUrl")
-    val avatarUrl: kotlin.String? = null,
+    @Json(name = "message")
+    val message: kotlin.String,
 
-    @Json(name = "locale")
-    val locale: kotlin.String? = null,
+    @Json(name = "data")
+    val `data`: MediaAsset,
 
-    @Json(name = "timeZone")
-    val timeZone: kotlin.String? = null
+    @Json(name = "requestId")
+    val requestId: kotlin.String,
+
+    @Json(name = "timestamp")
+    val timestamp: java.time.OffsetDateTime
 
 ) {
 

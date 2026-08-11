@@ -34,6 +34,7 @@ import { Badge } from '../../components/ui/Badge';
 import { Dialog } from '../../components/ui/Dialog';
 import { Drawer } from '../../components/ui/Drawer';
 import { Textarea } from '../../components/ui/Textarea';
+import { MediaUpload } from '../../components/ui/MediaUpload';
 import { repository } from '../../api/repository';
 import type {
   AdminUserSummary,
@@ -48,6 +49,7 @@ import {
   EntitlementAdjustmentRequestUnitEnum,
   ProductType,
   ProductPublicationStatus,
+  MediaPurpose,
 } from '../../api/models';
 
 /**
@@ -127,6 +129,7 @@ export const UsersPage: React.FC = () => {
   const [profileAuditReason, setProfileAuditReason] = useState<string>('');
   const [profileConfirmUserId, setProfileConfirmUserId] = useState<string>('');
   const [profileSubmitting, setProfileSubmitting] = useState<boolean>(false);
+  const [profileAvatarUploading, setProfileAvatarUploading] = useState<boolean>(false);
 
   // 3. 登录安全重置 Dialog
   const [resetDialogOpen, setResetDialogOpen] = useState<boolean>(false);
@@ -499,7 +502,7 @@ export const UsersPage: React.FC = () => {
   const isIdConfirmed = (input: string, expected: string) => input.trim() === expected;
 
   const canSubmitStatus = isReasonValid(statusAuditReason) && actionUser && isIdConfirmed(statusConfirmUserId, actionUser.userId) && !statusSubmitting;
-  const canSubmitProfile = isReasonValid(profileAuditReason) && profileUser && isIdConfirmed(profileConfirmUserId, profileUser.userId) && !profileSubmitting;
+  const canSubmitProfile = isReasonValid(profileAuditReason) && profileUser && isIdConfirmed(profileConfirmUserId, profileUser.userId) && !profileSubmitting && !profileAvatarUploading;
   const canSubmitReset = isReasonValid(resetAuditReason) && resetUser && isIdConfirmed(resetConfirmUserId, resetUser.userId) && !resetSubmitting;
   const canSubmitDeviceRevoke = isReasonValid(deviceAuditReason) && targetDevice && isIdConfirmed(deviceConfirmId, targetDevice.deviceId) && !deviceSubmitting;
   const canSubmitAdjust = isReasonValid(adjustAuditReason) && adjustUser && isIdConfirmed(adjustConfirmUserId, adjustUser.userId) && adjustDelta !== 0 && isReasonCodeValid(adjustReasonCode) && !adjustSubmitting;
@@ -958,8 +961,19 @@ export const UsersPage: React.FC = () => {
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '4px' }}>头像图片 URL</label>
-              <Input placeholder="https://example.com/avatar.jpg" value={editAvatarUrl} onChange={(e) => setEditAvatarUrl(e.target.value)} />
+              <label htmlFor="user-avatar-upload-input" style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '4px' }}>
+                用户头像
+              </label>
+              <MediaUpload
+                id="user-avatar-upload-input"
+                value={editAvatarUrl || null}
+                purpose={MediaPurpose.UserAvatar}
+                auditReason={profileAuditReason.trim() || '编辑用户资料头像上传'}
+                onChange={(url) => setEditAvatarUrl(url || '')}
+                onUploadingChange={setProfileAvatarUploading}
+                disabled={profileSubmitting}
+                label="用户头像"
+              />
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>

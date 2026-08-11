@@ -8,7 +8,7 @@ AdminUserSummary:
     maskedEmail: {type: [string, "null"]}
     maskedPhone: {type: [string, "null"]}
     nickname: {type: [string, "null"]}
-    avatarUrl: {type: [string, "null"], format: uri}
+    avatarUrl: {type: [string, "null"], pattern: '^/media/mda_[0-9a-f]{32}$'}
     locale: {type: string}
     timeZone: {type: string}
     planCode: {type: [string, "null"]}
@@ -42,7 +42,7 @@ AdminUserProfileRequest:
   required: [locale, timeZone, auditReason, confirmationUserId]
   properties:
     nickname: {type: [string, "null"], maxLength: 64}
-    avatarUrl: {type: [string, "null"], format: uri}
+    avatarUrl: {type: [string, "null"], pattern: '^/media/mda_[0-9a-f]{32}$'}
     locale: {type: string, minLength: 2, maxLength: 35}
     timeZone: {type: string, minLength: 1, maxLength: 64}
     auditReason: {type: string, minLength: 8, maxLength: 500}
@@ -91,7 +91,7 @@ SystemIdentityConfig:
     websiteName: {type: string, minLength: 1, maxLength: 80}
     appName: {type: string, minLength: 1, maxLength: 80}
     companyName: {type: string, minLength: 1, maxLength: 160}
-    logoUrl: {type: [string, "null"], format: uri}
+    logoUrl: {type: [string, "null"], pattern: '^/media/mda_[0-9a-f]{32}$'}
     customerServiceEmail: {type: string, format: email}
     privacyEmail: {type: string, format: email}
     defaultLocale: {type: string}

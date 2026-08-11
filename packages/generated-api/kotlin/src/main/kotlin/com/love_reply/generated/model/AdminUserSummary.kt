@@ -95,7 +95,7 @@ data class AdminUserSummary (
     val nickname: kotlin.String? = null,
 
     @Json(name = "avatarUrl")
-    val avatarUrl: java.net.URI? = null,
+    val avatarUrl: kotlin.String? = null,
 
     @Json(name = "planCode")
     val planCode: kotlin.String? = null,

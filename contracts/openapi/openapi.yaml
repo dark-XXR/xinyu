@@ -115,6 +115,10 @@ paths:
     $ref: ./paths/auth.yaml#/logoutAll
   /v1/me:
     $ref: ./paths/me.yaml#/me
+  /v1/media/avatar:
+    $ref: ./paths/media.yaml#/myAvatar
+  /media/{assetId}:
+    $ref: ./paths/media.yaml#/asset
   /v1/me/devices:
     $ref: ./paths/me.yaml#/devices
   /v1/me/devices/{deviceId}:
@@ -219,6 +223,8 @@ paths:
     $ref: ./admin/audit.yaml#/exportContent
   /admin/v1/users:
     $ref: ./admin/platform.yaml#/users
+  /admin/v1/media/assets:
+    $ref: ./admin/platform.yaml#/mediaAssets
   /admin/v1/users/{userId}:
     $ref: ./admin/platform.yaml#/user
   /admin/v1/users/{userId}/status:

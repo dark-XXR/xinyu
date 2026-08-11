@@ -29,6 +29,11 @@ import {
     ErrorResponseToJSON,
 } from '../models/ErrorResponse';
 import {
+    type MediaAssetResponse,
+    MediaAssetResponseFromJSON,
+    MediaAssetResponseToJSON,
+} from '../models/MediaAssetResponse';
+import {
     type UpdateUserRequest,
     UpdateUserRequestFromJSON,
     UpdateUserRequestToJSON,
@@ -73,6 +78,15 @@ export interface UpdateCurrentUserRequest {
     ifMatch: string;
     idempotencyKey: string;
     updateUserRequest: UpdateUserRequest;
+    xRequestId?: string;
+}
+
+export interface UploadMyAvatarRequest {
+    xClientVersion: string;
+    xPlatform: UploadMyAvatarXPlatformEnum;
+    xDeviceId: string;
+    acceptLanguage: string;
+    file: Blob;
     xRequestId?: string;
 }
 
@@ -216,6 +230,39 @@ export interface USERApiInterface {
      * Update non-sensitive account profile fields
      */
     updateCurrentUser(requestParameters: UpdateCurrentUserRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<UserResponse>;
+
+    /**
+     * Creates request options for uploadMyAvatar without sending the request
+     * @param {string} xClientVersion Semantic application version used for compatibility enforcement.
+     * @param {'ANDROID' | 'ADMIN_WEB'} xPlatform
+     * @param {string} xDeviceId Opaque installation ID. It is not an authentication credential.
+     * @param {string} acceptLanguage
+     * @param {Blob} file
+     * @param {string} [xRequestId] Client correlation ID. The server returns the final accepted value.
+     * @throws {RequiredError}
+     * @memberof USERApiInterface
+     */
+    uploadMyAvatarRequestOpts(requestParameters: UploadMyAvatarRequest): Promise<runtime.RequestOpts>;
+
+    /**
+     *
+     * @summary Upload a first-party avatar image for the current user
+     * @param {string} xClientVersion Semantic application version used for compatibility enforcement.
+     * @param {'ANDROID' | 'ADMIN_WEB'} xPlatform
+     * @param {string} xDeviceId Opaque installation ID. It is not an authentication credential.
+     * @param {string} acceptLanguage
+     * @param {Blob} file
+     * @param {string} [xRequestId] Client correlation ID. The server returns the final accepted value.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof USERApiInterface
+     */
+    uploadMyAvatarRaw(requestParameters: UploadMyAvatarRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<MediaAssetResponse>>;
+
+    /**
+     * Upload a first-party avatar image for the current user
+     */
+    uploadMyAvatar(requestParameters: UploadMyAvatarRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<MediaAssetResponse>;
 
 }
 
@@ -647,6 +694,127 @@ export class USERApi extends runtime.BaseAPI implements USERApiInterface {
         return await response.value();
     }
 
+    /**
+     * Creates request options for uploadMyAvatar without sending the request
+     */
+    async uploadMyAvatarRequestOpts(requestParameters: UploadMyAvatarRequest): Promise<runtime.RequestOpts> {
+        if (requestParameters['xClientVersion'] == null) {
+            throw new runtime.RequiredError(
+                'xClientVersion',
+                'Required parameter "xClientVersion" was null or undefined when calling uploadMyAvatar().'
+            );
+        }
+
+        if (requestParameters['xPlatform'] == null) {
+            throw new runtime.RequiredError(
+                'xPlatform',
+                'Required parameter "xPlatform" was null or undefined when calling uploadMyAvatar().'
+            );
+        }
+
+        if (requestParameters['xDeviceId'] == null) {
+            throw new runtime.RequiredError(
+                'xDeviceId',
+                'Required parameter "xDeviceId" was null or undefined when calling uploadMyAvatar().'
+            );
+        }
+
+        if (requestParameters['acceptLanguage'] == null) {
+            throw new runtime.RequiredError(
+                'acceptLanguage',
+                'Required parameter "acceptLanguage" was null or undefined when calling uploadMyAvatar().'
+            );
+        }
+
+        if (requestParameters['file'] == null) {
+            throw new runtime.RequiredError(
+                'file',
+                'Required parameter "file" was null or undefined when calling uploadMyAvatar().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (requestParameters['xRequestId'] != null) {
+            headerParameters['X-Request-Id'] = String(requestParameters['xRequestId']);
+        }
+
+        if (requestParameters['xClientVersion'] != null) {
+            headerParameters['X-Client-Version'] = String(requestParameters['xClientVersion']);
+        }
+
+        if (requestParameters['xPlatform'] != null) {
+            headerParameters['X-Platform'] = String(requestParameters['xPlatform']);
+        }
+
+        if (requestParameters['xDeviceId'] != null) {
+            headerParameters['X-Device-Id'] = String(requestParameters['xDeviceId']);
+        }
+
+        if (requestParameters['acceptLanguage'] != null) {
+            headerParameters['Accept-Language'] = String(requestParameters['acceptLanguage']);
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("bearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const consumes: runtime.Consume[] = [
+            { contentType: 'multipart/form-data' },
+        ];
+        // @ts-ignore: canConsumeForm may be unused
+        const canConsumeForm = runtime.canConsumeForm(consumes);
+
+        let formParams: { append(param: string, value: any): any };
+        let useForm = false;
+        // use FormData to transmit files using content-type "multipart/form-data"
+        useForm = canConsumeForm;
+        if (useForm) {
+            formParams = new FormData();
+        } else {
+            formParams = new URLSearchParams();
+        }
+
+        if (requestParameters['file'] != null) {
+            formParams.append('file', requestParameters['file'] as any);
+        }
+
+
+        let urlPath = `/v1/media/avatar`;
+
+        return {
+            path: urlPath,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: formParams,
+        };
+    }
+
+    /**
+     * Upload a first-party avatar image for the current user
+     */
+    async uploadMyAvatarRaw(requestParameters: UploadMyAvatarRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<MediaAssetResponse>> {
+        const requestOptions = await this.uploadMyAvatarRequestOpts(requestParameters);
+        const response = await this.request(requestOptions, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => MediaAssetResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Upload a first-party avatar image for the current user
+     */
+    async uploadMyAvatar(requestParameters: UploadMyAvatarRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<MediaAssetResponse> {
+        const response = await this.uploadMyAvatarRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
 }
 
 /**
@@ -681,3 +849,11 @@ export const UpdateCurrentUserXPlatformEnum = {
     AdminWeb: 'ADMIN_WEB'
 } as const;
 export type UpdateCurrentUserXPlatformEnum = typeof UpdateCurrentUserXPlatformEnum[keyof typeof UpdateCurrentUserXPlatformEnum];
+/**
+ * @export
+ */
+export const UploadMyAvatarXPlatformEnum = {
+    Android: 'ANDROID',
+    AdminWeb: 'ADMIN_WEB'
+} as const;
+export type UploadMyAvatarXPlatformEnum = typeof UploadMyAvatarXPlatformEnum[keyof typeof UploadMyAvatarXPlatformEnum];

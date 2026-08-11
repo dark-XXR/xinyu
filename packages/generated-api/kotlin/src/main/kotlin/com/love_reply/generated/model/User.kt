@@ -70,7 +70,7 @@ data class User (
     val nickname: kotlin.String? = null,
 
     @Json(name = "avatarUrl")
-    val avatarUrl: java.net.URI? = null
+    val avatarUrl: kotlin.String? = null
 
 ) {
 

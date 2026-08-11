@@ -8,6 +8,7 @@ from uuid import uuid4
 import pytest
 import pytest_asyncio
 from love_reply_api.application.admin_platform import AdminPlatformService
+from love_reply_api.application.errors import ApiError
 from love_reply_api.application.support import SupportService
 from love_reply_api.infrastructure.commerce_records import ProductVersionRecord
 from love_reply_api.infrastructure.database import engine, session_factory
@@ -25,6 +26,7 @@ from love_reply_api.infrastructure.identity_records import (
 )
 from love_reply_api.infrastructure.platform_records import (
     AdminPlatformAuditRecord,
+    MediaAssetRecord,
     NoticeVersionRecord,
     SupportTicketMessageRecord,
     SupportTicketRecord,
@@ -53,6 +55,7 @@ async def _delete_fixture_rows(session: AsyncSession) -> None:
     await session.execute(delete(SupportTicketRecord))
     await session.execute(delete(NoticeVersionRecord))
     await session.execute(delete(AdminPlatformAuditRecord))
+    await session.execute(delete(MediaAssetRecord))
     await session.execute(
         delete(ProductVersionRecord).where(
             ProductVersionRecord.product_code.like("TEST_ADMIN_PLAN_%")
@@ -227,20 +230,70 @@ async def test_user_profile_security_device_and_published_plan_operations() -> N
     async with session_factory() as session:
         user = await _create_user(session)
         service = AdminPlatformService(session)
+        asset_id = f"mda_{uuid4().hex}"
+        now = datetime.now(UTC)
+        session.add(
+            MediaAssetRecord(
+                asset_id=asset_id,
+                purpose="USER_AVATAR",
+                storage_key=f"user_avatar/2026/08/{uuid4().hex}.png",
+                original_file_name="avatar.png",
+                content_type="image/png",
+                size_bytes=16,
+                width_pixels=32,
+                height_pixels=32,
+                sha256_digest="a" * 64,
+                owner_user_id=None,
+                created_by_admin_id="adm_platform_test",
+                created_at=now,
+            )
+        )
+        await session.commit()
         updated = await service.update_user_profile(
             user_id=user.user_id,
             expected_version=1,
             nickname="更新后的运营昵称",
-            avatar_url="https://cdn.example.com/avatar.png",
+            avatar_url=f"/media/{asset_id}",
             locale="en-US",
             time_zone="America/Los_Angeles",
             admin_id="adm_platform_test",
             audit_reason="根据用户提交的资料变更申请进行更新",
         )
         assert updated["nickname"] == "更新后的运营昵称"
-        assert updated["avatar_url"] == "https://cdn.example.com/avatar.png"
+        assert updated["avatar_url"] == f"/media/{asset_id}"
         assert updated["locale"] == "en-US"
         assert updated["resource_version"] == 2
+
+        foreign_asset_id = f"mda_{uuid4().hex}"
+        session.add(
+            MediaAssetRecord(
+                asset_id=foreign_asset_id,
+                purpose="USER_AVATAR",
+                storage_key=f"user_avatar/2026/08/{uuid4().hex}.png",
+                original_file_name="foreign-avatar.png",
+                content_type="image/png",
+                size_bytes=16,
+                width_pixels=32,
+                height_pixels=32,
+                sha256_digest="b" * 64,
+                owner_user_id="usr_other_owner",
+                created_by_admin_id=None,
+                created_at=now,
+            )
+        )
+        await session.commit()
+        with pytest.raises(ApiError) as foreign_avatar_error:
+            await service.update_user_profile(
+                user_id=user.user_id,
+                expected_version=2,
+                nickname="不应写入的昵称",
+                avatar_url=f"/media/{foreign_asset_id}",
+                locale="en-US",
+                time_zone="America/Los_Angeles",
+                admin_id="adm_platform_test",
+                audit_reason="验证不能挪用其他用户上传的头像资源",
+            )
+        assert foreign_avatar_error.value.code == "MEDIA_OWNERSHIP_MISMATCH"
 
         device_result = await service.revoke_user_device(
             user_id=user.user_id,

@@ -273,6 +273,7 @@ HTTP 状态码表达协议结果，`code` 表达稳定业务错误。SSE、文�
 | `POST /auth/logout` | 当前设备退出 | 撤销当前 refresh Token |
 | `POST /auth/logout-all` | 全设备退出 | 撤销用户全部会话 |
 | `GET /me` | 获取账户 | 基础资料、状态和权限摘要 |
+| `POST /media/avatar` | 上传本人头像 | 仅接收 PNG/JPEG/WebP 本地文件，返回站内媒体路径 |
 | `PATCH /me` | 修改资料 | 昵称、头像、语言、时区等非敏感资料 |
 | `GET /me/devices` | 登录设备 | 支持撤销单个设备 |
 | `DELETE /me/devices/{deviceId}` | 撤销设备 | 当前设备撤销后要求重新登录 |
@@ -541,6 +542,7 @@ data: {"schemaVersion":"1.0","eventId":"18","eventType":"candidate.completed","o
 | `POST /admin/v1/app-releases/{releaseId}/publish` | 灰度、最低版本、强更和回滚渠道 |
 | `GET/PATCH /admin/v1/system-config` | 非密钥全局配置，使用版本控制 |
 | `POST /admin/v1/system-config/publish` | 发布网站/App 名称、主体、客服邮箱、Logo、语言、备案和维护信息草稿 |
+| `POST /admin/v1/media/assets` | 上传头像、品牌或内容图片；要求独立权限和审计理由，返回站内媒体路径 |
 | `GET/POST /admin/v1/integrations` | 第三方集成，凭据只写 |
 | `POST /admin/v1/integrations/{integrationId}/tests` | 创建连通性测试 |
 | `GET/POST /admin/v1/legal-documents` | 法律文本草稿和历史版本 |
@@ -655,7 +657,7 @@ REQUESTED -> IDENTITY_VERIFIED -> PROCESSING -> COMPLETED
 2. **访问隔离：** 所有用户资源按 `userId` 强制鉴权，不能只依赖客户端传参；管理端敏感查看使用临时授权和水印。  
 3. **凭据安全：** 模型、支付、短信和对象存储密钥保存在 KMS/Secrets Manager；管理 API 永不回显完整密钥。  
 4. **Webhook 安全：** 验证签名、时间窗、随机数、金额、商户身份和事件唯一 ID，原始载荷加密留存用于审计。  
-5. **上传安全：** 重新编码图片、限制像素/帧数/大小、清理 EXIF、病毒扫描、短期签名 URL、禁止公开桶。  
+5. **上传安全：** 头像、Logo 和公开内容图必须校验文件签名、重新编码、限制像素/帧数/大小并清理 EXIF，只保存服务端生成的站内路径；OCR、工单附件等非公开附件还必须通过病毒扫描、短期签名 URL 和非公开存储后才能开放。
 6. **模型安全：** 输入视为不可信内容；结构化输出校验；模型路由和 Prompt 版本写入每次生成记录。  
 7. **隐私生命周期：** 记录用途、法律依据、保存期限、授权版本和删除任务；备份中的删除遵循明确周期。  
 8. **可观测性：** 监控成功率、首事件延迟、完整延迟、断线恢复、供应商错误、预占未释放、重复扣费和安全指标。  

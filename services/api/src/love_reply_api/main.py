@@ -37,6 +37,9 @@ from love_reply_api.transport.http.routes.billing import webhook_router as payme
 from love_reply_api.transport.http.routes.candidates import router as candidate_router
 from love_reply_api.transport.http.routes.generations import router as generation_router
 from love_reply_api.transport.http.routes.me import router as me_router
+from love_reply_api.transport.http.routes.media import admin_router as admin_media_router
+from love_reply_api.transport.http.routes.media import public_router as public_media_router
+from love_reply_api.transport.http.routes.media import user_router as user_media_router
 from love_reply_api.transport.http.routes.referrals import router as referral_router
 from love_reply_api.transport.http.routes.support import router as support_router
 
@@ -75,8 +78,11 @@ app.include_router(admin_audit_router)
 app.include_router(admin_provider_router)
 app.include_router(admin_platform_router)
 app.include_router(admin_support_router)
+app.include_router(admin_media_router)
 app.include_router(auth_router)
 app.include_router(me_router)
+app.include_router(user_media_router)
+app.include_router(public_media_router)
 app.include_router(referral_router)
 app.include_router(support_router)
 app.include_router(billing_router)

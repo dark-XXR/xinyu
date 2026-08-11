@@ -139,7 +139,7 @@ items:
       - multipart_limits_and_media_errors_are_defined
       - ocr_confirmation_requires_resource_version
       - attachment_expiry_and_delete_are_defined
-    handoffNotes: ""
+    handoffNotes: "A reusable first-party public display-image foundation now defines current-user avatar upload, administrator USER_AVATAR/WEBSITE_BRAND/CONTENT_IMAGE upload, immutable public reads, media metadata, bounded errors, and first-party-only avatar/Logo references. The task remains planned because secure private attachments, malware scanning, OCR polling/correction, expiry, deletion, and signed access are not yet implemented."
 
   - taskId: CONTRACT-GENERATION-001
     title: Define quote generation candidate SSE and risk appeal operations
@@ -284,7 +284,7 @@ items:
       - high_risk_admin_operations_require_audit_reason
       - published_config_has_version_gray_release_and_rollback
       - data_export_requires_approval_and_expiry
-    handoffNotes: "Core platform delivery now covers masked user reads; audited profile editing; OTP challenge/session reset; individual device revocation; session-revoking suspension; published-plan snapshot grants; versioned website/application identity drafts and publication; versioned notices with platform/locale/client-version/time targeting; and public bootstrap/notices. Manual wallet/quota/day changes reuse the idempotent commerce ledger. Remaining platform scope includes themes/i18n/experiments, releases, integrations, legal documents, telemetry, RBAC, alerts, incidents, and data governance."
+    handoffNotes: "Core platform delivery now covers masked user reads; audited profile editing; OTP challenge/session reset; individual device revocation; session-revoking suspension; published-plan snapshot grants; versioned website/application identity drafts and publication; versioned notices with platform/locale/client-version/time targeting; public bootstrap/notices; and first-party-only avatar/brand image references backed by persisted purpose-checked assets. Manual wallet/quota/day changes reuse the idempotent commerce ledger. Remaining platform scope includes themes/i18n/experiments, releases, integrations, legal documents, telemetry, RBAC, alerts, incidents, and data governance."
 
   - taskId: CONTRACT-ADMIN-PROVIDERS-001
     title: Define unified AI email SMS and payment provider administration contracts
@@ -545,7 +545,7 @@ items:
       - secret_values_are_never_rendered_after_submission
       - product_price_and_benefit_versions_require_confirmation
       - payment_and_provider_actions_have_audit_readback
-    handoffNotes: "In progress after scope correction. Delivered routes now include dashboard, provider lifecycle, AI runtime, products, orders/refunds, audit, audited user profile/security/device/entitlement/plan operations, notices, website identity settings, payment operations, support tickets and invitation campaign administration. User plan choices come only from active published product versions; wallet/quota/day changes use delta-based ledger adjustments. /referrals uses immutable published-version history for rollback and keeps rewards, limits, thresholds and rollout as administrator inputs. Remaining domains are dashboard aggregation, payment webhook diagnosis/replay, CMS, themes/i18n/experiments, releases, integrations, RBAC, alerts/incidents and data governance; the task must not be reported complete until those domains are accepted."
+    handoffNotes: "In progress after scope correction. Delivered routes now include dashboard, provider lifecycle, AI runtime, products, orders/refunds, audit, audited user profile/security/device/entitlement/plan operations, notices, website identity settings, payment operations, support tickets and invitation campaign administration. User avatar and website Logo URL inputs have been replaced by one reusable local-file upload/preview control backed by first-party media assets; future CMS imagery can reuse the same CONTENT_IMAGE purpose. User plan choices come only from active published product versions; wallet/quota/day changes use delta-based ledger adjustments. /referrals uses immutable published-version history for rollback and keeps rewards, limits, thresholds and rollout as administrator inputs. Remaining domains are dashboard aggregation, payment webhook diagnosis/replay, CMS, themes/i18n/experiments, releases, integrations, RBAC, alerts/incidents and data governance; the task must not be reported complete until those domains are accepted."
 
   - taskId: FRONTEND-ANDROID-AUTH-002
     title: Upgrade Android to email-first authentication with explicit SMS fallback

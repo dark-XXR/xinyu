@@ -113,7 +113,7 @@ class AdminUserStatusRequest(ApiModel):
 
 class AdminUserProfileRequest(ApiModel):
     nickname: str | None = Field(default=None, max_length=64)
-    avatar_url: HttpUrl | None = None
+    avatar_url: str | None = Field(default=None, pattern=r"^/media/mda_[0-9a-f]{32}$")
     locale: str = Field(min_length=2, max_length=35)
     time_zone: str = Field(min_length=1, max_length=64)
     audit_reason: str = Field(min_length=8, max_length=500)
@@ -145,7 +145,7 @@ class SystemIdentityConfig(ApiModel):
     website_name: str = Field(min_length=1, max_length=80)
     app_name: str = Field(min_length=1, max_length=80)
     company_name: str = Field(min_length=1, max_length=160)
-    logo_url: HttpUrl | None = None
+    logo_url: str | None = Field(default=None, pattern=r"^/media/mda_[0-9a-f]{32}$")
     customer_service_email: str = Field(pattern=r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
     privacy_email: str = Field(pattern=r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
     default_locale: str = Field(min_length=2, max_length=35)

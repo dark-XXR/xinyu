@@ -46,6 +46,10 @@ export interface GetHealthRequest {
     xRequestId?: string;
 }
 
+export interface GetMediaAssetRequest {
+    assetId: string;
+}
+
 export interface ListPublicNoticesRequest {
     xClientVersion: string;
     xPlatform: ListPublicNoticesXPlatformEnum;
@@ -115,6 +119,29 @@ export interface APPCONFIGApiInterface {
      * Read service health
      */
     getHealth(requestParameters: GetHealthRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<HealthSuccessResponse>;
+
+    /**
+     * Creates request options for getMediaAsset without sending the request
+     * @param {string} assetId
+     * @throws {RequiredError}
+     * @memberof APPCONFIGApiInterface
+     */
+    getMediaAssetRequestOpts(requestParameters: GetMediaAssetRequest): Promise<runtime.RequestOpts>;
+
+    /**
+     *
+     * @summary Read an immutable first-party image asset
+     * @param {string} assetId
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof APPCONFIGApiInterface
+     */
+    getMediaAssetRaw(requestParameters: GetMediaAssetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Blob>>;
+
+    /**
+     * Read an immutable first-party image asset
+     */
+    getMediaAsset(requestParameters: GetMediaAssetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Blob>;
 
     /**
      * Creates request options for listPublicNotices without sending the request
@@ -279,6 +306,51 @@ export class APPCONFIGApi extends runtime.BaseAPI implements APPCONFIGApiInterfa
      */
     async getHealth(requestParameters: GetHealthRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<HealthSuccessResponse> {
         const response = await this.getHealthRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Creates request options for getMediaAsset without sending the request
+     */
+    async getMediaAssetRequestOpts(requestParameters: GetMediaAssetRequest): Promise<runtime.RequestOpts> {
+        if (requestParameters['assetId'] == null) {
+            throw new runtime.RequiredError(
+                'assetId',
+                'Required parameter "assetId" was null or undefined when calling getMediaAsset().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+
+        let urlPath = `/media/{assetId}`;
+        urlPath = urlPath.replace('{assetId}', encodeURIComponent(String(requestParameters['assetId'])));
+
+        return {
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        };
+    }
+
+    /**
+     * Read an immutable first-party image asset
+     */
+    async getMediaAssetRaw(requestParameters: GetMediaAssetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Blob>> {
+        const requestOptions = await this.getMediaAssetRequestOpts(requestParameters);
+        const response = await this.request(requestOptions, initOverrides);
+
+        return new runtime.BlobApiResponse(response);
+    }
+
+    /**
+     * Read an immutable first-party image asset
+     */
+    async getMediaAsset(requestParameters: GetMediaAssetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Blob> {
+        const response = await this.getMediaAssetRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

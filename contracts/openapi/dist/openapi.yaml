@@ -472,6 +472,85 @@ paths:
           $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalError'
+  /v1/media/avatar:
+    post:
+      operationId: uploadMyAvatar
+      summary: Upload a first-party avatar image for the current user
+      tags:
+        - USER
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/XDeviceId'
+        - $ref: '#/components/parameters/AcceptLanguage'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Uploaded avatar resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MediaAssetResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '413':
+          description: Image exceeds the configured size limit.
+        '415':
+          description: File signature or media type is not supported.
+  /media/{assetId}:
+    get:
+      operationId: getMediaAsset
+      summary: Read an immutable first-party image asset
+      tags:
+        - APP_CONFIG
+      security: []
+      parameters:
+        - name: assetId
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: ^mda_[0-9a-f]{32}$
+      responses:
+        '200':
+          description: Image bytes.
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+            X-Content-Type-Options:
+              schema:
+                type: string
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+            image/webp:
+              schema:
+                type: string
+                format: binary
+        '404':
+          $ref: '#/components/responses/NotFound'
   /v1/me/devices:
     get:
       operationId: listDevices
@@ -2392,6 +2471,57 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
+  /admin/v1/media/assets:
+    post:
+      operationId: uploadAdminMediaAsset
+      summary: Upload a first-party image for an avatar, website brand, or content
+      tags:
+        - ADMIN_PLATFORM
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+                - file
+                - purpose
+                - auditReason
+              properties:
+                file:
+                  type: string
+                  format: binary
+                purpose:
+                  $ref: '#/components/schemas/MediaPurpose'
+                auditReason:
+                  type: string
+                  minLength: 8
+                  maxLength: 500
+      responses:
+        '200':
+          description: Uploaded media.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MediaAssetResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '413':
+          description: Image exceeds the configured size limit.
+        '415':
+          description: File signature or media type is not supported.
   /admin/v1/users/{userId}:
     get:
       operationId: getAdminUser
@@ -5263,7 +5393,7 @@ components:
           type:
             - string
             - 'null'
-          format: uri
+          pattern: ^/media/mda_[0-9a-f]{32}$
         customerServiceEmail:
           type: string
           format: email
@@ -5518,7 +5648,7 @@ components:
           type:
             - string
             - 'null'
-          format: uri
+          pattern: ^/media/mda_[0-9a-f]{32}$
         locale:
           type: string
         timeZone:
@@ -5749,13 +5879,65 @@ components:
           type:
             - string
             - 'null'
-          format: uri
+          pattern: ^/media/mda_[0-9a-f]{32}$
         locale:
           type: string
           maxLength: 35
         timeZone:
           type: string
           maxLength: 64
+    MediaPurpose:
+      type: string
+      enum:
+        - USER_AVATAR
+        - WEBSITE_BRAND
+        - CONTENT_IMAGE
+    MediaAsset:
+      type: object
+      additionalProperties: false
+      required:
+        - assetId
+        - purpose
+        - contentType
+        - sizeBytes
+        - widthPixels
+        - heightPixels
+        - publicUrl
+        - createdAt
+      properties:
+        assetId:
+          type: string
+          pattern: ^mda_[0-9a-f]{32}$
+        purpose:
+          $ref: '#/components/schemas/MediaPurpose'
+        contentType:
+          type: string
+          enum:
+            - image/png
+            - image/jpeg
+            - image/webp
+        sizeBytes:
+          type: integer
+          minimum: 1
+        widthPixels:
+          type: integer
+          minimum: 1
+        heightPixels:
+          type: integer
+          minimum: 1
+        publicUrl:
+          type: string
+          pattern: ^/media/mda_[0-9a-f]{32}$
+        createdAt:
+          type: string
+          format: date-time
+    MediaAssetResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/MediaAsset'
     Device:
       type: object
       additionalProperties: false
@@ -8622,7 +8804,7 @@ components:
           type:
             - string
             - 'null'
-          format: uri
+          pattern: ^/media/mda_[0-9a-f]{32}$
         locale:
           type: string
         timeZone:
@@ -8746,7 +8928,7 @@ components:
           type:
             - string
             - 'null'
-          format: uri
+          pattern: ^/media/mda_[0-9a-f]{32}$
         locale:
           type: string
           minLength: 2

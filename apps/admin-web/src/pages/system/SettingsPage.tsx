@@ -1,6 +1,6 @@
 /**
  * 网站设置页面。
- * 配置网站名称、App名称、公司名称、Logo URL、客服邮箱、隐私邮箱、默认语言、官网、备案、维护模式及提示。
+ * 配置网站名称、App名称、公司名称、本地 Logo 图片、客服邮箱、隐私邮箱、默认语言、官网、备案、维护模式及提示。
  * 清楚区分线上已发布版本和当前草稿，保存草稿与线上发布拥有独立确认机制，发布需至少8字中文审计理由。
  */
 import React, { useState, useEffect } from 'react';
@@ -20,8 +20,10 @@ import { Input } from '../../components/ui/Input';
 import { Textarea } from '../../components/ui/Textarea';
 import { Badge } from '../../components/ui/Badge';
 import { Dialog } from '../../components/ui/Dialog';
+import { MediaUpload } from '../../components/ui/MediaUpload';
 import { repository } from '../../api/repository';
 import type { SystemIdentityConfig } from '../../api/models';
+import { MediaPurpose } from '../../api/models';
 
 export const SettingsPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
@@ -41,7 +43,7 @@ export const SettingsPage: React.FC = () => {
     websiteName: '',
     appName: '',
     companyName: '',
-    logoUrl: '',
+    logoUrl: null,
     customerServiceEmail: '',
     privacyEmail: '',
     defaultLocale: 'zh-CN',
@@ -52,6 +54,7 @@ export const SettingsPage: React.FC = () => {
   });
 
   const [saveLoading, setSaveLoading] = useState<boolean>(false);
+  const [logoUploading, setLogoUploading] = useState<boolean>(false);
 
   // 发布 Modal
   const [publishModalOpen, setPublishModalOpen] = useState<boolean>(false);
@@ -90,6 +93,10 @@ export const SettingsPage: React.FC = () => {
 
   const handleSaveDraft = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (logoUploading) {
+      setError('Logo 图片正在上传处理中，请等待上传完成后保存');
+      return;
+    }
     setSaveLoading(true);
     setError(null);
     try {
@@ -157,7 +164,7 @@ export const SettingsPage: React.FC = () => {
           <Button variant="default" onClick={fetchConfig} disabled={loading}>
             <RefreshCw size={14} className={loading ? 'spin' : ''} /> 刷新
           </Button>
-          <Button variant="primary" onClick={openPublishModal} disabled={loading || publishLoading}>
+          <Button variant="primary" onClick={openPublishModal} disabled={loading || publishLoading || logoUploading}>
             <Send size={14} /> 发布线上配置
           </Button>
         </div>
@@ -239,11 +246,18 @@ export const SettingsPage: React.FC = () => {
                 />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '4px' }}>Logo 图标 URL</label>
-                <Input
-                  placeholder="https://cdn.example.com/logo.png"
-                  value={form.logoUrl || ''}
-                  onChange={(e) => setForm({ ...form, logoUrl: e.target.value })}
+                <label htmlFor="system-logo-upload-input" style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '4px' }}>
+                  网站与 App 品牌 Logo
+                </label>
+                <MediaUpload
+                  id="system-logo-upload-input"
+                  value={form.logoUrl ?? null}
+                  purpose={MediaPurpose.WebsiteBrand}
+                  auditReason="更新网站与 App 系统品牌 Logo 资产上传"
+                  onChange={(url) => setForm({ ...form, logoUrl: url ?? null })}
+                  onUploadingChange={setLogoUploading}
+                  disabled={saveLoading}
+                  label="品牌 Logo"
                 />
               </div>
             </div>
@@ -331,8 +345,8 @@ export const SettingsPage: React.FC = () => {
 
           {/* 保存草稿提交按钮 */}
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
-            <Button variant="primary" type="submit" disabled={saveLoading}>
-              <Save size={16} /> {saveLoading ? '保存中...' : '保存为修改草稿'}
+            <Button variant="primary" type="submit" disabled={saveLoading || logoUploading}>
+              <Save size={16} /> {saveLoading ? '保存中...' : logoUploading ? 'Logo 上传中...' : '保存为修改草稿'}
             </Button>
           </div>
         </div>

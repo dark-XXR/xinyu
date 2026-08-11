@@ -75,6 +75,27 @@ class AdminPlatformAuditRecord(Base):
     )
 
 
+class MediaAssetRecord(Base):
+    """由本站接收并管理的图片资源元数据，文件内容不进入数据库。"""
+
+    __tablename__ = "media_assets"
+
+    asset_id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    purpose: Mapped[str] = mapped_column(String(32), nullable=False, index=True)
+    storage_key: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
+    original_file_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    content_type: Mapped[str] = mapped_column(String(64), nullable=False)
+    size_bytes: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    width_pixels: Mapped[int] = mapped_column(nullable=False)
+    height_pixels: Mapped[int] = mapped_column(nullable=False)
+    sha256_digest: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    owner_user_id: Mapped[str | None] = mapped_column(String(64), index=True)
+    created_by_admin_id: Mapped[str | None] = mapped_column(String(64), index=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, index=True
+    )
+
+
 class SupportTicketRecord(Base):
     """客服工单主记录，仅保存队列状态和非秘密业务摘要。"""
 

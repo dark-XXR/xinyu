@@ -82,7 +82,7 @@ class UserData(ApiModel):
 
 class UpdateUserRequest(ApiModel):
     nickname: str | None = Field(default=None, max_length=64)
-    avatar_url: str | None = None
+    avatar_url: str | None = Field(default=None, pattern=r"^/media/mda_[0-9a-f]{32}$")
     locale: str | None = Field(default=None, max_length=35)
     time_zone: str | None = Field(default=None, max_length=64)
 

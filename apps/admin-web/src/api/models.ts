@@ -103,6 +103,8 @@ export type {
   ReferralInvite,
   ReferralReward,
   ReferralCampaignVersion,
+  MediaAsset,
+  MediaAssetResponse,
 } from '@love-reply/generated-api'
 
 export {
@@ -155,6 +157,7 @@ export {
   ReferralRewardStatus,
   RewardUnit,
   EntitlementAdjustmentRequestUnitEnum,
+  MediaPurpose,
 } from '@love-reply/generated-api'
 
 export type {

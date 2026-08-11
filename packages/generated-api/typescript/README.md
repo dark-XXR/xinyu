@@ -119,6 +119,7 @@ All URIs are relative to *http://localhost:8000*
 *ADMINPLATFORMApi* | [**updateAdminNotice**](docs/ADMINPLATFORMApi.md#updateadminnotice) | **PATCH** /admin/v1/notices/{noticeId} | Save an announcement draft
 *ADMINPLATFORMApi* | [**updateAdminSystemConfig**](docs/ADMINPLATFORMApi.md#updateadminsystemconfig) | **PATCH** /admin/v1/system-config | Save a website configuration draft
 *ADMINPLATFORMApi* | [**updateAdminUserProfile**](docs/ADMINPLATFORMApi.md#updateadminuserprofile) | **PATCH** /admin/v1/users/{userId}/profile | Update non-credential user profile fields
+*ADMINPLATFORMApi* | [**uploadAdminMediaAsset**](docs/ADMINPLATFORMApi.md#uploadadminmediaasset) | **POST** /admin/v1/media/assets | Upload a first-party image for an avatar, website brand, or content
 *ADMINPROVIDERApi* | [**checkAdminProviderHealth**](docs/ADMINPROVIDERApi.md#checkadminproviderhealth) | **POST** /admin/v1/providers/{providerId}/health-checks | Execute an audited redacted provider health check
 *ADMINPROVIDERApi* | [**createAdminProvider**](docs/ADMINPROVIDERApi.md#createadminprovider) | **POST** /admin/v1/providers | Create a provider draft
 *ADMINPROVIDERApi* | [**disableAdminProvider**](docs/ADMINPROVIDERApi.md#disableadminprovider) | **POST** /admin/v1/providers/{providerId}/disable | Immediately remove a published provider from runtime selection
@@ -154,6 +155,7 @@ All URIs are relative to *http://localhost:8000*
 *ADWEBHOOKApi* | [**receiveAdRewardCallback**](docs/ADWEBHOOKApi.md#receiveadrewardcallback) | **POST** /webhooks/v1/ads/{providerId} | Verify a server-to-server advertising completion callback
 *APPCONFIGApi* | [**getAppBootstrap**](docs/APPCONFIGApi.md#getappbootstrap) | **GET** /v1/app/bootstrap | Read the published application configuration
 *APPCONFIGApi* | [**getHealth**](docs/APPCONFIGApi.md#gethealth) | **GET** /health | Read service health
+*APPCONFIGApi* | [**getMediaAsset**](docs/APPCONFIGApi.md#getmediaasset) | **GET** /media/{assetId} | Read an immutable first-party image asset
 *APPCONFIGApi* | [**listPublicNotices**](docs/APPCONFIGApi.md#listpublicnotices) | **GET** /v1/app/notices | List announcements active for this client
 *AUTHApi* | [**getAuthChannels**](docs/AUTHApi.md#getauthchannels) | **GET** /v1/auth/channels | Read the public authentication channel policy
 *AUTHApi* | [**loginWithEmail**](docs/AUTHApi.md#loginwithemail) | **POST** /v1/auth/email/login | Login or register with a verified email challenge
@@ -203,6 +205,7 @@ All URIs are relative to *http://localhost:8000*
 *USERApi* | [**listDevices**](docs/USERApi.md#listdevices) | **GET** /v1/me/devices | List authenticated devices
 *USERApi* | [**revokeDevice**](docs/USERApi.md#revokedevice) | **DELETE** /v1/me/devices/{deviceId} | Revoke one authenticated device
 *USERApi* | [**updateCurrentUser**](docs/USERApi.md#updatecurrentuser) | **PATCH** /v1/me | Update non-sensitive account profile fields
+*USERApi* | [**uploadMyAvatar**](docs/USERApi.md#uploadmyavatar) | **POST** /v1/media/avatar | Upload a first-party avatar image for the current user
 *WALLETApi* | [**getWallet**](docs/WALLETApi.md#getwallet) | **GET** /v1/wallet | Get energy balance and active reservations
 *WALLETApi* | [**listWalletLedger**](docs/WALLETApi.md#listwalletledger) | **GET** /v1/wallet/ledger | List immutable wallet entries
 
@@ -401,6 +404,9 @@ All URIs are relative to *http://localhost:8000*
 - [LogicalModel](docs/LogicalModel.md)
 - [LoginData](docs/LoginData.md)
 - [LoginResponse](docs/LoginResponse.md)
+- [MediaAsset](docs/MediaAsset.md)
+- [MediaAssetResponse](docs/MediaAssetResponse.md)
+- [MediaPurpose](docs/MediaPurpose.md)
 - [ModelQuoteOption](docs/ModelQuoteOption.md)
 - [NativeAiConfiguration](docs/NativeAiConfiguration.md)
 - [NoticeListResponse](docs/NoticeListResponse.md)

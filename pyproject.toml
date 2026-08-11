@@ -16,6 +16,7 @@ dependencies = [
   "httpx>=0.28,<1",
   "PyJWT[crypto]>=2.10,<3",
   "pydantic-settings>=2.10,<3",
+  "pillow>=12,<13",
   "python-multipart>=0.0.20,<1",
   "redis>=6.2,<7",
   "sqlalchemy[asyncio]>=2.0.41,<3",

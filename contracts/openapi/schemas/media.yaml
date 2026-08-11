@@ -1,0 +1,40 @@
+MediaPurpose:
+  type: string
+  enum: [USER_AVATAR, WEBSITE_BRAND, CONTENT_IMAGE]
+
+MediaAsset:
+  type: object
+  additionalProperties: false
+  required: [assetId, purpose, contentType, sizeBytes, widthPixels, heightPixels, publicUrl, createdAt]
+  properties:
+    assetId:
+      type: string
+      pattern: ^mda_[0-9a-f]{32}$
+    purpose:
+      $ref: '#/MediaPurpose'
+    contentType:
+      type: string
+      enum: [image/png, image/jpeg, image/webp]
+    sizeBytes:
+      type: integer
+      minimum: 1
+    widthPixels:
+      type: integer
+      minimum: 1
+    heightPixels:
+      type: integer
+      minimum: 1
+    publicUrl:
+      type: string
+      pattern: ^/media/mda_[0-9a-f]{32}$
+    createdAt:
+      type: string
+      format: date-time
+
+MediaAssetResponse:
+  allOf:
+    - $ref: ../components/schemas/common.yaml#/BaseSuccessEnvelope
+    - type: object
+      properties:
+        data:
+          $ref: '#/MediaAsset'

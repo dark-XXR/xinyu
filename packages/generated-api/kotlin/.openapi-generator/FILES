@@ -230,6 +230,9 @@ src/main/kotlin/com/love_reply/generated/model/LegalHoldRequest.kt
 src/main/kotlin/com/love_reply/generated/model/LogicalModel.kt
 src/main/kotlin/com/love_reply/generated/model/LoginData.kt
 src/main/kotlin/com/love_reply/generated/model/LoginResponse.kt
+src/main/kotlin/com/love_reply/generated/model/MediaAsset.kt
+src/main/kotlin/com/love_reply/generated/model/MediaAssetResponse.kt
+src/main/kotlin/com/love_reply/generated/model/MediaPurpose.kt
 src/main/kotlin/com/love_reply/generated/model/ModelQuoteOption.kt
 src/main/kotlin/com/love_reply/generated/model/NativeAiConfiguration.kt
 src/main/kotlin/com/love_reply/generated/model/NoticeListResponse.kt

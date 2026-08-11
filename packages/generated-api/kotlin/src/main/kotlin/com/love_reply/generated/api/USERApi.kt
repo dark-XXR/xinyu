@@ -9,8 +9,11 @@ import com.squareup.moshi.Json
 import com.love_reply.generated.model.DeviceListResponse
 import com.love_reply.generated.model.EmptyResponse
 import com.love_reply.generated.model.ErrorResponse
+import com.love_reply.generated.model.MediaAssetResponse
 import com.love_reply.generated.model.UpdateUserRequest
 import com.love_reply.generated.model.UserResponse
+
+import okhttp3.MultipartBody
 
 interface USERApi {
 
@@ -133,5 +136,37 @@ interface USERApi {
      */
     @PATCH("v1/me")
     suspend fun updateCurrentUser(@Header("X-Client-Version") xClientVersion: kotlin.String, @Header("X-Platform") xPlatform: XPlatformUpdateCurrentUser, @Header("X-Device-Id") xDeviceId: kotlin.String, @Header("Accept-Language") acceptLanguage: kotlin.String = "zh-CN", @Header("If-Match") ifMatch: kotlin.String, @Header("Idempotency-Key") idempotencyKey: kotlin.String, @Body updateUserRequest: UpdateUserRequest, @Header("X-Request-Id") xRequestId: kotlin.String? = null): Response<UserResponse>
+
+
+    /**
+    * enum for parameter xPlatform
+    */
+    enum class XPlatformUploadMyAvatar(val value: kotlin.String) {
+        @Json(name = "ANDROID") ANDROID("ANDROID"),
+        @Json(name = "ADMIN_WEB") ADMIN_WEB("ADMIN_WEB")
+    }
+
+    /**
+     * POST v1/media/avatar
+     * Upload a first-party avatar image for the current user
+     *
+     * Responses:
+     *  - 200: Uploaded avatar resource.
+     *  - 400: Request syntax or fields are invalid.
+     *  - 401: Access token is missing, expired, or revoked.
+     *  - 413: Image exceeds the configured size limit.
+     *  - 415: File signature or media type is not supported.
+     *
+     * @param xClientVersion Semantic application version used for compatibility enforcement.
+     * @param xPlatform
+     * @param xDeviceId Opaque installation ID. It is not an authentication credential.
+     * @param acceptLanguage  (default to "zh-CN")
+     * @param file
+     * @param xRequestId Client correlation ID. The server returns the final accepted value. (optional)
+     * @return [MediaAssetResponse]
+     */
+    @Multipart
+    @POST("v1/media/avatar")
+    suspend fun uploadMyAvatar(@Header("X-Client-Version") xClientVersion: kotlin.String, @Header("X-Platform") xPlatform: XPlatformUploadMyAvatar, @Header("X-Device-Id") xDeviceId: kotlin.String, @Header("Accept-Language") acceptLanguage: kotlin.String = "zh-CN", @Part file: MultipartBody.Part, @Header("X-Request-Id") xRequestId: kotlin.String? = null): Response<MediaAssetResponse>
 
 }

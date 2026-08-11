@@ -11,6 +11,7 @@ from sqlalchemy.engine import CursorResult
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from love_reply_api.application.errors import ApiError
+from love_reply_api.application.media import asset_id_from_path
 from love_reply_api.infrastructure.commerce_records import ProductVersionRecord
 from love_reply_api.infrastructure.generation_records import (
     EntitlementRecord,
@@ -28,6 +29,7 @@ from love_reply_api.infrastructure.identity_records import (
 )
 from love_reply_api.infrastructure.platform_records import (
     AdminPlatformAuditRecord,
+    MediaAssetRecord,
     NoticeVersionRecord,
     SystemConfigVersionRecord,
 )
@@ -223,6 +225,10 @@ class AdminPlatformService:
         audit_reason: str,
     ) -> dict[str, Any]:
         """编辑非身份凭据资料；邮箱和手机号仍由独立身份校验流程维护。"""
+        if avatar_url is not None:
+            await self._assert_media_reference(
+                value=avatar_url, purpose="USER_AVATAR", owner_user_id=user_id
+            )
         user = await self._session.scalar(
             select(UserRecord).where(UserRecord.user_id == user_id).with_for_update()
         )
@@ -473,6 +479,11 @@ class AdminPlatformService:
         admin_id: str,
         audit_reason: str,
     ) -> SystemConfigVersionRecord:
+        logo_url = configuration.get("logoUrl")
+        if logo_url is not None:
+            await self._assert_media_reference(
+                value=cast(str, logo_url), purpose="WEBSITE_BRAND", owner_user_id=None
+            )
         latest = await self._session.scalar(
             select(SystemConfigVersionRecord)
             .order_by(SystemConfigVersionRecord.version.desc())
@@ -788,6 +799,33 @@ class AdminPlatformService:
                 created_at=now,
             )
         )
+
+    async def _assert_media_reference(
+        self, *, value: str, purpose: str, owner_user_id: str | None
+    ) -> MediaAssetRecord:
+        """保存业务资料前确认站内路径确实对应指定用途的媒体记录。"""
+        asset_id = asset_id_from_path(value)
+        record = await self._session.get(MediaAssetRecord, asset_id) if asset_id else None
+        if record is None:
+            raise ApiError(
+                status_code=400,
+                code="MEDIA_REFERENCE_INVALID",
+                message="Media reference must point to an uploaded first-party asset.",
+            )
+        if record.purpose != purpose:
+            raise ApiError(
+                status_code=409,
+                code="MEDIA_PURPOSE_MISMATCH",
+                message="Media asset purpose does not match this field.",
+            )
+        # 管理员上传的资源没有 owner；普通用户上传的头像只能回填给原所有者。
+        if owner_user_id is not None and record.owner_user_id not in {None, owner_user_id}:
+            raise ApiError(
+                status_code=403,
+                code="MEDIA_OWNERSHIP_MISMATCH",
+                message="Media asset does not belong to this user.",
+            )
+        return record
 
     @staticmethod
     def _assert_version(current: int, expected: int) -> None:

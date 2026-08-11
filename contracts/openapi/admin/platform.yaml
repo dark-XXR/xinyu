@@ -17,6 +17,36 @@ users:
       '200': {description: Masked users., content: {application/json: {schema: {$ref: ../schemas/admin-platform.yaml#/AdminUserListResponse}}}}
       '401': {$ref: ../components/responses.yaml#/Unauthorized}
       '403': {$ref: ../components/responses.yaml#/Forbidden}
+mediaAssets:
+  post:
+    operationId: uploadAdminMediaAsset
+    summary: Upload a first-party image for an avatar, website brand, or content
+    tags: [ADMIN_PLATFORM]
+    security: [{adminBearerAuth: []}]
+    parameters:
+      - {$ref: ../components/parameters.yaml#/XRequestId}
+      - {$ref: ../components/parameters.yaml#/XClientVersion}
+      - {$ref: ../components/parameters.yaml#/XPlatform}
+      - {$ref: ../components/parameters.yaml#/AcceptLanguage}
+    requestBody:
+      required: true
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            additionalProperties: false
+            required: [file, purpose, auditReason]
+            properties:
+              file: {type: string, format: binary}
+              purpose: {$ref: ../schemas/media.yaml#/MediaPurpose}
+              auditReason: {type: string, minLength: 8, maxLength: 500}
+    responses:
+      '200': {description: Uploaded media., content: {application/json: {schema: {$ref: ../schemas/media.yaml#/MediaAssetResponse}}}}
+      '400': {$ref: ../components/responses.yaml#/BadRequest}
+      '401': {$ref: ../components/responses.yaml#/Unauthorized}
+      '403': {$ref: ../components/responses.yaml#/Forbidden}
+      '413': {description: Image exceeds the configured size limit.}
+      '415': {description: File signature or media type is not supported.}
 user:
   get:
     operationId: getAdminUser

@@ -1,0 +1,59 @@
+myAvatar:
+  post:
+    operationId: uploadMyAvatar
+    summary: Upload a first-party avatar image for the current user
+    tags: [USER]
+    parameters:
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/XDeviceId
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+    requestBody:
+      required: true
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            additionalProperties: false
+            required: [file]
+            properties:
+              file:
+                type: string
+                format: binary
+    responses:
+      '200':
+        description: Uploaded avatar resource.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/media.yaml#/MediaAssetResponse
+      '400': {$ref: ../components/responses.yaml#/BadRequest}
+      '401': {$ref: ../components/responses.yaml#/Unauthorized}
+      '413': {description: Image exceeds the configured size limit.}
+      '415': {description: File signature or media type is not supported.}
+
+asset:
+  get:
+    operationId: getMediaAsset
+    summary: Read an immutable first-party image asset
+    tags: [APP_CONFIG]
+    security: []
+    parameters:
+      - name: assetId
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: ^mda_[0-9a-f]{32}$
+    responses:
+      '200':
+        description: Image bytes.
+        headers:
+          Cache-Control: {schema: {type: string}}
+          X-Content-Type-Options: {schema: {type: string}}
+        content:
+          image/png: {schema: {type: string, format: binary}}
+          image/jpeg: {schema: {type: string, format: binary}}
+          image/webp: {schema: {type: string, format: binary}}
+      '404': {$ref: ../components/responses.yaml#/NotFound}

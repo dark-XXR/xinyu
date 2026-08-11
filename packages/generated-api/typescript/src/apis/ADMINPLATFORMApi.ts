@@ -79,6 +79,16 @@ import {
     ErrorResponseToJSON,
 } from '../models/ErrorResponse';
 import {
+    type MediaAssetResponse,
+    MediaAssetResponseFromJSON,
+    MediaAssetResponseToJSON,
+} from '../models/MediaAssetResponse';
+import {
+    type MediaPurpose,
+    MediaPurposeFromJSON,
+    MediaPurposeToJSON,
+} from '../models/MediaPurpose';
+import {
     type NoticeListResponse,
     NoticeListResponseFromJSON,
     NoticeListResponseToJSON,
@@ -243,6 +253,16 @@ export interface UpdateAdminUserProfileRequest {
     acceptLanguage: string;
     ifMatch: string;
     adminUserProfileRequest: AdminUserProfileRequest;
+}
+
+export interface UploadAdminMediaAssetRequest {
+    xClientVersion: string;
+    xPlatform: UploadAdminMediaAssetXPlatformEnum;
+    acceptLanguage: string;
+    file: Blob;
+    purpose: MediaPurpose;
+    auditReason: string;
+    xRequestId?: string;
 }
 
 /**
@@ -788,6 +808,41 @@ export interface ADMINPLATFORMApiInterface {
      * Update non-credential user profile fields
      */
     updateAdminUserProfile(requestParameters: UpdateAdminUserProfileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AdminUserResponse>;
+
+    /**
+     * Creates request options for uploadAdminMediaAsset without sending the request
+     * @param {string} xClientVersion Semantic application version used for compatibility enforcement.
+     * @param {'ANDROID' | 'ADMIN_WEB'} xPlatform
+     * @param {string} acceptLanguage
+     * @param {Blob} file
+     * @param {MediaPurpose} purpose
+     * @param {string} auditReason
+     * @param {string} [xRequestId] Client correlation ID. The server returns the final accepted value.
+     * @throws {RequiredError}
+     * @memberof ADMINPLATFORMApiInterface
+     */
+    uploadAdminMediaAssetRequestOpts(requestParameters: UploadAdminMediaAssetRequest): Promise<runtime.RequestOpts>;
+
+    /**
+     *
+     * @summary Upload a first-party image for an avatar, website brand, or content
+     * @param {string} xClientVersion Semantic application version used for compatibility enforcement.
+     * @param {'ANDROID' | 'ADMIN_WEB'} xPlatform
+     * @param {string} acceptLanguage
+     * @param {Blob} file
+     * @param {MediaPurpose} purpose
+     * @param {string} auditReason
+     * @param {string} [xRequestId] Client correlation ID. The server returns the final accepted value.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ADMINPLATFORMApiInterface
+     */
+    uploadAdminMediaAssetRaw(requestParameters: UploadAdminMediaAssetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<MediaAssetResponse>>;
+
+    /**
+     * Upload a first-party image for an avatar, website brand, or content
+     */
+    uploadAdminMediaAsset(requestParameters: UploadAdminMediaAssetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<MediaAssetResponse>;
 
 }
 
@@ -2448,6 +2503,138 @@ export class ADMINPLATFORMApi extends runtime.BaseAPI implements ADMINPLATFORMAp
         return await response.value();
     }
 
+    /**
+     * Creates request options for uploadAdminMediaAsset without sending the request
+     */
+    async uploadAdminMediaAssetRequestOpts(requestParameters: UploadAdminMediaAssetRequest): Promise<runtime.RequestOpts> {
+        if (requestParameters['xClientVersion'] == null) {
+            throw new runtime.RequiredError(
+                'xClientVersion',
+                'Required parameter "xClientVersion" was null or undefined when calling uploadAdminMediaAsset().'
+            );
+        }
+
+        if (requestParameters['xPlatform'] == null) {
+            throw new runtime.RequiredError(
+                'xPlatform',
+                'Required parameter "xPlatform" was null or undefined when calling uploadAdminMediaAsset().'
+            );
+        }
+
+        if (requestParameters['acceptLanguage'] == null) {
+            throw new runtime.RequiredError(
+                'acceptLanguage',
+                'Required parameter "acceptLanguage" was null or undefined when calling uploadAdminMediaAsset().'
+            );
+        }
+
+        if (requestParameters['file'] == null) {
+            throw new runtime.RequiredError(
+                'file',
+                'Required parameter "file" was null or undefined when calling uploadAdminMediaAsset().'
+            );
+        }
+
+        if (requestParameters['purpose'] == null) {
+            throw new runtime.RequiredError(
+                'purpose',
+                'Required parameter "purpose" was null or undefined when calling uploadAdminMediaAsset().'
+            );
+        }
+
+        if (requestParameters['auditReason'] == null) {
+            throw new runtime.RequiredError(
+                'auditReason',
+                'Required parameter "auditReason" was null or undefined when calling uploadAdminMediaAsset().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (requestParameters['xRequestId'] != null) {
+            headerParameters['X-Request-Id'] = String(requestParameters['xRequestId']);
+        }
+
+        if (requestParameters['xClientVersion'] != null) {
+            headerParameters['X-Client-Version'] = String(requestParameters['xClientVersion']);
+        }
+
+        if (requestParameters['xPlatform'] != null) {
+            headerParameters['X-Platform'] = String(requestParameters['xPlatform']);
+        }
+
+        if (requestParameters['acceptLanguage'] != null) {
+            headerParameters['Accept-Language'] = String(requestParameters['acceptLanguage']);
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("adminBearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const consumes: runtime.Consume[] = [
+            { contentType: 'multipart/form-data' },
+        ];
+        // @ts-ignore: canConsumeForm may be unused
+        const canConsumeForm = runtime.canConsumeForm(consumes);
+
+        let formParams: { append(param: string, value: any): any };
+        let useForm = false;
+        // use FormData to transmit files using content-type "multipart/form-data"
+        useForm = canConsumeForm;
+        if (useForm) {
+            formParams = new FormData();
+        } else {
+            formParams = new URLSearchParams();
+        }
+
+        if (requestParameters['file'] != null) {
+            formParams.append('file', requestParameters['file'] as any);
+        }
+
+        if (requestParameters['purpose'] != null) {
+            formParams.append('purpose', requestParameters['purpose'] as any);
+        }
+
+        if (requestParameters['auditReason'] != null) {
+            formParams.append('auditReason', requestParameters['auditReason'] as any);
+        }
+
+
+        let urlPath = `/admin/v1/media/assets`;
+
+        return {
+            path: urlPath,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: formParams,
+        };
+    }
+
+    /**
+     * Upload a first-party image for an avatar, website brand, or content
+     */
+    async uploadAdminMediaAssetRaw(requestParameters: UploadAdminMediaAssetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<MediaAssetResponse>> {
+        const requestOptions = await this.uploadAdminMediaAssetRequestOpts(requestParameters);
+        const response = await this.request(requestOptions, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => MediaAssetResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Upload a first-party image for an avatar, website brand, or content
+     */
+    async uploadAdminMediaAsset(requestParameters: UploadAdminMediaAssetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<MediaAssetResponse> {
+        const response = await this.uploadAdminMediaAssetRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
 }
 
 /**
@@ -2595,3 +2782,11 @@ export const UpdateAdminUserProfileXPlatformEnum = {
     AdminWeb: 'ADMIN_WEB'
 } as const;
 export type UpdateAdminUserProfileXPlatformEnum = typeof UpdateAdminUserProfileXPlatformEnum[keyof typeof UpdateAdminUserProfileXPlatformEnum];
+/**
+ * @export
+ */
+export const UploadAdminMediaAssetXPlatformEnum = {
+    Android: 'ANDROID',
+    AdminWeb: 'ADMIN_WEB'
+} as const;
+export type UploadAdminMediaAssetXPlatformEnum = typeof UploadAdminMediaAssetXPlatformEnum[keyof typeof UploadAdminMediaAssetXPlatformEnum];

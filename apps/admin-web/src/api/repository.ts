@@ -55,6 +55,7 @@ import {
   ReferralBeneficiary,
   RewardUnit,
   EntitlementAdjustmentRequestUnitEnum,
+  MediaPurpose,
 } from './models';
 
 import type {
@@ -250,6 +251,9 @@ export interface Repository {
   saveAdminReferralCampaign(request: ReferralCampaignWriteRequest, campaignId?: string, resourceVersion?: number): Promise<ReferralCampaign>;
   publishAdminReferralCampaign(campaignId: string, resourceVersion: number, request: PublishReferralCampaignRequest): Promise<ReferralCampaign>;
   rollbackAdminReferralCampaign(campaignId: string, resourceVersion: number, request: RollbackReferralCampaignRequest): Promise<ReferralCampaign>;
+
+  /* 媒体资源上传 */
+  uploadAdminMediaAsset(file: File, purpose: MediaPurpose, auditReason: string): Promise<{ assetId: string; publicUrl: string; contentType: string; sizeBytes: number }>;
 }
 
 /* ── HTTP 配置 ── */
@@ -1118,7 +1122,7 @@ const mockState: {
       websiteName: '爱回复 Web 运营管理后台',
       appName: '爱回复 APP',
       companyName: '爱回复科技（北京）有限公司',
-      logoUrl: 'https://cdn.example.com/logo.png',
+      logoUrl: undefined,
       customerServiceEmail: 'support@lovereply.app',
       privacyEmail: 'privacy@lovereply.app',
       defaultLocale: 'zh-CN',
@@ -2830,6 +2834,22 @@ const mockRepository: Repository = {
     ticket.updatedAt = new Date();
     return ticket;
   },
+
+  async uploadAdminMediaAsset(file: File, _purpose: MediaPurpose, _auditReason: string): Promise<{ assetId: string; publicUrl: string; contentType: string; sizeBytes: number }> {
+    const dataUrl = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = (err) => reject(err);
+      reader.readAsDataURL(file);
+    });
+    const assetId = `asset-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
+    return {
+      assetId,
+      publicUrl: dataUrl,
+      contentType: file.type || 'image/png',
+      sizeBytes: file.size,
+    };
+  },
 };
 
 /* ── HTTP 仓库 ── */
@@ -3866,6 +3886,17 @@ const httpRepository: Repository = {
       ifMatch: String(resourceVersion),
       idempotencyKey,
       rollbackReferralCampaignRequest: request,
+    });
+    return res.data;
+  },
+
+  async uploadAdminMediaAsset(file: File, purpose: MediaPurpose, auditReason: string): Promise<{ assetId: string; publicUrl: string; contentType: string; sizeBytes: number }> {
+    const api = new ADMINPLATFORMApi(getConfiguration());
+    const res = await api.uploadAdminMediaAsset({
+      ...commonHeaders,
+      file,
+      purpose,
+      auditReason,
     });
     return res.data;
   },

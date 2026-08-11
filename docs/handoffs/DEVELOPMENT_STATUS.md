@@ -7,13 +7,13 @@ Last updated: 2026-08-11
 - Active task: `FRONTEND-ADMIN-CONSOLE-001`
 - State: `in_progress` after full product-scope correction
 - Contract version: `1.0.0`
-- Current phase: user write operations accepted; payment callback operations and remaining platform domains are next
+- Current phase: first-party avatar/brand image upload accepted; payment callback operations and remaining platform domains are next
 - Strict work-item progress: `22/33 = 66.7%`
 - Scope correction: provider/AI/commerce/audit milestones are accepted, but the overall administration
   console was previously reported complete too early. The authoritative remaining-domain matrix is
   `docs/product/admin-console-feature-matrix.md`.
-- Current accepted batch: user profile editing, OTP login-state reset, individual device revocation,
-  idempotent wallet/quota adjustment, and published-plan grants. The overall console remains in progress.
+- Current accepted batch: first-party local avatar/brand/content image upload foundation, secure image
+  normalization, administrator audit, and avatar/Logo file-selection UI. The overall console remains in progress.
 
 ## Completed
 
@@ -176,6 +176,15 @@ Last updated: 2026-08-11
   restoration, published-plan snapshot grants, website identity drafts/publication, and notices with platform,
   locale, semantic-client-version and time targeting. Published website identity is included in
   public bootstrap; draft values cannot replace online values before publication.
+- First-party public display media now supports administrator avatar/brand/content-image uploads and
+  current-user avatar uploads. PNG/JPEG/WebP files are identified by signature, bounded by configured
+  bytes and pixels, restricted to one frame, re-encoded without EXIF or appended payloads, stored under
+  server-generated keys, and served from immutable `/media/{assetId}` paths with MIME sniffing disabled.
+  Profile and system-config writes validate the persisted asset and its purpose instead of accepting
+  arbitrary external URLs. Administrator uploads create immutable platform audits.
+- The administration `/users` and `/system/settings` forms now share an Antigravity CLI-built local
+  image selector with preview, upload, retry/remove, error, and pending-save protection. Generic OCR and
+  private support attachments still require the separate scanning/signed-access media scope.
 - User and administrator support APIs now cover owned ticket creation/read/reply, operator queues,
   public replies, internal notes, assignment, priority and resolution state. Internal notes are
   excluded from user reads. Support message bodies are encrypted in the compliance ledger rather
@@ -214,15 +223,16 @@ drawer render without horizontal overflow. The checked browser console has no wa
 Identity contract validation now covers 46 fixtures across 19 tagged operations. Generated
 Kotlin and TypeScript clients both compile with the new email/channel models and operations.
 
-Backend verification now covers 65 PostgreSQL integration and transport tests. The email/auth,
+Backend verification now covers 71 PostgreSQL integration, transport, and media-safety tests. The email/auth,
 administrator authentication, provider-registry, and AI-gateway migrations passed upgrade,
 downgrade, and re-upgrade. The new provider-disable permission migration also passed its own
 downgrade/upgrade loop. Commerce administration, referral, and compliance-audit migrations pass.
 The platform, support and user-operation permission migrations pass upgrade; the user-operation
-permission migration also passes downgrade and re-upgrade. Ten targeted platform, commerce and
-administrator-authentication PostgreSQL integration tests pass. Referral
+permission migration also passes downgrade and re-upgrade. The first-party media table and permission
+migration passes downgrade and re-upgrade; five targeted media/platform integration tests and three
+media signature/storage boundary tests pass. Referral
 history tests prove only published immutable versions are marked as rollback targets. Ruff,
-strict MyPy across 74 source files, targeted provider/compliance/platform/referral tests, OpenAPI
+strict MyPy across 78 source files, the full 71-test PostgreSQL suite, OpenAPI
 lint/bundle, 25 provider fixtures across 9 operations, generated TypeScript and Kotlin builds,
 Android unit tests, Android Lint, and Debug APK assembly pass.
 The pytest-asyncio integration suite now uses one session-scoped event loop so the shared asyncpg
@@ -250,6 +260,12 @@ overflow. Emergency disable remains disabled until an audit reason of at least e
 the exact provider name are entered; success produces `DISABLED`, zero online rollout, and a retained
 published-version anchor. The mock demonstration also passes credential rotation, health transition
 to `READY`, and reason-gated publication back to `ACTIVE`.
+
+The local-image controls were accepted at `1440x900` and `390x844`. User-avatar and website-Logo
+file selection, preview, replacement/removal, and save blocking render without page overflow; both
+pages contain no image URL input, the mobile document width equals 390 pixels, and the fresh browser
+session has no console warnings or errors. The preview server was rebuilt and restarted after client
+regeneration so `http://127.0.0.1:4173/` is no longer blank.
 
 ## Accepted provider and commerce direction
 

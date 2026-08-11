@@ -200,7 +200,7 @@ User:
       maxLength: 64
     avatarUrl:
       type: [string, "null"]
-      format: uri
+      pattern: ^/media/mda_[0-9a-f]{32}$
     locale:
       type: string
     timeZone:
@@ -283,7 +283,7 @@ UpdateUserRequest:
       maxLength: 64
     avatarUrl:
       type: [string, "null"]
-      format: uri
+      pattern: ^/media/mda_[0-9a-f]{32}$
     locale:
       type: string
       maxLength: 35

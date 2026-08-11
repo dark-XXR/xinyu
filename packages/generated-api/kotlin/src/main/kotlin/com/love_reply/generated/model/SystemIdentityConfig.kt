@@ -68,7 +68,7 @@ data class SystemIdentityConfig (
     val maintenanceMode: kotlin.Boolean,
 
     @Json(name = "logoUrl")
-    val logoUrl: java.net.URI? = null,
+    val logoUrl: kotlin.String? = null,
 
     @Json(name = "officialWebsiteUrl")
     val officialWebsiteUrl: java.net.URI? = null,

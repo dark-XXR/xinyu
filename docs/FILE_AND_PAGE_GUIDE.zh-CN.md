@@ -56,6 +56,7 @@
 | W19 | 网站设置页面 `/system/settings` | `apps/admin-web/src/pages/system/SettingsPage.tsx` | 已完成：网站/App 名、主体、Logo、客服/隐私邮箱、语言、备案、维护模式及草稿/发布分离 |
 | W20 | 支付运营页面 `/commerce/payments` | `apps/admin-web/src/pages/commerce/PaymentsPage.tsx` | 已完成：易支付线上摘要、支付方式、回调地址、订单退款指标和参数化主动对账；不显示商户密钥 |
 | W21 | 客服工单页面 `/support` | `apps/admin-web/src/pages/support/SupportPage.tsx` | 已完成：队列、会话、公开回复、内部备注、状态、优先级、分派和审计理由 |
+| W22 | 本地图片选择与预览控件 | `apps/admin-web/src/components/ui/MediaUpload.tsx` | 已完成：头像、Logo 和后续内容图共用；只选择 PNG/JPEG/WebP 本地文件，不提供图片 URL 输入，支持预览、重选、移除、上传和错误状态 |
 
 ## 后端接口与业务文件
 
@@ -93,6 +94,10 @@
 | B24 | 平台运营业务规则 | `services/api/src/love_reply_api/application/admin_platform.py` | 用户脱敏、非凭据资料、验证码/会话作废、设备撤销、发布套餐快照发放，以及网站配置/公告版本和追加式业务审计 |
 | B25 | 客服用户与管理员接口 | `services/api/src/love_reply_api/transport/http/routes/support.py`、`admin_support.py` | 本人工单创建/读取/回复及管理员队列、内部备注、分派、优先级和解决关闭 |
 | B26 | 客服工单业务规则 | `services/api/src/love_reply_api/application/support.py` | 工单归属隔离、关闭门禁、内部备注可见性、乐观锁和管理员审计；正文进入加密敏感审计 |
+| B27 | 站内图片上传和读取接口 | `services/api/src/love_reply_api/transport/http/routes/media.py` | 管理员上传头像/品牌/内容图、普通用户上传本人头像，以及公开站内媒体读取；上传二进制不进入请求日志 |
+| B28 | 图片安全与媒体业务服务 | `services/api/src/love_reply_api/application/media.py` | 文件签名、大小、像素和单帧校验，服务端重新编码、EXIF 清除、用途/归属、元数据和管理员审计 |
+| B29 | 本地媒体存储适配器 | `services/api/src/love_reply_api/infrastructure/media_storage.py` | 使用服务端生成的存储键写入 `var/media`，阻断目录穿越；未来可替换兼容对象存储而不改页面 |
+| B30 | 媒体接口参数 | `services/api/src/love_reply_api/transport/http/media_schemas.py` | 返回资源 ID、站内路径、格式、净化后大小、像素尺寸和创建时间 |
 
 ## 数据表和迁移
 
@@ -112,6 +117,7 @@
 | D12 | 平台运营数据表和升级 | `services/api/src/love_reply_api/infrastructure/platform_records.py`、`database/migrations/versions/e31a6d8c4f20_add_core_admin_platform.py` | 网站配置版本、公告版本和平台业务审计 |
 | D13 | 客服工单升级 | `database/migrations/versions/f7c216b8a904_add_support_tickets.py` | 工单、消息、索引及客服读写权限回填 |
 | D14 | 用户运营写权限升级 | `database/migrations/versions/a82d91c4e630_add_user_operations_permissions.py` | 新增资料编辑、会话撤销和套餐发放权限并为平台所有者回填；已验证升级、降级和再升级 |
+| D15 | 站内媒体资源升级 | `database/migrations/versions/d19f4a72c6b1_add_first_party_media.py` | 新增图片元数据、摘要、尺寸、用途、归属和创建主体字段，以及 `MEDIA_WRITE` 权限回填；文件内容保存在配置目录而非数据库 |
 
 ## 契约与配置
 
@@ -132,6 +138,7 @@
 | C12 | 管理后台全量功能矩阵 | `docs/product/admin-console-feature-matrix.md` | 对照产品文档跟踪用户、客服、公告、支付运营、CMS、网站配置、RBAC、告警和数据治理，防止局部完成被误报为全部完成 |
 | C13 | 用户、公告和网站配置契约 | `contracts/openapi/admin/platform.yaml`、`contracts/openapi/schemas/admin-platform.yaml` | 管理员用户资料、状态、登录重置、设备撤销、发布套餐发放，以及配置版本、公告版本和公共公告接口 |
 | C14 | 客服工单契约 | `contracts/openapi/paths/support.yaml`、`contracts/openapi/admin/support.yaml`、`contracts/openapi/schemas/support.yaml` | 用户工单与管理员队列、会话、内部备注和处理字段 |
+| C15 | 站内媒体资源契约 | `contracts/openapi/paths/media.yaml`、`contracts/openapi/admin/platform.yaml`、`contracts/openapi/schemas/media.yaml` | 本人头像、管理员图片上传、公开读取、用途、大小和格式错误；资料与 Logo 字段只接受站内媒体路径 |
 
 ## 目录维护规则
 

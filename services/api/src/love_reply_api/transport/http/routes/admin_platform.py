@@ -174,7 +174,7 @@ async def update_user_profile(
         user_id=user_id,
         expected_version=_expected_version(if_match),
         nickname=body.nickname,
-        avatar_url=str(body.avatar_url) if body.avatar_url is not None else None,
+        avatar_url=body.avatar_url,
         locale=body.locale,
         time_zone=body.time_zone,
         admin_id=context.admin.admin_id,

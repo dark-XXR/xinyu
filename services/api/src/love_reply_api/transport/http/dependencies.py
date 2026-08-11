@@ -24,6 +24,7 @@ from love_reply_api.application.delivery_adapters import EmailApiTransport, SmsA
 from love_reply_api.application.errors import ApiError
 from love_reply_api.application.generation import AiProvider, GenerationService
 from love_reply_api.application.identity import IdentityService
+from love_reply_api.application.media import MediaAssetService
 from love_reply_api.application.payment_adapters import EpayTransport
 from love_reply_api.application.provider_runtime import (
     RegistryEmailSender,
@@ -240,6 +241,14 @@ def get_identity_service(
     session: Annotated[AsyncSession, Depends(get_session)],
 ) -> IdentityService:
     return IdentityService(session)
+
+
+def get_media_asset_service(
+    session: Annotated[AsyncSession, Depends(get_session)],
+    settings: Annotated[Settings, Depends(get_settings)],
+) -> MediaAssetService:
+    """装配站内媒体服务，存储根目录由部署配置决定。"""
+    return MediaAssetService(session=session, settings=settings)
 
 
 def get_generation_service(

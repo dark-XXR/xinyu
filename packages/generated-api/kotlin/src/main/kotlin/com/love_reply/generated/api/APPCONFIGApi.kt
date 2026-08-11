@@ -4,6 +4,7 @@ import com.love_reply.generated.infrastructure.CollectionFormats.*
 import retrofit2.http.*
 import retrofit2.Response
 import okhttp3.RequestBody
+import okhttp3.ResponseBody
 import com.squareup.moshi.Json
 
 import com.love_reply.generated.model.AppBootstrapResponse
@@ -55,6 +56,20 @@ interface APPCONFIGApi {
      */
     @GET("health")
     suspend fun getHealth(@Header("X-Request-Id") xRequestId: kotlin.String? = null): Response<HealthSuccessResponse>
+
+    /**
+     * GET media/{assetId}
+     * Read an immutable first-party image asset
+     *
+     * Responses:
+     *  - 200: Image bytes.
+     *  - 404: The resource does not exist or is not visible to the caller.
+     *
+     * @param assetId
+     * @return [ResponseBody]
+     */
+    @GET("media/{assetId}")
+    suspend fun getMediaAsset(@Path("assetId") assetId: kotlin.String): Response<ResponseBody>
 
 
     /**

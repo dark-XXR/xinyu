@@ -1,4 +1,5 @@
 from functools import lru_cache
+from pathlib import Path
 
 from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -44,6 +45,10 @@ class Settings(BaseSettings):
     audit_sensitive_content_retention_days: int = 365
     audit_export_ttl_seconds: int = 86_400
     audit_max_export_rows: int = 5000
+    # 媒体文件先落在应用管理的本地目录；接口层只暴露站内 /media 路径。
+    media_storage_root: Path = Path("var/media")
+    media_max_upload_bytes: int = 5_242_880
+    media_max_image_pixels: int = 16_000_000
 
     def assert_deployable(self) -> None:
         if self.app_env == "production" and self.jwt_signing_key.get_secret_value().startswith(
@@ -67,6 +72,10 @@ class Settings(BaseSettings):
             raise ValueError("AUDIT_INTEGRITY_KEY must be at least 32 characters")
         if self.app_env == "production" and not self.referral_invite_base_url.startswith("https://"):
             raise ValueError("REFERRAL_INVITE_BASE_URL must use HTTPS")
+        if self.media_max_upload_bytes < 1024 or self.media_max_upload_bytes > 20_971_520:
+            raise ValueError("MEDIA_MAX_UPLOAD_BYTES must be between 1 KiB and 20 MiB")
+        if self.media_max_image_pixels < 65_536 or self.media_max_image_pixels > 64_000_000:
+            raise ValueError("MEDIA_MAX_IMAGE_PIXELS must be between 65,536 and 64,000,000")
 
 
 @lru_cache

@@ -6,6 +6,7 @@ from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from love_reply_api.application.errors import ApiError
+from love_reply_api.application.media import asset_id_from_path
 from love_reply_api.domain.identity import (
     AccountStatus,
     ConsentType,
@@ -20,6 +21,7 @@ from love_reply_api.infrastructure.identity_records import (
     UserProfileRecord,
     UserRecord,
 )
+from love_reply_api.infrastructure.platform_records import MediaAssetRecord
 
 REQUIRED_CONSENTS = {
     ConsentType.TERMS_OF_SERVICE,
@@ -62,6 +64,20 @@ class IdentityService:
         if "nickname" in changes:
             profile.nickname = changes["nickname"]
         if "avatar_url" in changes:
+            avatar_url = changes["avatar_url"]
+            if avatar_url is not None:
+                asset_id = asset_id_from_path(avatar_url)
+                asset = await self._session.get(MediaAssetRecord, asset_id) if asset_id else None
+                if (
+                    asset is None
+                    or asset.purpose != "USER_AVATAR"
+                    or asset.owner_user_id != user_id
+                ):
+                    raise ApiError(
+                        status_code=403,
+                        code="MEDIA_OWNERSHIP_MISMATCH",
+                        message="Avatar media must be uploaded by the current user.",
+                    )
             profile.avatar_url = changes["avatar_url"]
         if "locale" in changes:
             user.locale = changes["locale"]

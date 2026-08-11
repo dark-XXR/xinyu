@@ -223,6 +223,9 @@ src/models/LegalHoldRequest.ts
 src/models/LogicalModel.ts
 src/models/LoginData.ts
 src/models/LoginResponse.ts
+src/models/MediaAsset.ts
+src/models/MediaAssetResponse.ts
+src/models/MediaPurpose.ts
 src/models/ModelQuoteOption.ts
 src/models/NativeAiConfiguration.ts
 src/models/NoticeListResponse.ts
