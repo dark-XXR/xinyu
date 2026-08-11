@@ -87,6 +87,22 @@ class ReferralService:
             raise self._not_found("REFERRAL_CAMPAIGN_NOT_FOUND", "Campaign")
         return record
 
+    async def list_campaign_versions(
+        self, *, campaign_id: str
+    ) -> list[ReferralCampaignVersionRecord]:
+        """按版本倒序返回活动不可变历史，供管理员选择合法回滚目标。"""
+
+        await self.get_campaign(campaign_id=campaign_id)
+        return list(
+            (
+                await self._session.scalars(
+                    select(ReferralCampaignVersionRecord)
+                    .where(ReferralCampaignVersionRecord.campaign_id == campaign_id)
+                    .order_by(ReferralCampaignVersionRecord.version.desc())
+                )
+            ).all()
+        )
+
     async def create_campaign(
         self, *, admin_id: str, values: dict[str, Any]
     ) -> ReferralCampaignRecord:

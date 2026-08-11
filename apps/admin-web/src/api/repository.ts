@@ -49,6 +49,11 @@ import {
   AdminUpdateSupportTicketRequestStatusEnum,
   AdminUpdateSupportTicketRequestPriorityEnum,
   SystemConfigVersionStatusEnum,
+  ADMINREFERRALApi,
+  ReferralCampaignStatus,
+  ReferralMilestoneCode,
+  ReferralBeneficiary,
+  RewardUnit,
 } from './models';
 import type {
   SystemConfigVersion,
@@ -113,6 +118,11 @@ import type {
   SupportTicket,
   SupportMessage,
   PaymentReconciliation,
+  ReferralCampaign,
+  ReferralCampaignWriteRequest,
+  PublishReferralCampaignRequest,
+  RollbackReferralCampaignRequest,
+  ReferralCampaignVersion,
 } from './models';
 
 /* ── 仓库接口 ── */
@@ -226,6 +236,13 @@ export interface Repository {
   getAdminSupportTickets(params?: { status?: string; priority?: string; category?: string; assigneeId?: string; search?: string; cursor?: string; limit?: number }): Promise<{ tickets: SupportTicket[]; nextCursor?: string; totalCount?: number }>;
   getAdminSupportTicketDetail(ticketId: string): Promise<{ ticket: SupportTicket; messages: SupportMessage[] }>;
   updateAdminSupportTicket(ticketId: string, update: { status?: string; priority?: string; assigneeId?: string; replyContent?: string; isInternalNote?: boolean; auditReason?: string }, ifMatch?: string): Promise<SupportTicket>;
+
+  /* 邀请推广 */
+  getAdminReferralCampaigns(): Promise<ReferralCampaign[]>;
+  getAdminReferralCampaignVersions(campaignId: string): Promise<ReferralCampaignVersion[]>;
+  saveAdminReferralCampaign(request: ReferralCampaignWriteRequest, campaignId?: string, resourceVersion?: number): Promise<ReferralCampaign>;
+  publishAdminReferralCampaign(campaignId: string, resourceVersion: number, request: PublishReferralCampaignRequest): Promise<ReferralCampaign>;
+  rollbackAdminReferralCampaign(campaignId: string, resourceVersion: number, request: RollbackReferralCampaignRequest): Promise<ReferralCampaign>;
 }
 
 
@@ -317,6 +334,8 @@ const mockState: {
   };
   supportTickets: SupportTicket[];
   supportMessages: Record<string, SupportMessage[]>;
+  referralCampaigns: ReferralCampaign[];
+  referralCampaignVersions: ReferralCampaignVersion[];
 } = {
   providers: [
     {
@@ -1181,6 +1200,175 @@ const mockState: {
       },
     ],
   },
+  referralCampaigns: [
+    {
+      campaignId: 'ref-camp-001',
+      version: 2,
+      campaignCode: 'SUMMER_INVITE_2024',
+      displayName: '2024暑期裂变邀请大促',
+      description: '邀请好友成功注册并完成首充，双方均可获得高额能量包与文本额度奖励。',
+      status: ReferralCampaignStatus.Active,
+      region: 'CN',
+      salesChannels: new Set<SalesChannel>([SalesChannel.Android]),
+      bindingWindowHours: 72,
+      maxQualifiedInvitesPerInviter: 100,
+      rewardRules: [
+        {
+          milestoneCode: ReferralMilestoneCode.AccountVerified,
+          beneficiary: ReferralBeneficiary.Inviter,
+          rewardUnit: RewardUnit.Energy,
+          rewardAmount: 10,
+          coolingOffHours: 0,
+        },
+        {
+          milestoneCode: ReferralMilestoneCode.AccountVerified,
+          beneficiary: ReferralBeneficiary.Invitee,
+          rewardUnit: RewardUnit.Energy,
+          rewardAmount: 10,
+          coolingOffHours: 0,
+        },
+        {
+          milestoneCode: ReferralMilestoneCode.FirstPurchase,
+          beneficiary: ReferralBeneficiary.Inviter,
+          rewardUnit: RewardUnit.Energy,
+          rewardAmount: 50,
+          coolingOffHours: 24,
+        },
+      ],
+      antiAbusePolicy: {
+        blockSelfReferral: true,
+        blockSameDevice: true,
+        blockSamePaymentIdentity: true,
+        requireVerifiedPrimaryChannel: true,
+        riskReviewScore: 80,
+      },
+      rolloutPercentage: 100,
+      effectiveAt: yesterday,
+      resourceVersion: 2,
+      createdAt: yesterday,
+      updatedAt: now,
+    } satisfies ReferralCampaign,
+    {
+      campaignId: 'ref-camp-002',
+      version: 1,
+      campaignCode: 'NEW_USER_WELCOME',
+      displayName: '新用户好礼邀请计划',
+      description: '针对新用户注册后发起拉新的基础奖励计划，双向赠送对话额度。',
+      status: ReferralCampaignStatus.Draft,
+      region: 'CN',
+      salesChannels: new Set<SalesChannel>([SalesChannel.Android, SalesChannel.AdminAssisted]),
+      bindingWindowHours: 168,
+      maxQualifiedInvitesPerInviter: 50,
+      rewardRules: [
+        {
+          milestoneCode: ReferralMilestoneCode.AccountVerified,
+          beneficiary: ReferralBeneficiary.Inviter,
+          rewardUnit: RewardUnit.TextQuota,
+          rewardAmount: 20,
+          coolingOffHours: 0,
+        },
+        {
+          milestoneCode: ReferralMilestoneCode.AccountVerified,
+          beneficiary: ReferralBeneficiary.Invitee,
+          rewardUnit: RewardUnit.TextQuota,
+          rewardAmount: 20,
+          coolingOffHours: 0,
+        },
+      ],
+      antiAbusePolicy: {
+        blockSelfReferral: true,
+        blockSameDevice: true,
+        blockSamePaymentIdentity: false,
+        requireVerifiedPrimaryChannel: true,
+        riskReviewScore: 60,
+      },
+      rolloutPercentage: 0,
+      effectiveAt: now,
+      resourceVersion: 1,
+      createdAt: now,
+      updatedAt: now,
+    } satisfies ReferralCampaign,
+  ],
+  referralCampaignVersions: [
+    {
+      campaignVersionId: 'ver-ref-001-v1',
+      campaignId: 'ref-camp-001',
+      version: 1,
+      campaignCode: 'SUMMER_INVITE_2024',
+      displayName: '2024暑期裂变邀请大促 (v1基础版)',
+      description: '基础版拉新激励',
+      region: 'CN',
+      salesChannels: [SalesChannel.Android],
+      bindingWindowHours: 48,
+      maxQualifiedInvitesPerInviter: 50,
+      rewardRules: [
+        {
+          milestoneCode: ReferralMilestoneCode.AccountVerified,
+          beneficiary: ReferralBeneficiary.Inviter,
+          rewardUnit: RewardUnit.Energy,
+          rewardAmount: 10,
+          coolingOffHours: 0,
+        },
+      ],
+      antiAbusePolicy: {
+        blockSelfReferral: true,
+        blockSameDevice: true,
+        blockSamePaymentIdentity: false,
+        requireVerifiedPrimaryChannel: false,
+        riskReviewScore: 60,
+      },
+      wasPublished: true,
+      action: 'PUBLISH',
+      createdByAdminId: 'admin_001',
+      createdAt: yesterday,
+    },
+    {
+      campaignVersionId: 'ver-ref-001-v2',
+      campaignId: 'ref-camp-001',
+      version: 2,
+      campaignCode: 'SUMMER_INVITE_2024',
+      displayName: '2024暑期裂变邀请大促',
+      description: '邀请好友成功注册并完成首充，双方均可获得高额能量包与文本额度奖励。',
+      region: 'CN',
+      salesChannels: [SalesChannel.Android],
+      bindingWindowHours: 72,
+      maxQualifiedInvitesPerInviter: 100,
+      rewardRules: [
+        {
+          milestoneCode: ReferralMilestoneCode.AccountVerified,
+          beneficiary: ReferralBeneficiary.Inviter,
+          rewardUnit: RewardUnit.Energy,
+          rewardAmount: 10,
+          coolingOffHours: 0,
+        },
+        {
+          milestoneCode: ReferralMilestoneCode.AccountVerified,
+          beneficiary: ReferralBeneficiary.Invitee,
+          rewardUnit: RewardUnit.Energy,
+          rewardAmount: 10,
+          coolingOffHours: 0,
+        },
+        {
+          milestoneCode: ReferralMilestoneCode.FirstPurchase,
+          beneficiary: ReferralBeneficiary.Inviter,
+          rewardUnit: RewardUnit.Energy,
+          rewardAmount: 50,
+          coolingOffHours: 24,
+        },
+      ],
+      antiAbusePolicy: {
+        blockSelfReferral: true,
+        blockSameDevice: true,
+        blockSamePaymentIdentity: true,
+        requireVerifiedPrimaryChannel: true,
+        riskReviewScore: 80,
+      },
+      wasPublished: true,
+      action: 'PUBLISH',
+      createdByAdminId: 'admin_001',
+      createdAt: now,
+    },
+  ] satisfies ReferralCampaignVersion[],
 };
 
 const mockSensitiveStore: Record<string, Record<string, any>> = {
@@ -2184,6 +2372,221 @@ const mockRepository: Repository = {
     };
   },
 
+  /* 邀请推广 */
+  async getAdminReferralCampaigns(): Promise<ReferralCampaign[]> {
+    return [...mockState.referralCampaigns];
+  },
+
+  async getAdminReferralCampaignVersions(campaignId: string): Promise<ReferralCampaignVersion[]> {
+    return mockState.referralCampaignVersions.filter((v: ReferralCampaignVersion) => v.campaignId === campaignId);
+  },
+
+  async saveAdminReferralCampaign(
+    request: ReferralCampaignWriteRequest,
+    campaignId?: string,
+    resourceVersion?: number
+  ): Promise<ReferralCampaign> {
+    if (campaignId) {
+      const idx = mockState.referralCampaigns.findIndex((c) => c.campaignId === campaignId);
+      if (idx === -1) {
+        throw new Error('未找到要保存草稿的邀请活动');
+      }
+      const existing = mockState.referralCampaigns[idx];
+      const nextVersion = existing.version + 1;
+      const nextResourceVersion = (resourceVersion ?? existing.resourceVersion) + 1;
+      const updatedCampaign: ReferralCampaign = {
+        ...existing,
+        campaignCode: request.campaignCode,
+        displayName: request.displayName,
+        description: request.description,
+        region: request.region,
+        salesChannels: request.salesChannels,
+        bindingWindowHours: request.bindingWindowHours,
+        maxQualifiedInvitesPerInviter: request.maxQualifiedInvitesPerInviter,
+        rewardRules: request.rewardRules,
+        antiAbusePolicy: request.antiAbusePolicy,
+        status: ReferralCampaignStatus.Draft,
+        version: nextVersion,
+        resourceVersion: nextResourceVersion,
+        updatedAt: new Date(),
+      };
+      mockState.referralCampaigns[idx] = updatedCampaign;
+
+      mockState.referralCampaignVersions.unshift({
+        campaignVersionId: `ver-${campaignId}-v${nextVersion}`,
+        campaignId,
+        version: nextVersion,
+        campaignCode: request.campaignCode,
+        displayName: request.displayName,
+        description: request.description,
+        region: request.region,
+        salesChannels: Array.from(request.salesChannels),
+        bindingWindowHours: request.bindingWindowHours,
+        maxQualifiedInvitesPerInviter: request.maxQualifiedInvitesPerInviter,
+        rewardRules: request.rewardRules,
+        antiAbusePolicy: request.antiAbusePolicy,
+        wasPublished: false,
+        action: 'SAVE_DRAFT',
+        createdByAdminId: 'admin_current',
+        createdAt: new Date(),
+      });
+      return updatedCampaign;
+    } else {
+      const newId = `ref-camp-${Date.now().toString(36)}`;
+      const newCampaign: ReferralCampaign = {
+        campaignId: newId,
+        version: 1,
+        campaignCode: request.campaignCode,
+        displayName: request.displayName,
+        description: request.description,
+        status: ReferralCampaignStatus.Draft,
+        region: request.region,
+        salesChannels: request.salesChannels,
+        bindingWindowHours: request.bindingWindowHours,
+        maxQualifiedInvitesPerInviter: request.maxQualifiedInvitesPerInviter,
+        rewardRules: request.rewardRules,
+        antiAbusePolicy: request.antiAbusePolicy,
+        rolloutPercentage: 0,
+        effectiveAt: new Date(),
+        resourceVersion: 1,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      mockState.referralCampaigns.unshift(newCampaign);
+
+      mockState.referralCampaignVersions.unshift({
+        campaignVersionId: `ver-${newId}-v1`,
+        campaignId: newId,
+        version: 1,
+        campaignCode: request.campaignCode,
+        displayName: request.displayName,
+        description: request.description,
+        region: request.region,
+        salesChannels: Array.from(request.salesChannels),
+        bindingWindowHours: request.bindingWindowHours,
+        maxQualifiedInvitesPerInviter: request.maxQualifiedInvitesPerInviter,
+        rewardRules: request.rewardRules,
+        antiAbusePolicy: request.antiAbusePolicy,
+        wasPublished: false,
+        action: 'CREATE_DRAFT',
+        createdByAdminId: 'admin_current',
+        createdAt: new Date(),
+      });
+      return newCampaign;
+    }
+  },
+
+  async publishAdminReferralCampaign(
+    campaignId: string,
+    resourceVersion: number,
+    request: PublishReferralCampaignRequest
+  ): Promise<ReferralCampaign> {
+    const idx = mockState.referralCampaigns.findIndex((c) => c.campaignId === campaignId);
+    if (idx === -1) {
+      throw new Error('未找到要发布的邀请活动');
+    }
+    const existing = mockState.referralCampaigns[idx];
+    const updatedCampaign: ReferralCampaign = {
+      ...existing,
+      status: ReferralCampaignStatus.Active,
+      rolloutPercentage: request.rolloutPercentage,
+      effectiveAt: new Date(request.effectiveAt),
+      expiresAt: request.expiresAt ? new Date(request.expiresAt) : undefined,
+      resourceVersion: resourceVersion + 1,
+      updatedAt: new Date(),
+    };
+    mockState.referralCampaigns[idx] = updatedCampaign;
+
+    const verIdx = mockState.referralCampaignVersions.findIndex(
+      (v: ReferralCampaignVersion) => v.campaignId === campaignId && v.version === existing.version
+    );
+    if (verIdx !== -1) {
+      mockState.referralCampaignVersions[verIdx].wasPublished = true;
+      mockState.referralCampaignVersions[verIdx].action = 'PUBLISH';
+    } else {
+      mockState.referralCampaignVersions.unshift({
+        campaignVersionId: `ver-${campaignId}-v${existing.version}`,
+        campaignId,
+        version: existing.version,
+        campaignCode: existing.campaignCode,
+        displayName: existing.displayName,
+        description: existing.description,
+        region: existing.region,
+        salesChannels: Array.from(existing.salesChannels),
+        bindingWindowHours: existing.bindingWindowHours,
+        maxQualifiedInvitesPerInviter: existing.maxQualifiedInvitesPerInviter,
+        rewardRules: existing.rewardRules,
+        antiAbusePolicy: existing.antiAbusePolicy,
+        wasPublished: true,
+        action: 'PUBLISH',
+        createdByAdminId: 'admin_current',
+        createdAt: new Date(),
+      });
+    }
+    return updatedCampaign;
+  },
+
+  async rollbackAdminReferralCampaign(
+    campaignId: string,
+    resourceVersion: number,
+    request: RollbackReferralCampaignRequest
+  ): Promise<ReferralCampaign> {
+    const idx = mockState.referralCampaigns.findIndex((c) => c.campaignId === campaignId);
+    if (idx === -1) {
+      throw new Error('未找到要回退的邀请活动');
+    }
+    const existing = mockState.referralCampaigns[idx];
+
+    const targetVersion = mockState.referralCampaignVersions.find(
+      (v: ReferralCampaignVersion) => v.campaignId === campaignId && v.version === request.targetVersion
+    );
+    if (!targetVersion || !targetVersion.wasPublished || targetVersion.version >= existing.version) {
+      throw new Error('非法回退目标版本：目标版本必须为已发布的历史版本');
+    }
+
+    const nextVersion = existing.version + 1;
+    const updatedCampaign: ReferralCampaign = {
+      ...existing,
+      campaignCode: targetVersion.campaignCode,
+      displayName: targetVersion.displayName,
+      description: targetVersion.description,
+      region: targetVersion.region,
+      salesChannels: new Set(targetVersion.salesChannels),
+      bindingWindowHours: targetVersion.bindingWindowHours,
+      maxQualifiedInvitesPerInviter: targetVersion.maxQualifiedInvitesPerInviter,
+      rewardRules: targetVersion.rewardRules,
+      antiAbusePolicy: targetVersion.antiAbusePolicy,
+      status: ReferralCampaignStatus.Active,
+      rolloutPercentage: 100,
+      effectiveAt: new Date(),
+      expiresAt: undefined,
+      version: nextVersion,
+      resourceVersion: resourceVersion + 1,
+      updatedAt: new Date(),
+    };
+    mockState.referralCampaigns[idx] = updatedCampaign;
+
+    mockState.referralCampaignVersions.unshift({
+      campaignVersionId: `ver-${campaignId}-v${nextVersion}`,
+      campaignId,
+      version: nextVersion,
+      campaignCode: targetVersion.campaignCode,
+      displayName: targetVersion.displayName,
+      description: targetVersion.description,
+      region: targetVersion.region,
+      salesChannels: targetVersion.salesChannels,
+      bindingWindowHours: targetVersion.bindingWindowHours,
+      maxQualifiedInvitesPerInviter: targetVersion.maxQualifiedInvitesPerInviter,
+      rewardRules: targetVersion.rewardRules,
+      antiAbusePolicy: targetVersion.antiAbusePolicy,
+      wasPublished: true,
+      action: 'ROLLBACK',
+      createdByAdminId: 'admin_current',
+      createdAt: new Date(),
+    });
+    return updatedCampaign;
+  },
+
   /* 客服工单 Mock */
   async getAdminSupportTickets(params) {
     let list = mockState.supportTickets;
@@ -3075,6 +3478,84 @@ const httpRepository: Repository = {
     if (!res.data) {
       throw new Error('更新客服工单失败，服务器响应无有效工单数据');
     }
+    return res.data;
+  },
+
+  /* 邀请推广 HTTP 实现 */
+  async getAdminReferralCampaigns(): Promise<ReferralCampaign[]> {
+    const api = new ADMINREFERRALApi(getConfiguration());
+    const res = await api.listAdminReferralCampaigns({
+      ...commonHeaders,
+    });
+    return res.data?.items || [];
+  },
+
+  async getAdminReferralCampaignVersions(campaignId: string): Promise<ReferralCampaignVersion[]> {
+    const api = new ADMINREFERRALApi(getConfiguration());
+    const res = await api.listAdminReferralCampaignVersions({
+      ...commonHeaders,
+      campaignId,
+    });
+    return res.data?.items || [];
+  },
+
+  async saveAdminReferralCampaign(
+    request: ReferralCampaignWriteRequest,
+    campaignId?: string,
+    resourceVersion?: number
+  ): Promise<ReferralCampaign> {
+    const api = new ADMINREFERRALApi(getConfiguration());
+    const idempotencyKey = `ref_save_${Date.now()}`;
+    if (campaignId && resourceVersion !== undefined) {
+      const res = await api.updateAdminReferralCampaign({
+        ...commonHeaders,
+        campaignId,
+        ifMatch: String(resourceVersion),
+        idempotencyKey,
+        referralCampaignWriteRequest: request,
+      });
+      return res.data;
+    } else {
+      const res = await api.createAdminReferralCampaign({
+        ...commonHeaders,
+        idempotencyKey,
+        referralCampaignWriteRequest: request,
+      });
+      return res.data;
+    }
+  },
+
+  async publishAdminReferralCampaign(
+    campaignId: string,
+    resourceVersion: number,
+    request: PublishReferralCampaignRequest
+  ): Promise<ReferralCampaign> {
+    const api = new ADMINREFERRALApi(getConfiguration());
+    const idempotencyKey = `ref_pub_${Date.now()}`;
+    const res = await api.publishAdminReferralCampaign({
+      ...commonHeaders,
+      campaignId,
+      ifMatch: String(resourceVersion),
+      idempotencyKey,
+      publishReferralCampaignRequest: request,
+    });
+    return res.data;
+  },
+
+  async rollbackAdminReferralCampaign(
+    campaignId: string,
+    resourceVersion: number,
+    request: RollbackReferralCampaignRequest
+  ): Promise<ReferralCampaign> {
+    const api = new ADMINREFERRALApi(getConfiguration());
+    const idempotencyKey = `ref_rb_${Date.now()}`;
+    const res = await api.rollbackAdminReferralCampaign({
+      ...commonHeaders,
+      campaignId,
+      ifMatch: String(resourceVersion),
+      idempotencyKey,
+      rollbackReferralCampaignRequest: request,
+    });
     return res.data;
   },
 };

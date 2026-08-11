@@ -261,6 +261,9 @@ src/models/ReferralCampaignListData.ts
 src/models/ReferralCampaignListResponse.ts
 src/models/ReferralCampaignResponse.ts
 src/models/ReferralCampaignStatus.ts
+src/models/ReferralCampaignVersion.ts
+src/models/ReferralCampaignVersionListData.ts
+src/models/ReferralCampaignVersionListResponse.ts
 src/models/ReferralCampaignWriteRequest.ts
 src/models/ReferralInvite.ts
 src/models/ReferralInviteListData.ts

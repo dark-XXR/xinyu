@@ -360,3 +360,25 @@ async def test_granted_reward_reversal_is_audited_and_cannot_repeat() -> None:
         assert reversed_reward.status == "REVERSED" and replay.status == "REVERSED"
         assert wallet is not None and wallet.energy_balance == 0
         assert audit_count == 1
+
+
+@pytest.mark.asyncio
+async def test_campaign_version_history_marks_only_published_targets() -> None:
+    """后台版本历史只把真正发布过的快照标记为可回滚目标。"""
+
+    async with session_factory() as session:
+        service, campaign = await _published_campaign(session)
+        updated_values = _campaign_values()
+        updated_values["display_name"] = "邀请活动第二版草稿"
+        await service.update_campaign(
+            campaign_id=campaign.campaign_id,
+            expected_version=campaign.resource_version,
+            admin_id="adm_editor",
+            values=updated_values,
+        )
+
+        versions = await service.list_campaign_versions(campaign_id=campaign.campaign_id)
+
+        assert [item.version for item in versions] == [2, 1]
+        assert versions[0].was_published is False
+        assert versions[1].was_published is True

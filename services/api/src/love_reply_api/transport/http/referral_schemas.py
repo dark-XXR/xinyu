@@ -92,6 +92,29 @@ class ReferralCampaignListData(ApiModel):
     has_more: bool
 
 
+class ReferralCampaignVersionData(ApiModel):
+    campaign_version_id: str
+    campaign_id: str
+    version: int
+    campaign_code: str
+    display_name: str
+    description: str
+    region: str
+    sales_channels: list[str]
+    binding_window_hours: int
+    max_qualified_invites_per_inviter: int
+    reward_rules: list[ReferralRewardRuleData]
+    anti_abuse_policy: ReferralAntiAbusePolicyData
+    was_published: bool
+    action: str
+    created_by_admin_id: str
+    created_at: datetime
+
+
+class ReferralCampaignVersionListData(ApiModel):
+    items: list[ReferralCampaignVersionData]
+
+
 class ReferralProgramData(ApiModel):
     campaign_id: str
     campaign_version: int
@@ -148,6 +171,7 @@ class ReferralRewardListData(ApiModel):
 
 ReferralCampaignResponse = SuccessEnvelope[ReferralCampaignData]
 ReferralCampaignListResponse = SuccessEnvelope[ReferralCampaignListData]
+ReferralCampaignVersionListResponse = SuccessEnvelope[ReferralCampaignVersionListData]
 ReferralProgramResponse = SuccessEnvelope[ReferralProgramData]
 ReferralInviteResponse = SuccessEnvelope[ReferralInviteData]
 ReferralInviteListResponse = SuccessEnvelope[ReferralInviteListData]

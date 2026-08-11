@@ -4589,6 +4589,36 @@ paths:
           $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalError'
+  /admin/v1/referral-campaigns/{campaignId}/versions:
+    get:
+      operationId: listAdminReferralCampaignVersions
+      summary: List immutable referral campaign versions
+      description: The wasPublished flag identifies versions that are valid rollback targets.
+      tags:
+        - ADMIN_REFERRAL
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/campaignId'
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XClientVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/AcceptLanguage'
+      responses:
+        '200':
+          description: Immutable campaign version history in descending order.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReferralCampaignVersionListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
   /admin/v1/referral-campaigns/{campaignId}/publish:
     post:
       operationId: publishAdminReferralCampaign
@@ -10820,6 +10850,86 @@ components:
           properties:
             data:
               $ref: '#/components/schemas/ReferralCampaign'
+    ReferralCampaignVersion:
+      type: object
+      required:
+        - campaignVersionId
+        - campaignId
+        - version
+        - campaignCode
+        - displayName
+        - description
+        - region
+        - salesChannels
+        - bindingWindowHours
+        - maxQualifiedInvitesPerInviter
+        - rewardRules
+        - antiAbusePolicy
+        - wasPublished
+        - action
+        - createdByAdminId
+        - createdAt
+      properties:
+        campaignVersionId:
+          type: string
+        campaignId:
+          type: string
+        version:
+          type: integer
+          minimum: 1
+        campaignCode:
+          type: string
+        displayName:
+          type: string
+        description:
+          type: string
+        region:
+          type: string
+        salesChannels:
+          type: array
+          items:
+            $ref: '#/components/schemas/SalesChannel'
+        bindingWindowHours:
+          type: integer
+          minimum: 1
+          maximum: 720
+        maxQualifiedInvitesPerInviter:
+          type: integer
+          minimum: 1
+          maximum: 100000
+        rewardRules:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReferralRewardRule'
+        antiAbusePolicy:
+          $ref: '#/components/schemas/ReferralAntiAbusePolicy'
+        wasPublished:
+          type: boolean
+        action:
+          type: string
+        createdByAdminId:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+    ReferralCampaignVersionListData:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReferralCampaignVersion'
+    ReferralCampaignVersionListResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseSuccessEnvelope'
+        - type: object
+          required:
+            - data
+          properties:
+            data:
+              $ref: '#/components/schemas/ReferralCampaignVersionListData'
     PublishReferralCampaignRequest:
       type: object
       additionalProperties: false

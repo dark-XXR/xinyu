@@ -317,6 +317,8 @@ paths:
     $ref: ./admin/referrals.yaml#/campaigns
   /admin/v1/referral-campaigns/{campaignId}:
     $ref: ./admin/referrals.yaml#/campaign
+  /admin/v1/referral-campaigns/{campaignId}/versions:
+    $ref: ./admin/referrals.yaml#/versions
   /admin/v1/referral-campaigns/{campaignId}/publish:
     $ref: ./admin/referrals.yaml#/publish
   /admin/v1/referral-campaigns/{campaignId}/rollback:

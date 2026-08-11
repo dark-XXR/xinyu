@@ -23,6 +23,9 @@ from love_reply_api.transport.http.referral_schemas import (
     ReferralCampaignListData,
     ReferralCampaignListResponse,
     ReferralCampaignResponse,
+    ReferralCampaignVersionData,
+    ReferralCampaignVersionListData,
+    ReferralCampaignVersionListResponse,
     ReferralCampaignWriteRequest,
     ReferralInviteData,
     ReferralInviteListData,
@@ -219,6 +222,50 @@ async def get_campaign(
     del context
     return SuccessEnvelope(
         data=_data(ReferralCampaignData, await service.get_campaign(campaign_id=campaign_id)),
+        request_id=_request_id(request),
+    )
+
+
+@router.get(
+    "/admin/v1/referral-campaigns/{campaignId}/versions",
+    operation_id="listAdminReferralCampaignVersions",
+    response_model=ReferralCampaignVersionListResponse,
+)
+async def list_campaign_versions(
+    campaign_id: Annotated[str, Path(alias="campaignId")],
+    request: Request,
+    context: AdminRead,
+    service: Service,
+) -> ReferralCampaignVersionListResponse:
+    del context
+    versions = await service.list_campaign_versions(campaign_id=campaign_id)
+    items: list[ReferralCampaignVersionData] = []
+    for version in versions:
+        snapshot = version.snapshot
+        items.append(
+            ReferralCampaignVersionData(
+                campaign_version_id=version.campaign_version_id,
+                campaign_id=version.campaign_id,
+                version=version.version,
+                campaign_code=str(snapshot["campaignCode"]),
+                display_name=str(snapshot["displayName"]),
+                description=str(snapshot["description"]),
+                region=str(snapshot["region"]),
+                sales_channels=list(snapshot["salesChannels"]),
+                binding_window_hours=int(snapshot["bindingWindowHours"]),
+                max_qualified_invites_per_inviter=int(
+                    snapshot["maxQualifiedInvitesPerInviter"]
+                ),
+                reward_rules=list(snapshot["rewardRules"]),
+                anti_abuse_policy=dict(snapshot["antiAbusePolicy"]),
+                was_published=version.was_published,
+                action=version.action,
+                created_by_admin_id=version.created_by_admin_id,
+                created_at=version.created_at,
+            )
+        )
+    return SuccessEnvelope(
+        data=ReferralCampaignVersionListData(items=items),
         request_id=_request_id(request),
     )
 

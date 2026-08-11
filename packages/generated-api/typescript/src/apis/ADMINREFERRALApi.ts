@@ -34,6 +34,11 @@ import {
     ReferralCampaignResponseToJSON,
 } from '../models/ReferralCampaignResponse';
 import {
+    type ReferralCampaignVersionListResponse,
+    ReferralCampaignVersionListResponseFromJSON,
+    ReferralCampaignVersionListResponseToJSON,
+} from '../models/ReferralCampaignVersionListResponse';
+import {
     type ReferralCampaignWriteRequest,
     ReferralCampaignWriteRequestFromJSON,
     ReferralCampaignWriteRequestToJSON,
@@ -57,6 +62,14 @@ export interface GetAdminReferralCampaignRequest {
     campaignId: string;
     xClientVersion: string;
     xPlatform: GetAdminReferralCampaignXPlatformEnum;
+    acceptLanguage: string;
+    xRequestId?: string;
+}
+
+export interface ListAdminReferralCampaignVersionsRequest {
+    campaignId: string;
+    xClientVersion: string;
+    xPlatform: ListAdminReferralCampaignVersionsXPlatformEnum;
     acceptLanguage: string;
     xRequestId?: string;
 }
@@ -173,6 +186,38 @@ export interface ADMINREFERRALApiInterface {
      * Read one referral campaign version
      */
     getAdminReferralCampaign(requestParameters: GetAdminReferralCampaignRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ReferralCampaignResponse>;
+
+    /**
+     * Creates request options for listAdminReferralCampaignVersions without sending the request
+     * @param {string} campaignId
+     * @param {string} xClientVersion Semantic application version used for compatibility enforcement.
+     * @param {'ANDROID' | 'ADMIN_WEB'} xPlatform
+     * @param {string} acceptLanguage
+     * @param {string} [xRequestId] Client correlation ID. The server returns the final accepted value.
+     * @throws {RequiredError}
+     * @memberof ADMINREFERRALApiInterface
+     */
+    listAdminReferralCampaignVersionsRequestOpts(requestParameters: ListAdminReferralCampaignVersionsRequest): Promise<runtime.RequestOpts>;
+
+    /**
+     * The wasPublished flag identifies versions that are valid rollback targets.
+     * @summary List immutable referral campaign versions
+     * @param {string} campaignId
+     * @param {string} xClientVersion Semantic application version used for compatibility enforcement.
+     * @param {'ANDROID' | 'ADMIN_WEB'} xPlatform
+     * @param {string} acceptLanguage
+     * @param {string} [xRequestId] Client correlation ID. The server returns the final accepted value.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ADMINREFERRALApiInterface
+     */
+    listAdminReferralCampaignVersionsRaw(requestParameters: ListAdminReferralCampaignVersionsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ReferralCampaignVersionListResponse>>;
+
+    /**
+     * The wasPublished flag identifies versions that are valid rollback targets.
+     * List immutable referral campaign versions
+     */
+    listAdminReferralCampaignVersions(requestParameters: ListAdminReferralCampaignVersionsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ReferralCampaignVersionListResponse>;
 
     /**
      * Creates request options for listAdminReferralCampaigns without sending the request
@@ -517,6 +562,98 @@ export class ADMINREFERRALApi extends runtime.BaseAPI implements ADMINREFERRALAp
      */
     async getAdminReferralCampaign(requestParameters: GetAdminReferralCampaignRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ReferralCampaignResponse> {
         const response = await this.getAdminReferralCampaignRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Creates request options for listAdminReferralCampaignVersions without sending the request
+     */
+    async listAdminReferralCampaignVersionsRequestOpts(requestParameters: ListAdminReferralCampaignVersionsRequest): Promise<runtime.RequestOpts> {
+        if (requestParameters['campaignId'] == null) {
+            throw new runtime.RequiredError(
+                'campaignId',
+                'Required parameter "campaignId" was null or undefined when calling listAdminReferralCampaignVersions().'
+            );
+        }
+
+        if (requestParameters['xClientVersion'] == null) {
+            throw new runtime.RequiredError(
+                'xClientVersion',
+                'Required parameter "xClientVersion" was null or undefined when calling listAdminReferralCampaignVersions().'
+            );
+        }
+
+        if (requestParameters['xPlatform'] == null) {
+            throw new runtime.RequiredError(
+                'xPlatform',
+                'Required parameter "xPlatform" was null or undefined when calling listAdminReferralCampaignVersions().'
+            );
+        }
+
+        if (requestParameters['acceptLanguage'] == null) {
+            throw new runtime.RequiredError(
+                'acceptLanguage',
+                'Required parameter "acceptLanguage" was null or undefined when calling listAdminReferralCampaignVersions().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (requestParameters['xRequestId'] != null) {
+            headerParameters['X-Request-Id'] = String(requestParameters['xRequestId']);
+        }
+
+        if (requestParameters['xClientVersion'] != null) {
+            headerParameters['X-Client-Version'] = String(requestParameters['xClientVersion']);
+        }
+
+        if (requestParameters['xPlatform'] != null) {
+            headerParameters['X-Platform'] = String(requestParameters['xPlatform']);
+        }
+
+        if (requestParameters['acceptLanguage'] != null) {
+            headerParameters['Accept-Language'] = String(requestParameters['acceptLanguage']);
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("adminBearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/admin/v1/referral-campaigns/{campaignId}/versions`;
+        urlPath = urlPath.replace('{campaignId}', encodeURIComponent(String(requestParameters['campaignId'])));
+
+        return {
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        };
+    }
+
+    /**
+     * The wasPublished flag identifies versions that are valid rollback targets.
+     * List immutable referral campaign versions
+     */
+    async listAdminReferralCampaignVersionsRaw(requestParameters: ListAdminReferralCampaignVersionsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ReferralCampaignVersionListResponse>> {
+        const requestOptions = await this.listAdminReferralCampaignVersionsRequestOpts(requestParameters);
+        const response = await this.request(requestOptions, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ReferralCampaignVersionListResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * The wasPublished flag identifies versions that are valid rollback targets.
+     * List immutable referral campaign versions
+     */
+    async listAdminReferralCampaignVersions(requestParameters: ListAdminReferralCampaignVersionsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ReferralCampaignVersionListResponse> {
+        const response = await this.listAdminReferralCampaignVersionsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -998,6 +1135,14 @@ export const GetAdminReferralCampaignXPlatformEnum = {
     AdminWeb: 'ADMIN_WEB'
 } as const;
 export type GetAdminReferralCampaignXPlatformEnum = typeof GetAdminReferralCampaignXPlatformEnum[keyof typeof GetAdminReferralCampaignXPlatformEnum];
+/**
+ * @export
+ */
+export const ListAdminReferralCampaignVersionsXPlatformEnum = {
+    Android: 'ANDROID',
+    AdminWeb: 'ADMIN_WEB'
+} as const;
+export type ListAdminReferralCampaignVersionsXPlatformEnum = typeof ListAdminReferralCampaignVersionsXPlatformEnum[keyof typeof ListAdminReferralCampaignVersionsXPlatformEnum];
 /**
  * @export
  */

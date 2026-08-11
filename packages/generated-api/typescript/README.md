@@ -137,6 +137,7 @@ All URIs are relative to *http://localhost:8000*
 *ADMINRBACApi* | [**verifyAdminMfa**](docs/ADMINRBACApi.md#verifyadminmfa) | **POST** /admin/v1/auth/mfa/verify | Verify an administrator MFA challenge
 *ADMINREFERRALApi* | [**createAdminReferralCampaign**](docs/ADMINREFERRALApi.md#createadminreferralcampaign) | **POST** /admin/v1/referral-campaigns | Create a referral campaign draft
 *ADMINREFERRALApi* | [**getAdminReferralCampaign**](docs/ADMINREFERRALApi.md#getadminreferralcampaign) | **GET** /admin/v1/referral-campaigns/{campaignId} | Read one referral campaign version
+*ADMINREFERRALApi* | [**listAdminReferralCampaignVersions**](docs/ADMINREFERRALApi.md#listadminreferralcampaignversions) | **GET** /admin/v1/referral-campaigns/{campaignId}/versions | List immutable referral campaign versions
 *ADMINREFERRALApi* | [**listAdminReferralCampaigns**](docs/ADMINREFERRALApi.md#listadminreferralcampaigns) | **GET** /admin/v1/referral-campaigns | List referral campaign versions
 *ADMINREFERRALApi* | [**publishAdminReferralCampaign**](docs/ADMINREFERRALApi.md#publishadminreferralcampaign) | **POST** /admin/v1/referral-campaigns/{campaignId}/publish | Publish a referral campaign with bounded rollout
 *ADMINREFERRALApi* | [**rollbackAdminReferralCampaign**](docs/ADMINREFERRALApi.md#rollbackadminreferralcampaign) | **POST** /admin/v1/referral-campaigns/{campaignId}/rollback | Restore a previously published campaign version for new bindings
@@ -434,6 +435,9 @@ All URIs are relative to *http://localhost:8000*
 - [ReferralCampaignListResponse](docs/ReferralCampaignListResponse.md)
 - [ReferralCampaignResponse](docs/ReferralCampaignResponse.md)
 - [ReferralCampaignStatus](docs/ReferralCampaignStatus.md)
+- [ReferralCampaignVersion](docs/ReferralCampaignVersion.md)
+- [ReferralCampaignVersionListData](docs/ReferralCampaignVersionListData.md)
+- [ReferralCampaignVersionListResponse](docs/ReferralCampaignVersionListResponse.md)
 - [ReferralCampaignWriteRequest](docs/ReferralCampaignWriteRequest.md)
 - [ReferralInvite](docs/ReferralInvite.md)
 - [ReferralInviteListData](docs/ReferralInviteListData.md)

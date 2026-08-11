@@ -12,6 +12,7 @@ import {
   ShoppingCart,
   ListOrdered,
   CreditCard,
+  UserPlus,
   Server,
   Cpu,
   ShieldCheck,
@@ -100,6 +101,9 @@ export const Layout: React.FC = () => {
             </NavLink>
             <NavLink to="/commerce/payments" onClick={closeSidebar} className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
               <CreditCard size={18} /> 支付运营
+            </NavLink>
+            <NavLink to="/referrals" onClick={closeSidebar} className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
+              <UserPlus size={18} /> 邀请推广
             </NavLink>
           </div>
 

@@ -171,6 +171,36 @@ publish:
       "500":
         $ref: ../components/responses.yaml#/InternalError
 
+versions:
+  get:
+    operationId: listAdminReferralCampaignVersions
+    summary: List immutable referral campaign versions
+    description: The wasPublished flag identifies versions that are valid rollback targets.
+    tags: [ADMIN_REFERRAL]
+    security:
+      - adminBearerAuth: []
+    parameters:
+      - $ref: "#/components/campaignId"
+      - $ref: ../components/parameters.yaml#/XRequestId
+      - $ref: ../components/parameters.yaml#/XClientVersion
+      - $ref: ../components/parameters.yaml#/XPlatform
+      - $ref: ../components/parameters.yaml#/AcceptLanguage
+    responses:
+      "200":
+        description: Immutable campaign version history in descending order.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/referrals.yaml#/ReferralCampaignVersionListResponse
+      "401":
+        $ref: ../components/responses.yaml#/Unauthorized
+      "403":
+        $ref: ../components/responses.yaml#/Forbidden
+      "404":
+        $ref: ../components/responses.yaml#/NotFound
+      "500":
+        $ref: ../components/responses.yaml#/InternalError
+
 rollback:
   post:
     operationId: rollbackAdminReferralCampaign

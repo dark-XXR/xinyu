@@ -11,6 +11,7 @@ export {
   ADMINRBACApi,
   ADMINPLATFORMApi,
   ADMINSUPPORTApi,
+  ADMINREFERRALApi,
 } from '@love-reply/generated-api'
 
 export type {
@@ -92,6 +93,16 @@ export type {
   PaymentReconciliation,
   PaymentReconciliationRequest,
   PaymentReconciliationResponse,
+  ReferralCampaign,
+  ReferralCampaignWriteRequest,
+  PublishReferralCampaignRequest,
+  RollbackReferralCampaignRequest,
+  ReferralRewardRule,
+  ReferralAntiAbusePolicy,
+  ReferralProgram,
+  ReferralInvite,
+  ReferralReward,
+  ReferralCampaignVersion,
 } from '@love-reply/generated-api'
 
 export {
@@ -137,4 +148,10 @@ export {
   AdminUpdateSupportTicketRequestStatusEnum,
   AdminUpdateSupportTicketRequestPriorityEnum,
   SystemConfigVersionStatusEnum,
+  ReferralCampaignStatus,
+  ReferralMilestoneCode,
+  ReferralBeneficiary,
+  ReferralInviteStatus,
+  ReferralRewardStatus,
+  RewardUnit,
 } from '@love-reply/generated-api'

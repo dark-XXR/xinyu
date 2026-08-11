@@ -324,7 +324,7 @@ items:
       - every_operation_has_success_or_expected_error_fixture
       - fixtures_validate_against_openapi_and_event_schemas
       - fixtures_contain_no_real_personal_data
-    handoffNotes: "Identity has 46 fixtures across 19 operations. P0 generation and billing have 30 fixtures across 12 operations, including text/event-stream. Admin providers have 25 fixtures across 9 operations, including emergency disable and real online publication fields. Commerce and ad rewards have 35 fixtures across 14 operations. Referral has 25 fixtures across 10 user and administrator operations. Remaining AI administration, business administration, and platform modules still require fixtures."
+    handoffNotes: "Identity has 46 fixtures across 19 operations. P0 generation and billing have 30 fixtures across 12 operations, including text/event-stream. Admin providers have 25 fixtures across 9 operations, including emergency disable and real online publication fields. Commerce and ad rewards have 35 fixtures across 14 operations. Referral has 25 original fixtures across 11 user and administrator operations, plus an integration test for immutable published-version history. Remaining AI administration, business administration, and platform modules still require fixtures."
 
   - taskId: CONTRACT-CODEGEN-001
     title: Configure Android TypeScript and backend contract generation
@@ -545,7 +545,7 @@ items:
       - secret_values_are_never_rendered_after_submission
       - product_price_and_benefit_versions_require_confirmation
       - payment_and_provider_actions_have_audit_readback
-    handoffNotes: "In progress after scope correction. Delivered routes now include dashboard, provider lifecycle, AI runtime, products, orders/refunds, audit, masked user operations, notices, website identity settings, payment operations and the support-ticket core loop. All new pages passed 1440x900 and 390x844 browser checks. Remaining domains are dashboard aggregation, payment webhook diagnosis/replay, CMS, referral UI, themes/i18n/experiments, releases, integrations, RBAC, alerts/incidents and data governance; the task must not be reported complete until those domains are accepted."
+    handoffNotes: "In progress after scope correction. Delivered routes now include dashboard, provider lifecycle, AI runtime, products, orders/refunds, audit, masked user operations, notices, website identity settings, payment operations, support tickets and invitation campaign administration. /referrals uses immutable published-version history for rollback and keeps rewards, limits, thresholds and rollout as administrator inputs. All accepted pages passed desktop and 390x844 browser checks. Remaining domains are dashboard aggregation, payment webhook diagnosis/replay, CMS, themes/i18n/experiments, releases, integrations, RBAC, alerts/incidents and data governance; the task must not be reported complete until those domains are accepted."
 
   - taskId: FRONTEND-ANDROID-AUTH-002
     title: Upgrade Android to email-first authentication with explicit SMS fallback
@@ -618,7 +618,7 @@ items:
       - qualification_and_reward_grant_are_server_authoritative_and_idempotent
       - invitee_identity_is_masked_and_contact_upload_is_not_required
       - published_campaign_versions_preserve_existing_referral_facts
-    handoffNotes: "Complete with 10 user and administrator operations and 25 validated fixtures. The design uses one-level codes and HTTPS deep links, authenticated immutable binding, masked invitee hints, milestone plus risk qualification, cooling-off, idempotent grant/reversal ledgers, and versioned publication/rollback that preserves existing referral facts."
+    handoffNotes: "Complete with 11 user and administrator operations plus 25 original validated fixtures. The design uses one-level codes and HTTPS deep links, authenticated immutable binding, masked invitee hints, milestone plus risk qualification, cooling-off, idempotent grant/reversal ledgers, versioned publication/rollback, and a read-only immutable history endpoint that identifies previously published rollback targets."
 
   - taskId: BACKEND-REFERRAL-001
     title: Implement referral campaigns invite binding qualification risk and rewards

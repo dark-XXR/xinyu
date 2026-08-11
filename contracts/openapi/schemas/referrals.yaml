@@ -467,3 +467,84 @@ ReferralCampaignListResponse:
       properties:
         data:
           $ref: "#/ReferralCampaignListData"
+
+ReferralCampaignVersion:
+  type: object
+  required:
+    - campaignVersionId
+    - campaignId
+    - version
+    - campaignCode
+    - displayName
+    - description
+    - region
+    - salesChannels
+    - bindingWindowHours
+    - maxQualifiedInvitesPerInviter
+    - rewardRules
+    - antiAbusePolicy
+    - wasPublished
+    - action
+    - createdByAdminId
+    - createdAt
+  properties:
+    campaignVersionId:
+      type: string
+    campaignId:
+      type: string
+    version:
+      type: integer
+      minimum: 1
+    campaignCode:
+      type: string
+    displayName:
+      type: string
+    description:
+      type: string
+    region:
+      type: string
+    salesChannels:
+      type: array
+      items:
+        $ref: ./billing.yaml#/SalesChannel
+    bindingWindowHours:
+      type: integer
+      minimum: 1
+      maximum: 720
+    maxQualifiedInvitesPerInviter:
+      type: integer
+      minimum: 1
+      maximum: 100000
+    rewardRules:
+      type: array
+      items:
+        $ref: "#/ReferralRewardRule"
+    antiAbusePolicy:
+      $ref: "#/ReferralAntiAbusePolicy"
+    wasPublished:
+      type: boolean
+    action:
+      type: string
+    createdByAdminId:
+      type: string
+    createdAt:
+      type: string
+      format: date-time
+
+ReferralCampaignVersionListData:
+  type: object
+  required: [items]
+  properties:
+    items:
+      type: array
+      items:
+        $ref: "#/ReferralCampaignVersion"
+
+ReferralCampaignVersionListResponse:
+  allOf:
+    - $ref: ../components/schemas/common.yaml#/BaseSuccessEnvelope
+    - type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/ReferralCampaignVersionListData"
